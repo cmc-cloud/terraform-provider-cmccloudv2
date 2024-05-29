@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "xutility": "cpp",
+        "system_error": "cpp"
+    }
+}
