@@ -1,9 +1,10 @@
 module github.com/cmc-cloud/terraform-provider-cmccloudv2
 
-go 1.22.2
+go 1.22.2 
 
 require (
-	github.com/cmc-cloud/gocmcapiv2 v0.0.0-20201230035051-54fa9ab87e70
+    // run: go get -d github.com/cmc-cloud/gocmcapiv2@7c5f385 to get correct lastest version, eb9c186 = hash github commit
+	github.com/cmc-cloud/gocmcapiv2 v0.0.0-20240529175245-7c5f385170dd
 	github.com/hashicorp/terraform-plugin-sdk v1.17.2
 )
 
