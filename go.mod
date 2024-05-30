@@ -1,8 +1,8 @@
 module github.com/cmc-cloud/terraform-provider-cmccloudv2
 
-go 1.22
+go 1.18
 
-toolchain go1.22.2
+//toolchain go1.22.2
 
 require (
 	// run: go get -d github.com/cmc-cloud/gocmcapiv2@7c5f385 to get correct lastest version, eb9c186 = hash github commit
