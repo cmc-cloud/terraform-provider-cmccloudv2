@@ -1,15 +1,13 @@
 module github.com/cmc-cloud/terraform-provider-cmccloudv2
 
-go 1.22
-
-toolchain go1.22.2
+go 1.22.2
 
 require (
 	// run: go get -d github.com/cmc-cloud/gocmcapiv2@7c5f385 to get correct lastest version, eb9c186 = hash github commit
 	github.com/cmc-cloud/gocmcapiv2 v0.0.0-20240529175245-7c5f385170dd
 	github.com/hashicorp/terraform-plugin-sdk v1.17.2
 )
- 
+
 require (
 	cloud.google.com/go/compute v1.24.0 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
@@ -108,4 +106,4 @@ require (
 )
 
 // uncomment this line when build from code
-// replace github.com/cmc-cloud/gocmcapiv2 => D:\code\CMC\openstack\terraform\gocmcapiv2
+//replace github.com/cmc-cloud/gocmcapiv2 => D:\code\CMC\openstack\terraform\gocmcapiv2

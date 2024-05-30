@@ -57,6 +57,7 @@ func Provider() terraform.ResourceProvider {
 			"cmccloudv2_autoscaling_scale_out_policy":    resourceAutoScalingScaleOutPolicy(),
 			"cmccloudv2_autoscaling_az_policy":           resourceAutoScalingAZPolicy(),
 			"cmccloudv2_autoscaling_lb_policy":           resourceAutoScalingLBPolicy(),
+			"cmccloudv2_ecs_group":                       resourceEcsGroup(),
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -76,6 +77,7 @@ func Provider() terraform.ResourceProvider {
 			"cmccloudv2_snapshot":                  datasourceVolumeSnapshot(),
 			"cmccloudv2_autoscaling_configuration": datasourceAutoScalingConfiguration(),
 			"cmccloudv2_autoscaling_group":         datasourceAutoScalingGroup(),
+			"cmccloudv2_ecs_group":                 datasourceEcsGroup(),
 		},
 	}
 	p.ConfigureFunc = func(d *schema.ResourceData) (interface{}, error) {
