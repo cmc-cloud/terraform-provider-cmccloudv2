@@ -1,12 +1,10 @@
 package cmccloudv2
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/cmc-cloud/gocmcapiv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -30,20 +28,20 @@ func resourceVolumeBackup() *schema.Resource {
 
 func resourceVolumeBackupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
-	if _, ok := d.GetOk("volume_id"); ok {
-		backup, err := client.Volume.CreateBackup(d.Get("volume_id").(string), map[string]interface{}{
-			"name":        d.Get("name").(string),
-			"force":       d.Get("force").(bool),
-			"incremental": d.Get("incremental").(bool),
-		})
-		if err != nil {
-			return fmt.Errorf("Error creating backup of volume [%s]: %v", d.Get("volume_id").(string), err)
-		}
-		d.SetId(backup.ID)
-		waitUntilVolumeBackupCreated(d, meta)
-		return resourceVolumeBackupRead(d, meta)
+	backup, err := client.Volume.CreateBackup(d.Get("volume_id").(string), map[string]interface{}{
+		"name":        d.Get("name").(string),
+		"force":       d.Get("force").(bool),
+		"incremental": d.Get("incremental").(bool),
+	})
+	if err != nil {
+		return fmt.Errorf("Error creating backup of volume [%s]: %v", d.Get("volume_id").(string), err)
 	}
-	return fmt.Errorf("volume_id is required")
+	d.SetId(backup.ID)
+	_, err = waitUntilVolumeBackupStatusChangedState(d, meta, []string{"available"}, []string{"error"})
+	if err != nil {
+		return fmt.Errorf("Error creating backup of volume [%s]: %v", d.Get("volume_id").(string), err)
+	}
+	return resourceVolumeBackupRead(d, meta)
 }
 
 func resourceVolumeBackupRead(d *schema.ResourceData, meta interface{}) error {
@@ -86,9 +84,12 @@ func resourceVolumeBackupDelete(d *schema.ResourceData, meta interface{}) error 
 	_, err := client.Backup.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete cloud Backup [%s]: %v", d.Id(), err)
+		return fmt.Errorf("Error delete volume backup [%s]: %v", d.Id(), err)
 	}
-	waitUntilVolumeBackupDeleted(d, meta)
+	_, err = waitUntilVolumeBackupDeleted(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error delete volume backup: %v", err)
+	}
 	return nil
 }
 
@@ -97,55 +98,22 @@ func resourceVolumeBackupImport(d *schema.ResourceData, meta interface{}) ([]*sc
 	return []*schema.ResourceData{d}, err
 }
 
-func waitUntilVolumeBackupCreated(d *schema.ResourceData, meta interface{}) (interface{}, error) {
-	stateConf := &resource.StateChangeConf{
-		Pending:        []string{"creating"},
-		Target:         []string{"avaiable", "error"},
-		Refresh:        createVolumeBackupStateRefreshFunc(d, meta),
-		Timeout:        d.Timeout(schema.TimeoutCreate),
-		Delay:          30 * time.Second,
-		MinTimeout:     20 * time.Second,
-		NotFoundChecks: 50,
-	}
-	return stateConf.WaitForState()
+func waitUntilVolumeBackupStatusChangedState(d *schema.ResourceData, meta interface{}, targetStatus []string, errorStatus []string) (interface{}, error) {
+	return waitUntilResourceStatusChanged(d, meta, targetStatus, errorStatus, WaitConf{
+		Delay:      10 * time.Second,
+		MinTimeout: 30 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).Backup.Get(id)
+	}, func(obj interface{}) string {
+		return obj.(gocmcapiv2.Backup).Status
+	})
 }
 
-func createVolumeBackupStateRefreshFunc(d *schema.ResourceData, meta interface{}) resource.StateRefreshFunc {
-	client := meta.(*CombinedConfig).goCMCClient()
-	return func() (interface{}, string, error) {
-		backup, err := client.Backup.Get(d.Id())
-
-		if errors.Is(err, gocmcapiv2.ErrNotFound) {
-			return backup, "", nil
-		}
-
-		return backup, backup.Status, nil
-
-	}
-}
 func waitUntilVolumeBackupDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
-	stateConf := &resource.StateChangeConf{
-		Pending:        []string{"false"},
-		Target:         []string{"true"},
-		Refresh:        deleteVolumeBackupStateRefreshFunc(d, meta),
-		Timeout:        d.Timeout(schema.TimeoutDelete),
-		Delay:          30 * time.Second,
-		MinTimeout:     20 * time.Second,
-		NotFoundChecks: 50,
-	}
-	return stateConf.WaitForState()
-}
-
-func deleteVolumeBackupStateRefreshFunc(d *schema.ResourceData, meta interface{}) resource.StateRefreshFunc {
-	client := meta.(*CombinedConfig).goCMCClient()
-	return func() (interface{}, string, error) {
-		backup, err := client.Backup.Get(d.Id())
-
-		if errors.Is(err, gocmcapiv2.ErrNotFound) {
-			return backup, "true", nil
-		}
-
-		return backup, "", nil
-
-	}
+	return waitUntilResourceDeleted(d, meta, WaitConf{
+		Delay:      3 * time.Second,
+		MinTimeout: 30 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).Backup.Get(id)
+	})
 }

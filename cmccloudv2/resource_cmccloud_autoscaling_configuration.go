@@ -1,9 +1,7 @@
 package cmccloudv2
 
 import (
-	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	// "strconv"
@@ -42,8 +40,6 @@ func resourceAutoScalingConfiguration() *schema.Resource {
 
 func resourceAutoScalingConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
-
-	fmt.Errorf("resourceAutoScalingConfigurationCreate %s\n", d.Get("name").(string))
 	datas := map[string]interface{}{
 		"name":                 d.Get("name").(string),
 		"source_type":          d.Get("source_type").(string),
@@ -66,11 +62,6 @@ func resourceAutoScalingConfigurationCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error creating configuration: %v", err.Error())
 	}
 	d.SetId(res.ID)
-	// flavor_id := d.Get("flavor_id").(string)
-	// _ = d.Set("flavor_id", flavor_id)
-	// _ = d.Set("source_type", d.Get("source_type").(string))
-	// _ = d.Set("source_id", d.Get("source_id").(string))
-
 	return resourceAutoScalingConfigurationRead(d, meta)
 }
 
@@ -78,11 +69,6 @@ func resourceAutoScalingConfigurationRead(d *schema.ResourceData, meta interface
 	client := meta.(*CombinedConfig).goCMCClient()
 	configuration, err := client.AutoScalingConfiguration.Get(d.Id())
 	if err != nil {
-		if errors.Is(err, gocmcapiv2.ErrNotFound) {
-			log.Printf("[WARN] CMC Cloud AutoScalingConfiguration with id = (%s) is not found", d.Id())
-			d.SetId("")
-			return nil
-		}
 		return fmt.Errorf("Error retrieving configuration %s: %v", d.Id(), err)
 	}
 	_ = d.Set("name", configuration.Name)
@@ -142,9 +128,12 @@ func resourceAutoScalingConfigurationUpdate(d *schema.ResourceData, meta interfa
 
 func resourceAutoScalingConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
-	// destroy the autoscale configuration
 	_, err := client.AutoScalingConfiguration.Delete(d.Id())
 
+	if err != nil {
+		return fmt.Errorf("Error delete autoscale configuration: %v", err)
+	}
+	_, err = waitUntilAutoScalingConfigurationDeleted(d, meta)
 	if err != nil {
 		return fmt.Errorf("Error delete autoscale configuration: %v", err)
 	}
@@ -154,4 +143,13 @@ func resourceAutoScalingConfigurationDelete(d *schema.ResourceData, meta interfa
 func resourceAutoScalingConfigurationImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	err := resourceAutoScalingConfigurationRead(d, meta)
 	return []*schema.ResourceData{d}, err
+}
+
+func waitUntilAutoScalingConfigurationDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+	return waitUntilResourceDeleted(d, meta, WaitConf{
+		Delay:      3 * time.Second,
+		MinTimeout: 10 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).AutoScalingConfiguration.Get(id)
+	})
 }

@@ -2,7 +2,9 @@ package cmccloudv2
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/cmc-cloud/gocmcapiv2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -14,6 +16,11 @@ func resourceKubernatesNodeGroup() *schema.Resource {
 		Delete: resourceKubernatesNodeGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceKubernatesNodeGroupImport,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Delete: schema.DefaultTimeout(10 * time.Minute),
+			Create: schema.DefaultTimeout(120 * time.Minute),
+			Update: schema.DefaultTimeout(120 * time.Minute),
 		},
 		SchemaVersion: 1,
 		Schema:        kubernatesNodeGroupSchema(),
@@ -43,6 +50,12 @@ func resourceKubernatesNodeGroupCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error creating Kubernates NodeGroup: %s", err)
 	}
 	d.SetId(kubernatesnodegroup.ID)
+
+	_, err = waitUntilKubernatesNodeGroupStatusChangedState(d, meta, d.Timeout(schema.TimeoutCreate))
+	if err != nil {
+		return fmt.Errorf("Error creating Kubernates NodeGroup: %v", err)
+	}
+
 	return resourceKubernatesNodeGroupRead(d, meta)
 }
 
@@ -88,14 +101,22 @@ func resourceKubernatesNodeGroupUpdate(d *schema.ResourceData, meta interface{})
 			"node_count": d.Get("node_count").(int),
 		})
 		if err != nil {
-			return fmt.Errorf("Error when rename Kubernates NodeGroup [%s]: %v", id, err)
+			return fmt.Errorf("Error when change Kubernates NodeGroup [%s] node count: %v", id, err)
+		}
+		_, err = waitUntilKubernatesNodeGroupStatusChangedState(d, meta, d.Timeout(schema.TimeoutUpdate))
+		if err != nil {
+			return fmt.Errorf("Error when change Kubernates NodeGroup [%s] node count: %v", id, err)
 		}
 	}
 
 	if d.HasChange("min_node_count") || d.HasChange("max_node_count") {
 		_, err := client.Kubernates.UpdateNodeGroup(d.Get("cluster_id").(string), id, d.Get("min_node_count").(int), d.Get("max_node_count").(int))
 		if err != nil {
-			return fmt.Errorf("Error when rename Kubernates NodeGroup [%s]: %v", id, err)
+			return fmt.Errorf("Error when change min_node_count/max_node_count of Kubernates NodeGroup [%s]: %v", id, err)
+		}
+		_, err = waitUntilKubernatesNodeGroupStatusChangedState(d, meta, d.Timeout(schema.TimeoutUpdate))
+		if err != nil {
+			return fmt.Errorf("Error when change min_node_count/max_node_count of Kubernates NodeGroup [%s]: %v", id, err)
 		}
 	}
 	return resourceKubernatesNodeGroupRead(d, meta)
@@ -106,7 +127,11 @@ func resourceKubernatesNodeGroupDelete(d *schema.ResourceData, meta interface{})
 	_, err := client.Kubernates.DeleteNodeGroup(d.Get("cluster_id").(string), d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete cloud Kubernates NodeGroup: %v", err)
+		return fmt.Errorf("Error delete kubernates nodegroup [%s]: %v", d.Id(), err)
+	}
+	_, err = waitUntilKubernatesNodeGroupDeleted(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error delete kubernates nodegroup [%s]: %v", d.Id(), err)
 	}
 	return nil
 }
@@ -114,4 +139,25 @@ func resourceKubernatesNodeGroupDelete(d *schema.ResourceData, meta interface{})
 func resourceKubernatesNodeGroupImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	err := resourceKubernatesNodeGroupRead(d, meta)
 	return []*schema.ResourceData{d}, err
+}
+
+func waitUntilKubernatesNodeGroupDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+	return waitUntilResourceDeleted(d, meta, WaitConf{
+		Delay:      30 * time.Second,
+		MinTimeout: 5 * 60 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).Kubernates.GetNodeGroup(d.Get("cluster_id").(string), id)
+	})
+}
+
+func waitUntilKubernatesNodeGroupStatusChangedState(d *schema.ResourceData, meta interface{}, timeout time.Duration) (interface{}, error) {
+	return waitUntilResourceStatusChanged(d, meta, []string{"CREATE_COMPLETE", "UPDATE_COMPLETE", "HEALTHY"}, []string{"CREATE_FAILED", "UPDATE_FAILED"}, WaitConf{
+		Timeout:    timeout,
+		Delay:      10 * time.Second,
+		MinTimeout: 30 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).Kubernates.GetNodeGroup(d.Get("cluster_id").(string), id)
+	}, func(obj interface{}) string {
+		return obj.(gocmcapiv2.KubernatesNodeGroup).Status
+	})
 }

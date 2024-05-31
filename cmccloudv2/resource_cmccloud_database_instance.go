@@ -1,12 +1,10 @@
 package cmccloudv2
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/cmc-cloud/gocmcapiv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -66,10 +64,13 @@ func resourceDatabaseInstanceCreate(d *schema.ResourceData, meta interface{}) er
 		"subnets":           d.Get("subnets").([]interface{}),
 	})
 	if err != nil {
-		return fmt.Errorf("Error creating DatabaseInstance: %s", err)
+		return fmt.Errorf("Error creating Database Instance: %s", err)
 	}
 	d.SetId(configuration.ID)
-	waitUntilDatabaseInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutCreate))
+	_, err = waitUntilDatabaseInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutCreate))
+	if err != nil {
+		return fmt.Errorf("Error creating Database Instance: %s", err)
+	}
 	return resourceDatabaseInstanceRead(d, meta)
 }
 
@@ -117,9 +118,17 @@ func resourceDatabaseInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 		if err != nil {
 			return fmt.Errorf("Error when update accessibility of Database Instance [%s]: %v", id, err)
 		}
+		_, err = waitUntilDatabaseInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutUpdate))
+		if err != nil {
+			return fmt.Errorf("Error when update accessibility of Database Instance [%s]: %v", id, err)
+		}
 	}
 	if d.HasChange("flavor_id") {
 		_, err := client.DatabaseInstance.Resize(id, d.Get("flavor_id").(string))
+		if err != nil {
+			return fmt.Errorf("Error when resize Database Instance [%s] to flavor [%s]: %v", id, d.Get("flavor_id").(string), err)
+		}
+		_, err = waitUntilDatabaseInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
 			return fmt.Errorf("Error when resize Database Instance [%s] to flavor [%s]: %v", id, d.Get("flavor_id").(string), err)
 		}
@@ -129,12 +138,20 @@ func resourceDatabaseInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 		if err != nil {
 			return fmt.Errorf("Error when resize volume Database Instance [%s] to new size: %v", id, err)
 		}
+		_, err = waitUntilDatabaseInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutUpdate))
+		if err != nil {
+			return fmt.Errorf("Error when resize volume Database Instance [%s] to new size: %v", id, err)
+		}
 	}
 
 	if d.HasChange("datastore_version") {
 		_, err := client.DatabaseInstance.UpgradeDatastoreVersion(id, d.Get("datastore_version").(string))
 		if err != nil {
-			return fmt.Errorf("Error when upgrade datastore version of Database Instance [%s] to new size: %v", id, err)
+			return fmt.Errorf("Error when upgrade datastore version of Database Instance [%s]: %v", id, err)
+		}
+		_, err = waitUntilDatabaseInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutUpdate))
+		if err != nil {
+			return fmt.Errorf("Error when upgrade datastore version of Database Instance [%s]: %v", id, err)
 		}
 	}
 
@@ -144,7 +161,6 @@ func resourceDatabaseInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 			return fmt.Errorf("Error when update billing mode of Database Instance [%s]: %v", id, err)
 		}
 	}
-	waitUntilDatabaseInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutUpdate))
 	return resourceDatabaseInstanceRead(d, meta)
 }
 
@@ -155,7 +171,10 @@ func resourceDatabaseInstanceDelete(d *schema.ResourceData, meta interface{}) er
 	if err != nil {
 		return fmt.Errorf("Error delete database instance: %v", err)
 	}
-	waitUntilDatabaseInstanceDeleted(d, meta)
+	_, err = waitUntilDatabaseInstanceDeleted(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error delete database instance: %v", err)
+	}
 	return nil
 }
 
@@ -165,51 +184,24 @@ func resourceDatabaseInstanceImport(d *schema.ResourceData, meta interface{}) ([
 }
 
 func waitUntilDatabaseInstanceJobFinished(d *schema.ResourceData, meta interface{}, timeout time.Duration) (interface{}, error) {
-	stateConf := &resource.StateChangeConf{
-		Pending:        []string{"BUILD", "NEW", "REBOOT", "RESIZE", "UPGRADE", "PROMOTE", "EJECT", "DETACH", "SHUTDOWN", "BACKUP"},
-		Target:         []string{"ACTIVE", "ERROR"},
-		Refresh:        createDatabaseInstanceStateRefreshFunc(d, meta),
-		Timeout:        timeout,
-		Delay:          30 * time.Second,
-		MinTimeout:     20 * time.Second,
-		NotFoundChecks: 50,
-	}
-	return stateConf.WaitForState()
-}
-
-func createDatabaseInstanceStateRefreshFunc(d *schema.ResourceData, meta interface{}) resource.StateRefreshFunc {
-	client := meta.(*CombinedConfig).goCMCClient()
-	return func() (interface{}, string, error) {
-		instance, err := client.DatabaseInstance.Get(d.Id())
-		if errors.Is(err, gocmcapiv2.ErrNotFound) {
-			return instance, "", nil
-		}
-		return instance, instance.Status, nil
-	}
+	// Pending:        []string{"BUILD", "NEW", "REBOOT", "RESIZE", "UPGRADE", "PROMOTE", "EJECT", "DETACH", "SHUTDOWN", "BACKUP"},
+	// Target:         []string{"ACTIVE", "ERROR"},
+	return waitUntilResourceStatusChanged(d, meta, []string{"ACTIVE", "SHUTDOWN"}, []string{"ERROR"}, WaitConf{
+		Timeout:    timeout,
+		Delay:      10 * time.Second,
+		MinTimeout: 20 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).DatabaseInstance.Get(id)
+	}, func(obj interface{}) string {
+		return obj.(gocmcapiv2.DatabaseInstance).Status
+	})
 }
 
 func waitUntilDatabaseInstanceDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
-	stateConf := &resource.StateChangeConf{
-		Pending:        []string{"false"},
-		Target:         []string{"true"},
-		Refresh:        deleteDatabaseInstanceStateRefreshFunc(d, meta),
-		Timeout:        d.Timeout(schema.TimeoutDelete),
-		Delay:          30 * time.Second,
-		MinTimeout:     20 * time.Second,
-		NotFoundChecks: 50,
-	}
-	return stateConf.WaitForState()
-}
-
-func deleteDatabaseInstanceStateRefreshFunc(d *schema.ResourceData, meta interface{}) resource.StateRefreshFunc {
-	client := meta.(*CombinedConfig).goCMCClient()
-	return func() (interface{}, string, error) {
-		backup, err := client.DatabaseInstance.Get(d.Id())
-
-		if errors.Is(err, gocmcapiv2.ErrNotFound) {
-			return backup, "true", nil
-		}
-
-		return backup, "", nil
-	}
+	return waitUntilResourceDeleted(d, meta, WaitConf{
+		Delay:      10 * time.Second,
+		MinTimeout: 20 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).DatabaseInstance.Get(id)
+	})
 }

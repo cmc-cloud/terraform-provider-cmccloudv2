@@ -23,31 +23,31 @@ func createLabelsSchema() map[string]*schema.Schema {
 			Optional: true,
 			ForceNew: true,
 		},
-		"kube_dashboard_enable": {
+		"kube_dashboard_enabled": {
 			Type:     schema.TypeBool,
 			Optional: true,
 			ForceNew: true,
 			Default:  false,
 		},
-		"metrics_server_enable": {
+		"metrics_server_enabled": {
 			Type:     schema.TypeBool,
 			Optional: true,
 			ForceNew: true,
 			Default:  false,
 		},
-		"npd_enable": {
+		"npd_enabled": {
 			Type:     schema.TypeBool,
 			Optional: true,
 			ForceNew: true,
 			Default:  true,
 		},
-		"auto_healing_enable": {
+		"auto_healing_enabled": {
 			Type:     schema.TypeBool,
 			Optional: true,
 			ForceNew: true,
 			Default:  false,
 		},
-		"auto_scaling_enable": {
+		"auto_scaling_enabled": {
 			Type:     schema.TypeBool,
 			Optional: true,
 			ForceNew: true,
@@ -58,14 +58,14 @@ func createLabelsSchema() map[string]*schema.Schema {
 			Optional: true,
 			ForceNew: true,
 			// Default:     50,
-			Description: "Required when auto_scaling_enable = 'true'",
+			Description: "Required when auto_scaling_enabled = 'true'",
 		},
 		"min_node_count": {
 			Type:     schema.TypeInt,
 			Optional: true,
 			ForceNew: true,
 			// Default:     1,
-			Description: "Required when auto_scaling_enable = 'true'",
+			Description: "Required when auto_scaling_enabled = 'true'",
 		},
 	}
 }

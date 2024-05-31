@@ -1,12 +1,10 @@
 package cmccloudv2
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/cmc-cloud/gocmcapiv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -30,7 +28,7 @@ func resourceDatabaseBackup() *schema.Resource {
 
 func resourceDatabaseBackupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
-	backup, err := client.Volume.CreateBackup(d.Get("instance_id").(string), map[string]interface{}{
+	backup, err := client.DatabaseInstance.CreateBackup(d.Get("instance_id").(string), map[string]interface{}{
 		"name":        d.Get("name").(string),
 		"incremental": d.Get("incremental").(bool),
 	})
@@ -38,7 +36,10 @@ func resourceDatabaseBackupCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error creating backup of database instance [%s]: %v", d.Get("instance_id").(string), err)
 	}
 	d.SetId(backup.ID)
-	waitUntilDatabaseBackupCreated(d, meta)
+	_, err = waitUntilDatabaseBackupStatusChangedState(d, meta, []string{"avaiable"}, []string{"error"})
+	if err != nil {
+		return fmt.Errorf("Error creating backup of database instance [%s]: %v", d.Get("instance_id").(string), err)
+	}
 	return resourceDatabaseBackupRead(d, meta)
 }
 
@@ -68,9 +69,11 @@ func resourceDatabaseBackupUpdate(d *schema.ResourceData, meta interface{}) erro
 	client := meta.(*CombinedConfig).goCMCClient()
 	id := d.Id()
 	if d.HasChange("name") {
-		_, err := client.Backup.Rename(id, d.Get("name").(string))
+		_, err := client.DatabaseBackup.Update(id, map[string]interface{}{
+			"name": d.Get("name").(string),
+		})
 		if err != nil {
-			return fmt.Errorf("Error when rename Backup [%s]: %v", id, err)
+			return fmt.Errorf("Error when rename database instance backup [%s]: %v", id, err)
 		}
 	}
 	return resourceDatabaseBackupRead(d, meta)
@@ -81,9 +84,12 @@ func resourceDatabaseBackupDelete(d *schema.ResourceData, meta interface{}) erro
 	_, err := client.Backup.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete cloud Backup [%s]: %v", d.Id(), err)
+		return fmt.Errorf("Error delete database instance backup [%s]: %v", d.Id(), err)
 	}
-	waitUntilDatabaseBackupDeleted(d, meta)
+	_, err = waitUntilDatabaseBackupDeleted(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error delete database instance backup [%s]: %v", d.Id(), err)
+	}
 	return nil
 }
 
@@ -92,55 +98,23 @@ func resourceDatabaseBackupImport(d *schema.ResourceData, meta interface{}) ([]*
 	return []*schema.ResourceData{d}, err
 }
 
-func waitUntilDatabaseBackupCreated(d *schema.ResourceData, meta interface{}) (interface{}, error) {
-	stateConf := &resource.StateChangeConf{
-		Pending:        []string{"creating"},
-		Target:         []string{"avaiable", "error"},
-		Refresh:        createDatabaseBackupStateRefreshFunc(d, meta),
-		Timeout:        d.Timeout(schema.TimeoutCreate),
-		Delay:          30 * time.Second,
-		MinTimeout:     20 * time.Second,
-		NotFoundChecks: 50,
-	}
-	return stateConf.WaitForState()
+func waitUntilDatabaseBackupStatusChangedState(d *schema.ResourceData, meta interface{}, targetStatus []string, errorStatus []string) (interface{}, error) {
+	return waitUntilResourceStatusChanged(d, meta, targetStatus, errorStatus, WaitConf{
+		Timeout:    d.Timeout(schema.TimeoutCreate),
+		Delay:      5 * time.Second,
+		MinTimeout: 10 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).DatabaseBackup.Get(id)
+	}, func(obj interface{}) string {
+		return obj.(gocmcapiv2.DatabaseBackup).Status
+	})
 }
 
-func createDatabaseBackupStateRefreshFunc(d *schema.ResourceData, meta interface{}) resource.StateRefreshFunc {
-	client := meta.(*CombinedConfig).goCMCClient()
-	return func() (interface{}, string, error) {
-		backup, err := client.Backup.Get(d.Id())
-
-		if errors.Is(err, gocmcapiv2.ErrNotFound) {
-			return backup, "", nil
-		}
-
-		return backup, backup.Status, nil
-
-	}
-}
 func waitUntilDatabaseBackupDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
-	stateConf := &resource.StateChangeConf{
-		Pending:        []string{"false"},
-		Target:         []string{"true"},
-		Refresh:        deleteDatabaseBackupStateRefreshFunc(d, meta),
-		Timeout:        d.Timeout(schema.TimeoutDelete),
-		Delay:          30 * time.Second,
-		MinTimeout:     20 * time.Second,
-		NotFoundChecks: 50,
-	}
-	return stateConf.WaitForState()
-}
-
-func deleteDatabaseBackupStateRefreshFunc(d *schema.ResourceData, meta interface{}) resource.StateRefreshFunc {
-	client := meta.(*CombinedConfig).goCMCClient()
-	return func() (interface{}, string, error) {
-		backup, err := client.Backup.Get(d.Id())
-
-		if errors.Is(err, gocmcapiv2.ErrNotFound) {
-			return backup, "true", nil
-		}
-
-		return backup, "", nil
-
-	}
+	return waitUntilResourceDeleted(d, meta, WaitConf{
+		Delay:      3 * time.Second,
+		MinTimeout: 30 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).DatabaseBackup.Get(id)
+	})
 }

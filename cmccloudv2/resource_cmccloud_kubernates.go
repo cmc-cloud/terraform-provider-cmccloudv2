@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/cmc-cloud/gocmcapiv2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -28,22 +29,22 @@ func resourceKubernates() *schema.Resource {
 				blockList := v.([]interface{})
 				if len(blockList) > 0 {
 					labels := blockList[0].(map[string]interface{})
-					auto_scaling_enable := labels["auto_scaling_enable"].(bool)
-					if auto_scaling_enable {
+					auto_scaling_enabled := labels["auto_scaling_enabled"].(bool)
+					if auto_scaling_enabled {
 						// co enable => phai set 2 truong nay, khong set => thong bao
 						if labels["max_node_count"].(int) <= 0 { // khong duoc set max_node_count
-							return fmt.Errorf("min_node_count & max_node_count must be set > 0 when auto_scaling_enable is 'true'")
+							return fmt.Errorf("min_node_count & max_node_count must be set > 0 when auto_scaling_enabled is 'true'")
 						}
 						if labels["min_node_count"].(int) <= 0 { // khong duoc set min_node_count
-							return fmt.Errorf("min_node_count & max_node_count must be set > 0 when auto_scaling_enable is 'true'")
+							return fmt.Errorf("min_node_count & max_node_count must be set > 0 when auto_scaling_enabled is 'true'")
 						}
 					} else {
 						// khong enable => ko set 2 truong nay
 						if labels["max_node_count"].(int) > 0 {
-							return fmt.Errorf("min_node_count & max_node_count must not be set when auto_scaling_enable is 'false'")
+							return fmt.Errorf("min_node_count & max_node_count must not be set when auto_scaling_enabled is 'false'")
 						}
 						if labels["min_node_count"].(int) > 0 {
-							return fmt.Errorf("min_node_count & max_node_count must not be set when auto_scaling_enable is 'false'")
+							return fmt.Errorf("min_node_count & max_node_count must not be set when auto_scaling_enabled is 'false'")
 						}
 					}
 				}
@@ -57,18 +58,18 @@ func resourceKubernatesCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	metas := getFirstBlock(d, "labels")
 	labels := map[string]interface{}{
-		"kube_dashboard_enable": metas["kube_dashboard_enable"].(bool),
-		"metrics_server_enable": metas["metrics_server_enable"].(bool),
-		"npd_enable":            metas["npd_enable"].(bool),
-		"auto_scaling_enable":   metas["auto_scaling_enable"].(bool),
-		"auto_healing_enable":   metas["auto_healing_enable"].(bool),
-		"max_node_count":        metas["max_node_count"].(int),
-		"min_node_count":        metas["min_node_count"].(int),
-		"kube_tag":              metas["kube_tag"].(string),
-		"network-driver":        metas["network_driver"].(string),
-		"calico_ipv4pool":       metas["calico_ipv4pool"].(string),
-		"docker_volume_type":    d.Get("docker_volume_type").(string),
-		"zone":                  d.Get("zone").(string),
+		"kube_dashboard_enabled": metas["kube_dashboard_enabled"].(bool),
+		"metrics_server_enabled": metas["metrics_server_enabled"].(bool),
+		"npd_enabled":            metas["npd_enabled"].(bool),
+		"auto_scaling_enabled":   metas["auto_scaling_enabled"].(bool),
+		"auto_healing_enabled":   metas["auto_healing_enabled"].(bool),
+		"max_node_count":         metas["max_node_count"].(int),
+		"min_node_count":         metas["min_node_count"].(int),
+		"kube_tag":               metas["kube_tag"].(string),
+		"network-driver":         metas["network_driver"].(string),
+		"calico_ipv4pool":        metas["calico_ipv4pool"].(string),
+		"docker_volume_type":     d.Get("docker_volume_type").(string),
+		"zone":                   d.Get("zone").(string),
 	}
 
 	default_master := getFirstBlock(d, "default_master")
@@ -97,6 +98,11 @@ func resourceKubernatesCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error creating Kubernates: %s", err)
 	}
 	d.SetId(kubernates.ID)
+
+	_, err = waitUntilKubernatesStatusChangedState(d, meta, []string{"CREATE_COMPLETE", "HEALTHY"}, []string{"CREATE_FAILED"}, d.Timeout(schema.TimeoutCreate))
+	if err != nil {
+		return fmt.Errorf("Error creating Kubernates: %s", err)
+	}
 	return resourceKubernatesRead(d, meta)
 }
 
@@ -109,11 +115,11 @@ func resourceKubernatesRead(d *schema.ResourceData, meta interface{}) error {
 
 	labels := make([]map[string]interface{}, 1)
 	labels[0] = map[string]interface{}{
-		"kube_dashboard_enable": kubernates.Labels.KubeDashboardEnabled,
-		"metrics_server_enable": kubernates.Labels.MetricsServerEnabled,
-		"npd_enable":            kubernates.Labels.NpdEnabled,
-		"auto_scaling_enable":   kubernates.Labels.AutoScalingEnabled,
-		"auto_healing_enable":   kubernates.Labels.AutoHealingEnabled,
+		"kube_dashboard_enabled": kubernates.Labels.KubeDashboardEnabled,
+		"metrics_server_enabled": kubernates.Labels.MetricsServerEnabled,
+		"npd_enabled":            kubernates.Labels.NpdEnabled,
+		"auto_scaling_enabled":   kubernates.Labels.AutoScalingEnabled,
+		"auto_healing_enabled":   kubernates.Labels.AutoHealingEnabled,
 
 		"kube_tag":           kubernates.Labels.KubeTag,
 		"network_driver":     kubernates.Labels.NetworkDriver,
@@ -127,8 +133,6 @@ func resourceKubernatesRead(d *schema.ResourceData, meta interface{}) error {
 		labels[0]["max_node_count"] = kubernates.Labels.MaxNodeCount
 		labels[0]["min_node_count"] = kubernates.Labels.MinNodeCount
 	}
-
-	// gocmcapiv2.Logo("labels = ", labels)
 
 	_ = d.Set("id", kubernates.ID)
 	_ = d.Set("name", kubernates.Name)
@@ -168,7 +172,11 @@ func resourceKubernatesUpdate(d *schema.ResourceData, meta interface{}) error {
 	if d.HasChange("node_count") {
 		_, err := client.Kubernates.UpdateNodeCount(id, d.Get("node_count").(int))
 		if err != nil {
-			return fmt.Errorf("Error when rename Kubernates [%s]: %v", id, err)
+			return fmt.Errorf("Error when update Kubernates node count [%s]: %v", id, err)
+		}
+		_, err = waitUntilKubernatesStatusChangedState(d, meta, []string{"UPDATE_COMPLETE", "HEALTHY"}, []string{"UPDATE_FAILED"}, d.Timeout(schema.TimeoutUpdate))
+		if err != nil {
+			return fmt.Errorf("Error when update Kubernates node count [%s]: %v", id, err)
 		}
 	} else if master_billing_mode_changed {
 		_, err := client.BillingMode.SetKubernateBilingMode(id, new_master_billing_mode.(string), "master")
@@ -191,7 +199,11 @@ func resourceKubernatesDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := client.Kubernates.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete cloud kubernates: %v", err)
+		return fmt.Errorf("Error delete kubernates [%s]: %v", d.Id(), err)
+	}
+	_, err = waitUntilKubernatesDeleted(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error delete kubernates [%s]: %v", d.Id(), err)
 	}
 	return nil
 }
@@ -199,4 +211,25 @@ func resourceKubernatesDelete(d *schema.ResourceData, meta interface{}) error {
 func resourceKubernatesImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	err := resourceKubernatesRead(d, meta)
 	return []*schema.ResourceData{d}, err
+}
+
+func waitUntilKubernatesDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+	return waitUntilResourceDeleted(d, meta, WaitConf{
+		Delay:      20 * time.Second,
+		MinTimeout: 3 * 60 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).Kubernates.Get(id)
+	})
+}
+
+func waitUntilKubernatesStatusChangedState(d *schema.ResourceData, meta interface{}, targetStatus []string, errorStatus []string, timeout time.Duration) (interface{}, error) {
+	return waitUntilResourceStatusChanged(d, meta, targetStatus, errorStatus, WaitConf{
+		Timeout:    timeout,
+		Delay:      10 * time.Second,
+		MinTimeout: 30 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).Kubernates.Get(id)
+	}, func(obj interface{}) string {
+		return obj.(gocmcapiv2.Kubernates).Status
+	})
 }

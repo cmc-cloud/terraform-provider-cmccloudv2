@@ -2,6 +2,7 @@ package cmccloudv2
 
 import (
 	"fmt"
+	"time"
 
 	// "strconv"
 
@@ -16,6 +17,10 @@ func resourceAutoScalingScaleOutPolicy() *schema.Resource {
 		Delete: resourceAutoScalingScaleOutPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceAutoScalingScaleOutPolicyImport,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(2 * time.Minute),
+			Delete: schema.DefaultTimeout(2 * time.Minute),
 		},
 		SchemaVersion: 1,
 		Schema:        autoscalingScaleInOutPolicySchema(),
@@ -73,10 +78,23 @@ func resourceAutoScalingScaleOutPolicyDelete(d *schema.ResourceData, meta interf
 	if err != nil {
 		return fmt.Errorf("Error delete scale out policy: %v", err)
 	}
+	_, err = waitUntilAutoScalingPolicyDeleted(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error delete scale out policy: %v", err)
+	}
 	return nil
 }
 
 func resourceAutoScalingScaleOutPolicyImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	err := resourceAutoScalingScaleOutPolicyRead(d, meta)
 	return []*schema.ResourceData{d}, err
+}
+
+func waitUntilAutoScalingPolicyDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+	return waitUntilResourceDeleted(d, meta, WaitConf{
+		Delay:      3 * time.Second,
+		MinTimeout: 5 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).AutoScalingPolicy.Get(id)
+	})
 }

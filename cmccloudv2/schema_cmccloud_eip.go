@@ -22,13 +22,6 @@ func eipSchema() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "International bandwidth in Mbps",
 		},
-		// "port_forwardings": {
-		// 	Type:     schema.TypeList,
-		// 	Optional: true,
-		// 	Elem: &schema.Resource{
-		// 		Schema: createEipPortForwardingsElementSchema(),
-		// 	},
-		// },
 		"tags": {
 			Type: schema.TypeSet,
 			Elem: &schema.Schema{

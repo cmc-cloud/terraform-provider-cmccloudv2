@@ -18,6 +18,10 @@ func createServerNicsElementSchema() map[string]*schema.Schema {
 			Optional: true,
 			ForceNew: true,
 		},
+		"id": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
 		// "security_group_ids": &schema.Schema{
 		// 	Type: schema.TypeList,
 		// 	Elem: &schema.Schema{
@@ -114,10 +118,11 @@ func serverSchema() map[string]*schema.Schema {
 			ForceNew: true,
 		},
 		"nics": {
-			Type: schema.TypeSet,
-			Set: schema.HashResource(&schema.Resource{
-				Schema: createServerNicsElementSchema(),
-			}),
+			Type: schema.TypeList,
+			// Type: schema.TypeSet,
+			// Set: schema.HashResource(&schema.Resource{
+			// 	Schema: createServerNicsElementSchema(),
+			// }),
 			Required: true,
 			ForceNew: true,
 			Elem: &schema.Resource{

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/cmc-cloud/gocmcapiv2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -18,6 +19,7 @@ func resourceELB() *schema.Resource {
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Delete: schema.DefaultTimeout(10 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
 			Create: schema.DefaultTimeout(30 * time.Minute),
 		},
 		SchemaVersion: 1,
@@ -71,6 +73,10 @@ func resourceELBUpdate(d *schema.ResourceData, meta interface{}) error {
 		if err != nil {
 			return fmt.Errorf("Error when change flavor of ELB [%s]: %v", id, err)
 		}
+		_, err = waitUntilELBStatusChangedState(d, meta, []string{"ONLINE", "ACTIVE", "OFFLINE", "NO_MONITOR"}, []string{"ERROR", "DELETED", "DEGRADED"}, d.Timeout(schema.TimeoutCreate))
+		if err != nil {
+			return fmt.Errorf("Error when change flavor of ELB [%s]: %v", id, err)
+		}
 	}
 	if d.HasChange("bandwidth_mbps") {
 		_, err := client.ELB.Resize(id, map[string]interface{}{
@@ -78,6 +84,10 @@ func resourceELBUpdate(d *schema.ResourceData, meta interface{}) error {
 		})
 		if err != nil {
 			return fmt.Errorf("Error when change Internet bandwidth of ELB [%s]: %v", id, err)
+		}
+		_, err = waitUntilELBStatusChangedState(d, meta, []string{"ONLINE", "ACTIVE", "OFFLINE", "NO_MONITOR"}, []string{"ERROR", "DELETED", "DEGRADED"}, d.Timeout(schema.TimeoutCreate))
+		if err != nil {
+			return fmt.Errorf("Error when change bandwidth_mbps of ELB [%s]: %v", id, err)
 		}
 	}
 
@@ -115,7 +125,10 @@ func resourceELBCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error creating ELB: %s", err)
 	}
 	d.SetId(elb.ID)
-
+	_, err = waitUntilELBStatusChangedState(d, meta, []string{"ONLINE", "ACTIVE", "OFFLINE", "NO_MONITOR"}, []string{"ERROR", "DELETED", "DEGRADED"}, d.Timeout(schema.TimeoutCreate))
+	if err != nil {
+		return fmt.Errorf("Error creating ELB: %s", err)
+	}
 	return resourceELBRead(d, meta)
 }
 
@@ -153,7 +166,7 @@ func resourceELBDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := client.ELB.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete cloud ELB: %v", err)
+		return fmt.Errorf("Error delete ELB: %v", err)
 	}
 	return nil
 }
@@ -161,4 +174,25 @@ func resourceELBDelete(d *schema.ResourceData, meta interface{}) error {
 func resourceELBImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	err := resourceELBRead(d, meta)
 	return []*schema.ResourceData{d}, err
+}
+
+func waitUntilELBDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+	return waitUntilResourceDeleted(d, meta, WaitConf{
+		Delay:      10 * time.Second,
+		MinTimeout: 20 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).ELB.Get(id)
+	})
+}
+
+func waitUntilELBStatusChangedState(d *schema.ResourceData, meta interface{}, targetStatus []string, errorStatus []string, timeout time.Duration) (interface{}, error) {
+	return waitUntilResourceStatusChanged(d, meta, targetStatus, errorStatus, WaitConf{
+		Timeout:    timeout,
+		Delay:      10 * time.Second,
+		MinTimeout: 30 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).ELB.Get(id)
+	}, func(obj interface{}) string {
+		return obj.(gocmcapiv2.ELB).OperatingStatus
+	})
 }

@@ -3,6 +3,7 @@ package cmccloudv2
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -15,6 +16,10 @@ func resourceDatabaseAutoBackup() *schema.Resource {
 		Delete: resourceDatabaseAutoBackupDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceDatabaseAutoBackupImport,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(1 * time.Minute),
+			Delete: schema.DefaultTimeout(1 * time.Minute),
 		},
 		SchemaVersion: 1,
 		Schema:        databaseAutoBackupSchema(),
@@ -100,10 +105,23 @@ func resourceDatabaseAutoBackupDelete(d *schema.ResourceData, meta interface{}) 
 	if err != nil {
 		return fmt.Errorf("Error delete database autobackup: %v", err)
 	}
+	_, err = waitUntilDatabaseAutoBackupDeleted(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error delete database autobackup: %v", err)
+	}
 	return nil
 }
 
 func resourceDatabaseAutoBackupImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	err := resourceDatabaseAutoBackupRead(d, meta)
 	return []*schema.ResourceData{d}, err
+}
+
+func waitUntilDatabaseAutoBackupDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+	return waitUntilResourceDeleted(d, meta, WaitConf{
+		Delay:      3 * time.Second,
+		MinTimeout: 5 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).DatabaseAutoBackup.Get(id)
+	})
 }

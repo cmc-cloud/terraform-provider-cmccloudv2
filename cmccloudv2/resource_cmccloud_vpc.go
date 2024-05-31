@@ -19,6 +19,7 @@ func resourceVPC() *schema.Resource {
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(5 * time.Minute),
+			Delete: schema.DefaultTimeout(2 * time.Minute),
 		},
 		SchemaVersion: 1,
 		Schema:        vpcSchema(),
@@ -90,7 +91,11 @@ func resourceVPCDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := client.VPC.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete cloud vpc: %v", err)
+		return fmt.Errorf("Error delete vpc: %v", err)
+	}
+	_, err = waitUntilVPCDeleted(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error delete vpc: %v", err)
 	}
 	return nil
 }
@@ -98,4 +103,13 @@ func resourceVPCDelete(d *schema.ResourceData, meta interface{}) error {
 func resourceVPCImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	err := resourceVPCRead(d, meta)
 	return []*schema.ResourceData{d}, err
+}
+
+func waitUntilVPCDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+	return waitUntilResourceDeleted(d, meta, WaitConf{
+		Delay:      3 * time.Second,
+		MinTimeout: 30 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).VPC.Get(id)
+	})
 }

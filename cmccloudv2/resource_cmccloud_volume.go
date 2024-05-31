@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/cmc-cloud/gocmcapiv2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -22,29 +23,8 @@ func resourceVolume() *schema.Resource {
 		},
 		SchemaVersion: 1,
 		Schema:        volumeSchema(),
-
-		// CustomizeDiff: func(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
-		// 	// if the new size of the volume is smaller than the old one return an error since
-		// 	// only expanding the volume is allowed
-		// 	oldSize, newSize := diff.GetChange("size")
-		// 	if newSize.(int) < oldSize.(int) {
-		// 		return fmt.Errorf("volumes `size` can only be expanded and not shrunk")
-		// 	}
-
-		// 	return nil
-		// },
 		CustomizeDiff: customdiff.All(
-			// customdiff.ValidateChange("size", func (old, new, meta interface{}) error {
-			//     // If we are increasing "size" then the new value must be
-			//     // a multiple of the old value.
-			//     if new.(int) <= old.(int) {
-			//         return fmt.Errorf("volumes `size` can only be expanded and not shrunk")
-			//     }
-			//     return nil
-			// }),
 			customdiff.ForceNewIfChange("size", func(old, new, meta interface{}) bool {
-				// "size" can only increase in-place, so we must create a new resource
-				// if it is decreased.
 				return new.(int) < old.(int)
 			}),
 		),
@@ -63,10 +43,13 @@ func resourceVolumeCreate(d *schema.ResourceData, meta interface{}) error {
 		"tags":         d.Get("tags").(*schema.Set).List(),
 	})
 	if err != nil {
-		return fmt.Errorf("Error creating Volume: %s", err)
+		return fmt.Errorf("Error creating volume: %s", err)
 	}
 	d.SetId(vol.ID)
-
+	_, err = waitUntilVolumeStatusChangedState(d, meta, []string{"available"}, []string{"error"})
+	if err != nil {
+		return fmt.Errorf("Error creating volume: %s", err)
+	}
 	return resourceVolumeRead(d, meta)
 }
 
@@ -125,7 +108,11 @@ func resourceVolumeDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := client.Volume.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete cloud volume: %v", err)
+		return fmt.Errorf("Error delete volume: %v", err)
+	}
+	_, err = waitUntilVolumeDeleted(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error delete volume: %v", err)
 	}
 	return nil
 }
@@ -133,4 +120,25 @@ func resourceVolumeDelete(d *schema.ResourceData, meta interface{}) error {
 func resourceVolumeImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	err := resourceVolumeRead(d, meta)
 	return []*schema.ResourceData{d}, err
+}
+
+func waitUntilVolumeDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+	return waitUntilResourceDeleted(d, meta, WaitConf{
+		Delay:      5 * time.Second,
+		MinTimeout: 30 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).Volume.Get(id)
+	})
+}
+
+func waitUntilVolumeStatusChangedState(d *schema.ResourceData, meta interface{}, targetStatus []string, errorStatus []string) (interface{}, error) {
+	return waitUntilResourceStatusChanged(d, meta, targetStatus, errorStatus, WaitConf{
+		Timeout:    d.Timeout(schema.TimeoutCreate),
+		Delay:      10 * time.Second,
+		MinTimeout: 30 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).Volume.Get(id)
+	}, func(obj interface{}) string {
+		return obj.(gocmcapiv2.Volume).Status
+	})
 }

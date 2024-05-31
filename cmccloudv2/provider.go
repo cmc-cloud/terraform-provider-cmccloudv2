@@ -58,6 +58,8 @@ func Provider() terraform.ResourceProvider {
 			"cmccloudv2_autoscaling_az_policy":           resourceAutoScalingAZPolicy(),
 			"cmccloudv2_autoscaling_lb_policy":           resourceAutoScalingLBPolicy(),
 			"cmccloudv2_ecs_group":                       resourceEcsGroup(),
+			"cmccloudv2_eip_port":                        resourceEIPPort(),
+			"cmccloudv2_server_interface":                resourceServerInterface(),
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{

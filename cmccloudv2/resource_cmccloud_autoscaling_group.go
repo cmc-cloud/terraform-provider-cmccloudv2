@@ -1,16 +1,10 @@
 package cmccloudv2
 
 import (
-	"errors"
 	"fmt"
-	"log"
-	"strings"
 	"time"
 
-	// "strconv"
-
 	"github.com/cmc-cloud/gocmcapiv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -35,7 +29,6 @@ func resourceAutoScalingGroup() *schema.Resource {
 func resourceAutoScalingGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 
-	fmt.Errorf("resourceAutoScalingGroupCreate %s\n", d.Get("name").(string))
 	datas := map[string]interface{}{
 		"name":                d.Get("name").(string),
 		"min_size":            0, //d.Get("min_size").(int),
@@ -48,17 +41,21 @@ func resourceAutoScalingGroupCreate(d *schema.ResourceData, meta interface{}) er
 	if err != nil {
 		return fmt.Errorf("Error creating autoscaling group: %v", err.Error())
 	}
-	gocmcapiv2.Logs("set id " + res.ID)
 	d.SetId(res.ID)
 
-	waitUntilAsGroupChangeState(d, meta, res.ID, []string{"INIT"}, []string{"ACTIVE", "WARNING"})
-
+	_, err = waitUntilAutoscalingGroupStatusChangedState(d, meta, []string{"ACTIVE", "WARNING"}, []string{"CRITICAL", "ERROR"}, d.Timeout(schema.TimeoutCreate))
+	if err != nil {
+		return fmt.Errorf("Error creating autoscaling group: %v", err.Error())
+	}
 	// attach policies
 	policies, ok := d.GetOk("policies")
 	if ok {
 		for _, policy_id := range policies.(*schema.Set).List() {
 			action, _ := client.AutoScalingPolicy.AttachToASGroup(policy_id.(string), res.ID)
-			waitUntilAsActionFinished(d, meta, action.ActionID)
+			_, err := waitUntilAsActionStatusChangedState(d, meta, action.ActionID)
+			if err != nil {
+				return fmt.Errorf("Error when attach policy id [%s]: %v", policy_id, err)
+			}
 		}
 	}
 
@@ -79,14 +76,8 @@ func resourceAutoScalingGroupRead(d *schema.ResourceData, meta interface{}) erro
 	client := meta.(*CombinedConfig).goCMCClient()
 	autoscalinggroup, err := client.AutoScalingGroup.Get(d.Id())
 	if err != nil {
-		if errors.Is(err, gocmcapiv2.ErrNotFound) {
-			log.Printf("[WARN] CMC Cloud AutoScalingGroup with id = (%s) is not found", d.Id())
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("Error retrieving autoscalinggroup %s: %v", d.Id(), err)
+		return fmt.Errorf("Error retrieving autoscaling group %s: %v", d.Id(), err)
 	}
-	// _ = d.Set("project_id", autoscalinggroup.ProjectID)
 	_ = d.Set("name", autoscalinggroup.Name)
 	_ = d.Set("min_size", autoscalinggroup.MinSize)
 	_ = d.Set("max_size", autoscalinggroup.MaxSize)
@@ -97,12 +88,6 @@ func resourceAutoScalingGroupRead(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-// func genPolicy(params map[string]interface{}) []map[string]interface{} {
-// 	values := make([]map[string]interface{}, 1)
-// 	values[0] = params
-// 	return values
-// }
-
 func resourceAutoScalingGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	id := d.Id()
@@ -111,15 +96,21 @@ func resourceAutoScalingGroupUpdate(d *schema.ResourceData, meta interface{}) er
 		removed, added := getDiffSet(d.GetChange("policies"))
 		for _, remove_id := range removed.List() {
 			// Logic xử lý phần tử bị xóa
-			log.Printf("Detach policy id [%s]", remove_id)
+			// log.Printf("Detach policy id [%s]", remove_id)
 			res, _ := client.AutoScalingPolicy.DetachFromASGroup(remove_id.(string), d.Id())
-			waitUntilAsActionFinished(d, meta, res.ActionID)
+			_, err := waitUntilAsActionStatusChangedState(d, meta, res.ActionID)
+			if err != nil {
+				return fmt.Errorf("Error when detach policy id [%s]: %v", remove_id, err)
+			}
 		}
 		for _, add_id := range added.List() {
 			// Logic xử lý phần tử add them
-			log.Printf("Attach policy id [%s]", add_id)
+			// log.Printf("Attach policy id [%s]", add_id)
 			res, _ := client.AutoScalingPolicy.AttachToASGroup(add_id.(string), d.Id())
-			waitUntilAsActionFinished(d, meta, res.ActionID)
+			_, err := waitUntilAsActionStatusChangedState(d, meta, res.ActionID)
+			if err != nil {
+				return fmt.Errorf("Error when attach policy id [%s]: %v", add_id, err)
+			}
 		}
 	}
 
@@ -129,7 +120,7 @@ func resourceAutoScalingGroupUpdate(d *schema.ResourceData, meta interface{}) er
 			"as_configuration_id": d.Get("as_configuration_id").(string),
 		})
 		if err != nil {
-			return fmt.Errorf("Error when update autoscalinggroup [%s]: %v", id, err)
+			return fmt.Errorf("Error when update autoscaling group [%s]: %v", id, err)
 		}
 	}
 	if d.HasChange("min_size") || d.HasChange("max_size") || d.HasChange("desired_capacity") {
@@ -140,7 +131,7 @@ func resourceAutoScalingGroupUpdate(d *schema.ResourceData, meta interface{}) er
 			"strict":           true,
 		})
 		if err != nil {
-			return fmt.Errorf("Error when update autoscalinggroup capacity [%s]: %v", id, err)
+			return fmt.Errorf("Error when update autoscaling group capacity [%s]: %v", id, err)
 		}
 	}
 	return resourceAutoScalingGroupRead(d, meta)
@@ -152,7 +143,11 @@ func resourceAutoScalingGroupDelete(d *schema.ResourceData, meta interface{}) er
 	_, err := client.AutoScalingGroup.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete autoscale autoscalinggroup: %v", err)
+		return fmt.Errorf("Error delete autoscale autoscaling group: %v", err)
+	}
+	_, err = waitUntilAutoscalingGroupDeleted(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error delete autoscale autoscaling group: %v", err)
 	}
 	return nil
 }
@@ -162,54 +157,87 @@ func resourceAutoScalingGroupImport(d *schema.ResourceData, meta interface{}) ([
 	return []*schema.ResourceData{d}, err
 }
 
-func waitUntilAsGroupChangeState(d *schema.ResourceData, meta interface{}, id string, pendingStatus []string, targetStatus []string) (interface{}, error) {
-	log.Printf("[INFO] Waiting for server with id (%s) to be "+strings.Join(targetStatus, ","), id)
-	stateConf := &resource.StateChangeConf{
-		Pending:        pendingStatus,
-		Target:         targetStatus,
-		Refresh:        asGroupStateRefreshfunc(d, meta, id),
-		Timeout:        d.Timeout(schema.TimeoutCreate),
-		Delay:          20 * time.Second,
-		MinTimeout:     3 * time.Second,
-		NotFoundChecks: 100,
-	}
-	return stateConf.WaitForState()
+func waitUntilAsActionStatusChangedState(d *schema.ResourceData, meta interface{}, actionId string) (interface{}, error) {
+	return waitUntilResourceStatusChanged(d, meta, []string{"SUCCEEDED"}, []string{"FAILED", "CANCELLED", "SUSPENDED"}, WaitConf{
+		Timeout:    d.Timeout(schema.TimeoutUpdate),
+		Delay:      10 * time.Second,
+		MinTimeout: 30 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).AutoScalingGroup.GetAction(actionId)
+	}, func(obj interface{}) string {
+		return obj.(gocmcapiv2.AutoScalingAction).Status
+	})
 }
 
-func asGroupStateRefreshfunc(d *schema.ResourceData, meta interface{}, id string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		client := meta.(*CombinedConfig).goCMCClient()
-		server, err := client.AutoScalingGroup.Get(d.Id())
-		if err != nil {
-			fmt.Errorf("Error retrieving AS Group %s: %v", id, err)
-			return nil, "", err
-		}
-		return server, server.Status, nil
-	}
+func waitUntilAutoscalingGroupStatusChangedState(d *schema.ResourceData, meta interface{}, targetStatus []string, errorStatus []string, timeout time.Duration) (interface{}, error) {
+	return waitUntilResourceStatusChanged(d, meta, targetStatus, errorStatus, WaitConf{
+		Timeout:    timeout,
+		Delay:      10 * time.Second,
+		MinTimeout: 30 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).AutoScalingGroup.Get(id)
+	}, func(obj interface{}) string {
+		return obj.(gocmcapiv2.AutoScalingGroup).Status
+	})
 }
 
-func waitUntilAsActionFinished(d *schema.ResourceData, meta interface{}, action_id string) (interface{}, error) {
-	log.Printf("[INFO] Waiting for action with id (%s) to be finished", action_id)
-	stateConf := &resource.StateChangeConf{
-		Pending:        []string{"RUNNING", "WAITING", "SUSPENDED", "READY"},
-		Target:         []string{"FAILED", "SUCCEEDED", "CANCELLED"},
-		Refresh:        waitUntilAsActionRefreshfunc(d, meta, action_id),
-		Timeout:        10 * time.Minute,
-		Delay:          3 * time.Second,
-		MinTimeout:     2 * time.Second,
-		NotFoundChecks: 10,
-	}
-	return stateConf.WaitForState()
+func waitUntilAutoscalingGroupDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+	return waitUntilResourceDeleted(d, meta, WaitConf{
+		Delay:      10 * time.Second,
+		MinTimeout: 30 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).AutoScalingGroup.Get(id)
+	})
 }
 
-func waitUntilAsActionRefreshfunc(d *schema.ResourceData, meta interface{}, action_id string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		client := meta.(*CombinedConfig).goCMCClient()
-		server, err := client.AutoScalingGroup.GetAction(action_id)
-		if err != nil {
-			fmt.Errorf("Error retrieving AS Group Action %s: %v", action_id, err)
-			return nil, "", err
-		}
-		return server, server.Status, nil
-	}
-}
+// func waitUntilAsGroupChangeState(d *schema.ResourceData, meta interface{}, id string, pendingStatus []string, targetStatus []string) (interface{}, error) {
+// 	log.Printf("[INFO] Waiting for server with id (%s) to be "+strings.Join(targetStatus, ","), id)
+// 	stateConf := &resource.StateChangeConf{
+// 		Pending:        pendingStatus,
+// 		Target:         targetStatus,
+// 		Refresh:        asGroupStateRefreshfunc(d, meta, id),
+// 		Timeout:        d.Timeout(schema.TimeoutCreate),
+// 		Delay:          10 * time.Second,
+// 		MinTimeout:     20 * time.Second,
+// 		NotFoundChecks: 5,
+// 	}
+// 	return stateConf.WaitForState()
+// }
+
+// func asGroupStateRefreshfunc(d *schema.ResourceData, meta interface{}, id string) resource.StateRefreshFunc {
+// 	return func() (interface{}, string, error) {
+// 		client := meta.(*CombinedConfig).goCMCClient()
+// 		server, err := client.AutoScalingGroup.Get(d.Id())
+// 		if err != nil {
+// 			fmt.Errorf("Error retrieving AS Group %s: %v", id, err)
+// 			return nil, "", err
+// 		}
+// 		return server, server.Status, nil
+// 	}
+// }
+
+// func waitUntilAsActionFinished(d *schema.ResourceData, meta interface{}, action_id string) (interface{}, error) {
+// 	log.Printf("[INFO] Waiting for action with id (%s) to be finished", action_id)
+// 	stateConf := &resource.StateChangeConf{
+// 		Pending:        []string{"RUNNING", "WAITING", "SUSPENDED", "READY"},
+// 		Target:         []string{"FAILED", "SUCCEEDED", "CANCELLED"},
+// 		Refresh:        waitUntilAsActionRefreshfunc(d, meta, action_id),
+// 		Timeout:        10 * time.Minute,
+// 		Delay:          3 * time.Second,
+// 		MinTimeout:     5 * time.Second,
+// 		NotFoundChecks: 10,
+// 	}
+// 	return stateConf.WaitForState()
+// }
+
+// func waitUntilAsActionRefreshfunc(d *schema.ResourceData, meta interface{}, action_id string) resource.StateRefreshFunc {
+// 	return func() (interface{}, string, error) {
+// 		client := meta.(*CombinedConfig).goCMCClient()
+// 		action, err := client.AutoScalingGroup.GetAction(action_id)
+// 		if err != nil {
+// 			fmt.Errorf("Error retrieving AS Group Action %s: %v", action_id, err)
+// 			return nil, "", err
+// 		}
+// 		return action, action.Status, nil
+// 	}
+// }

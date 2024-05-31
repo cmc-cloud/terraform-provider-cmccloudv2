@@ -36,7 +36,7 @@ func resourceEcsGroup() *schema.Resource {
 			State: resourceEcsGroupImport,
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(5 * time.Minute),
+			Create: schema.DefaultTimeout(2 * time.Minute),
 		},
 		SchemaVersion: 1,
 		Schema:        ecsgroupSchema(),
@@ -78,7 +78,12 @@ func resourceEcsGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := client.EcsGroup.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete cloud vpc: %v", err)
+		return fmt.Errorf("Error delete vpc: %v", err)
+	}
+
+	_, err = waitUntilEcsGroupDeleted(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error delete EIP: %v", err)
 	}
 	return nil
 }
@@ -86,4 +91,13 @@ func resourceEcsGroupDelete(d *schema.ResourceData, meta interface{}) error {
 func resourceEcsGroupImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	err := resourceEcsGroupRead(d, meta)
 	return []*schema.ResourceData{d}, err
+}
+
+func waitUntilEcsGroupDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+	return waitUntilResourceDeleted(d, meta, WaitConf{
+		Delay:      5 * time.Second,
+		MinTimeout: 5 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).EcsGroup.Get(id)
+	})
 }

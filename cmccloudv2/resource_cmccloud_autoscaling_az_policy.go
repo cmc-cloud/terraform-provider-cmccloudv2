@@ -2,6 +2,7 @@ package cmccloudv2
 
 import (
 	"fmt"
+	"time"
 
 	// "strconv"
 
@@ -16,6 +17,10 @@ func resourceAutoScalingAZPolicy() *schema.Resource {
 		Delete: resourceAutoScalingAZPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceAutoScalingAZPolicyImport,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(2 * time.Minute),
+			Delete: schema.DefaultTimeout(2 * time.Minute),
 		},
 		SchemaVersion: 1,
 		Schema:        autoscalingAZPolicySchema(),
@@ -71,6 +76,10 @@ func resourceAutoScalingAZPolicyDelete(d *schema.ResourceData, meta interface{})
 	client := meta.(*CombinedConfig).goCMCClient()
 	_, err := client.AutoScalingPolicy.Delete(d.Id())
 
+	if err != nil {
+		return fmt.Errorf("Error delete az policy: %v", err)
+	}
+	_, err = waitUntilAutoScalingPolicyDeleted(d, meta)
 	if err != nil {
 		return fmt.Errorf("Error delete az policy: %v", err)
 	}

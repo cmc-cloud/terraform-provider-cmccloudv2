@@ -150,7 +150,11 @@ func resourceSecurityGroupDelete(d *schema.ResourceData, meta interface{}) error
 	client := meta.(*CombinedConfig).goCMCClient()
 	_, err := client.SecurityGroup.Delete(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error delete Security Group [%s]: %v", d.Id(), err)
+		return fmt.Errorf("Error delete security group [%s]: %v", d.Id(), err)
+	}
+	_, err = waitUntilSecurityGroupDeleted(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error delete security group [%s]: %v", d.Id(), err)
 	}
 	return nil
 }
@@ -219,23 +223,11 @@ func checkRuleErrors(d *schema.ResourceData, field string) error {
 	return nil
 }
 
-// func expandSecurityGroupCreateRules(d *schema.ResourceData) []gocmcapiv2.SecurityGroupRule {
-// 	rawRules := d.Get("rule").(*schema.Set).List()
-// 	createRuleOptsList := make([]gocmcapiv2.SecurityGroupRule, len(rawRules))
-
-// 	for i, rawRule := range rawRules {
-// 		rawRuleMap := rawRule.(map[string]interface{})
-// 		createRuleOptsList[i] = gocmcapiv2.SecurityGroupRule{
-// 			EtherType:           rawRuleMap["ethertype"].(string),
-// 			Direction:           rawRuleMap["direction"].(string),
-// 			Protocol:            rawRuleMap["protocol"].(string),
-// 			PortRangeMin:        rawRuleMap["port_range_min"].(int),
-// 			PortRangeMax:        rawRuleMap["port_range_max"].(int),
-// 			CIDR:                rawRuleMap["remote_ip_prefix"].(string),
-// 			DestSecuritygroupID: rawRuleMap["dest_securitygroup_id"].(string),
-// 			Description:         rawRuleMap["description"].(string),
-// 		}
-// 	}
-
-// 	return createRuleOptsList
-// }
+func waitUntilSecurityGroupDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+	return waitUntilResourceDeleted(d, meta, WaitConf{
+		Delay:      5 * time.Second,
+		MinTimeout: 30 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).SecurityGroup.Get(id)
+	})
+}

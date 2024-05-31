@@ -19,7 +19,8 @@ func resourceSubnet() *schema.Resource {
 			State: resourceSubnetImport,
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(1 * time.Minute),
+			Create: schema.DefaultTimeout(2 * time.Minute),
+			Delete: schema.DefaultTimeout(3 * time.Minute),
 		},
 		SchemaVersion: 1,
 		Schema:        subnetSchema(),
@@ -98,7 +99,11 @@ func resourceSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := client.Subnet.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete cloud subnet: %v", err)
+		return fmt.Errorf("Error delete subnet: %v", err)
+	}
+	_, err = waitUntilSubnetDeleted(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error delete subnet: %v", err)
 	}
 	return nil
 }
@@ -151,4 +156,13 @@ func convertHostRoutes(routes []gocmcapiv2.HostRoute) []map[string]interface{} {
 		}
 	}
 	return result
+}
+
+func waitUntilSubnetDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+	return waitUntilResourceDeleted(d, meta, WaitConf{
+		Delay:      3 * time.Second,
+		MinTimeout: 30 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).Subnet.Get(id)
+	})
 }

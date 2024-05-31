@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/cmc-cloud/gocmcapiv2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -17,6 +18,11 @@ func resourceDatabaseConfiguration() *schema.Resource {
 		Delete: resourceDatabaseConfigurationDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceDatabaseConfigurationImport,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(2 * time.Minute),
+			Update: schema.DefaultTimeout(2 * time.Minute),
+			Delete: schema.DefaultTimeout(2 * time.Minute),
 		},
 		SchemaVersion: 1,
 		Schema:        databaseConfigurationSchema(),
@@ -32,13 +38,13 @@ func resourceDatabaseConfigurationCreate(d *schema.ResourceData, meta interface{
 		"datastore_version": d.Get("datastore_version").(string),
 	})
 	if err != nil {
-		return fmt.Errorf("Error creating DatabaseConfiguration: %s", err)
+		return fmt.Errorf("Error creating Database Configuration: %s", err)
 	}
 	d.SetId(configuration.ID)
 	parameters := convertParametersJsonString(d.Get("parameters").(*schema.Set))
 	_, err = client.DatabaseConfiguration.UpdateParameters(d.Id(), map[string]interface{}{"parameters": parameters})
 	if err != nil {
-		return fmt.Errorf("Error when update parameters of DatabaseConfiguration [%s]: %v", configuration.ID, err)
+		return fmt.Errorf("Error when update parameters of Database Configuration [%s]: %v", configuration.ID, err)
 	}
 
 	return resourceDatabaseConfigurationRead(d, meta)
@@ -76,7 +82,7 @@ func resourceDatabaseConfigurationRead(d *schema.ResourceData, meta interface{})
 	client := meta.(*CombinedConfig).goCMCClient()
 	configuration, err := client.DatabaseConfiguration.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving DatabaseConfiguration %s: %v", d.Id(), err)
+		return fmt.Errorf("Error retrieving Database Configuration %s: %v", d.Id(), err)
 	}
 
 	_ = d.Set("id", configuration.ID)
@@ -97,14 +103,14 @@ func resourceDatabaseConfigurationUpdate(d *schema.ResourceData, meta interface{
 			"description": d.Get("description").(string),
 		})
 		if err != nil {
-			return fmt.Errorf("Error when update info of DatabaseConfiguration [%s]: %v", id, err)
+			return fmt.Errorf("Error when update info of Database Configuration [%s]: %v", id, err)
 		}
 	}
 	if d.HasChange("parameters") {
 		parameters := convertParametersJsonString(d.Get("parameters").(*schema.Set))
 		_, err := client.DatabaseConfiguration.UpdateParameters(id, map[string]interface{}{"parameters": parameters})
 		if err != nil {
-			return fmt.Errorf("Error when update parameters of DatabaseConfiguration [%s]: %v", id, err)
+			return fmt.Errorf("Error when update parameters of Database Configuration [%s]: %v", id, err)
 		}
 	}
 	return resourceDatabaseConfigurationRead(d, meta)
@@ -140,7 +146,11 @@ func resourceDatabaseConfigurationDelete(d *schema.ResourceData, meta interface{
 	_, err := client.DatabaseConfiguration.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete cloud configuration: %v", err)
+		return fmt.Errorf("Error delete database configuration: %v", err)
+	}
+	_, err = waitUntilDatabaseConfigurationDeleted(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error delete database configuration: %v", err)
 	}
 	return nil
 }
@@ -148,4 +158,13 @@ func resourceDatabaseConfigurationDelete(d *schema.ResourceData, meta interface{
 func resourceDatabaseConfigurationImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	err := resourceDatabaseConfigurationRead(d, meta)
 	return []*schema.ResourceData{d}, err
+}
+
+func waitUntilDatabaseConfigurationDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+	return waitUntilResourceDeleted(d, meta, WaitConf{
+		Delay:      10 * time.Second,
+		MinTimeout: 30 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).DatabaseConfiguration.Get(id)
+	})
 }

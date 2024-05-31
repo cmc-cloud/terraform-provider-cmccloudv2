@@ -3,6 +3,7 @@ package cmccloudv2
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -15,6 +16,10 @@ func resourceVolumeAutoBackup() *schema.Resource {
 		Delete: resourceVolumeAutoBackupDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceVolumeAutoBackupImport,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Delete: schema.DefaultTimeout(1 * time.Minute),
+			Create: schema.DefaultTimeout(1 * time.Minute),
 		},
 		SchemaVersion: 1,
 		Schema:        volumeAutoBackupSchema(),
@@ -52,7 +57,7 @@ func resourceVolumeAutoBackupRead(d *schema.ResourceData, meta interface{}) erro
 	client := meta.(*CombinedConfig).goCMCClient()
 	autobackup, err := client.VolumeAutoBackup.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving VolumeAutoBackup %s: %v", d.Id(), err)
+		return fmt.Errorf("Error retrieving Volume AutoBackup %s: %v", d.Id(), err)
 	}
 
 	_ = d.Set("name", autobackup.Name)
@@ -100,10 +105,23 @@ func resourceVolumeAutoBackupDelete(d *schema.ResourceData, meta interface{}) er
 	if err != nil {
 		return fmt.Errorf("Error delete volume autobackup: %v", err)
 	}
+	_, err = waitUntilVolumeAutoBackupDeleted(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error delete volume autobackup: %v", err)
+	}
 	return nil
 }
 
 func resourceVolumeAutoBackupImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	err := resourceVolumeAutoBackupRead(d, meta)
 	return []*schema.ResourceData{d}, err
+}
+
+func waitUntilVolumeAutoBackupDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+	return waitUntilResourceDeleted(d, meta, WaitConf{
+		Delay:      3 * time.Second,
+		MinTimeout: 30 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).VolumeAutoBackup.Get(id)
+	})
 }

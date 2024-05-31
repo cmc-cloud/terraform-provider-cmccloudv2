@@ -1,16 +1,13 @@
 package cmccloudv2
 
 import (
-	"errors"
 	"fmt"
-	"log"
 
 	// "strconv"
 	"strings"
 	"time"
 
 	"github.com/cmc-cloud/gocmcapiv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -31,27 +28,19 @@ func resourceServer() *schema.Resource {
 		Schema:        serverSchema(),
 
 		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
+			// gocmcapiv2.Logs("CustomizeDiff")
 			old, new := d.GetChange("volume_size")
 			if old.(int) > new.(int) {
 				return fmt.Errorf("Can't shrink volume_size, new `volume_size` must be > %d", old.(int))
+			}
+			// bỏ qua các thay đổi của trường nics
+			if d.HasChange("nics") {
+				d.Clear("nics")
 			}
 			return nil
 		},
 	}
 }
-
-// type VolumeResourceData struct {
-// 	// SourceId            string `json:"source_id"`
-// 	// SourceType          string `json:"source_type"` // image,snapshot,volume
-// 	Size                int    `json:"size"`
-// 	Type                string `json:"type"`
-// 	DeleteOnTermination bool   `json:"delete_on_termination"`
-// }
-
-// type NicResourceData struct {
-// 	SubnetId  string `json:"subnet_id"` // image,snapshot,volume
-// 	IpAddress string `json:"ip_address"`
-// }
 
 func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
@@ -66,7 +55,6 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 		"server_name":          d.Get("name").(string),
 		"zone":                 d.Get("zone").(string),
 		"flavor_id":            flavor_id,
-		"subnets":              d.Get("nics").(*schema.Set).List(),
 		"volumes":              volumes,
 		"security_group_names": d.Get("security_group_names").(*schema.Set).List(),
 		"ecs_group_id":         d.Get("ecs_group_id").(string),
@@ -77,6 +65,8 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 		"source_type":          d.Get("source_type").(string),
 		"source_id":            d.Get("source_id").(string),
 		"tags":                 d.Get("tags").(*schema.Set).List(),
+		"subnets":              d.Get("nics").([]interface{}),
+		// "subnets":              d.Get("nics").(*schema.Set).List(),
 		// "eip_id":               d.Get("eip_id").(string),
 		// "domestic_bandwidth":   d.Get("domestic_bandwidth").(int),
 		// "inter_bandwidth":      d.Get("inter_bandwidth").(int),
@@ -86,14 +76,12 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return fmt.Errorf("Error creating server: %v", err.Error())
 	}
-	// gocmcapiv2.Logs("set id " + res.Server.ID)
 	d.SetId(res.Server.ID)
-	// _ = d.Set("password", res.Server.AdminPass)
-	// _ = d.Set("flavor_id", flavor_id)
-	// _ = d.Set("source_type", d.Get("source_type").(string))
-	// _ = d.Set("source_id", d.Get("source_id").(string))
-
-	waitUntilServerChangeState(d, meta, res.Server.ID, []string{"building"}, []string{"active"})
+	// waitUntilServerChangeState(d, meta, res.Server.ID, []string{"building"}, []string{"active"})
+	_, err = waitUntilServerStatusChangedState(d, meta, []string{"active"}, []string{"error"})
+	if err != nil {
+		return fmt.Errorf("create server failed: %v", err)
+	}
 	return resourceServerRead(d, meta)
 }
 
@@ -101,11 +89,6 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	server, err := client.Server.Get(d.Id(), true)
 	if err != nil {
-		if errors.Is(err, gocmcapiv2.ErrNotFound) {
-			log.Printf("[WARN] CMC Cloud Server with id = (%s) is not found", d.Id())
-			d.SetId("")
-			return nil
-		}
 		return fmt.Errorf("Error retrieving server %s: %v", d.Id(), err)
 	}
 	_ = d.Set("name", server.Name)
@@ -121,10 +104,32 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("description", server.Description)
 	_ = d.Set("billing_mode", server.BillingMode)
 	_ = d.Set("vm_state", server.VMState)
-	_ = d.Set("nics", convertNics(server.Nics))
 	_ = d.Set("volumes", convertVolumeAttachs(server.VolumesAttached))
-	// _ = d.Set("volumes", convertVolumes(server.Volumes))
-	gocmcapiv2.Logo("volumes is = ", convertVolumeAttachs(server.VolumesAttached))
+	_ = d.Set("nics", convertNics(server.Nics))
+
+	// neu server chi co 1 nics / chua set id cho nics nao thi moi set gia tri nics, neu khong order co the thay doi
+	// if curr_nics, ok := d.GetOkExists("nics"); !ok {
+	// 	gocmcapiv2.Logo("curr_nics =", curr_nics)
+	// 	if len(server.Nics) == 1 {
+	// 		// chi co 1 nic
+	// 	} else {
+	// 		// kiem tra xem truoc do nics da set chua
+	// 		if len(curr_nics.([]gocmcapiv2.Nic)) > 0 {
+	// 			da_set_id := false
+	// 			for _, nic := range curr_nics.([]gocmcapiv2.Nic) {
+	// 				if nic.Id != "" {
+	// 					da_set_id = true
+	// 				}
+	// 			}
+	// 			if !da_set_id {
+	// 				// chua set id cho nics nao thi moi set gia tri nics
+	// 				_ = d.Set("nics", convertNics(server.Nics))
+	// 			}
+	// 		}
+	// 	}
+	// } else {
+	// 	_ = d.Set("nics", convertNics(server.Nics))
+	// }
 	if server.KeyName != "" {
 		_ = d.Set("key_name", server.KeyName)
 	}
@@ -159,7 +164,7 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	if d.HasChange("tags") {
 		_, err := client.Server.SetTags(id, d.Get("tags").(*schema.Set).List())
 		if err != nil {
-			return fmt.Errorf("Error when rename server [%s]: %v", id, err)
+			return fmt.Errorf("Error when set server tags [%s]: %v", id, err)
 		}
 	}
 
@@ -176,7 +181,7 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 			// Logic xử lý phần tử add them
 			_, err := client.Server.AddSecurityGroup(d.Id(), add.(string))
 			if err != nil {
-				return fmt.Errorf("Add security group [%s] from server [%s] error: %v", add.(string), d.Id(), err)
+				return fmt.Errorf("Add security group [%s] to server [%s] error: %v", add.(string), d.Id(), err)
 			}
 		}
 	}
@@ -210,17 +215,20 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 		if err != nil {
 			return fmt.Errorf("Error when resize server [%s]: %v", id, err)
 		}
-		_, err = waitUntilServerChangeState(d, meta, d.Id(), []string{"building", "stopped", "active"}, []string{"resized"})
+		// _, err = waitUntilServerChangeState(d, meta, d.Id(), []string{"building", "stopped", "active"}, []string{"resized"})
+		_, err = waitUntilServerStatusChangedState(d, meta, []string{"resized"}, []string{"error"})
 		if err != nil {
-			return fmt.Errorf("Error when resize server [%s]: %v", id, err)
+			return fmt.Errorf("Resize server failed: %v", err)
 		}
+
 		_, err = client.Server.ConfirmResize(id)
 		if err != nil {
 			return fmt.Errorf("Error when resize server [%s]: %v", id, err)
 		}
-		_, err = waitUntilServerChangeState(d, meta, d.Id(), []string{"resized"}, []string{"active", "stopped"})
+		// _, err = waitUntilServerChangeState(d, meta, d.Id(), []string{"resized"}, []string{"active", "stopped"})
+		_, err = waitUntilServerStatusChangedState(d, meta, []string{"stopped", "active"}, []string{"error"})
 		if err != nil {
-			return fmt.Errorf("Error when resize server [%s]: %v", id, err)
+			return fmt.Errorf("Resize server failed: %v", err)
 		}
 	}
 
@@ -232,18 +240,23 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 		if newState.(string) == "active" {
 			_, err := client.Server.Start(d.Id())
 			if err != nil {
-				return fmt.Errorf("Error when changing state of server: %v", err)
+				return fmt.Errorf("Error when start server: %v", err)
 			}
-
-			log.Printf("Wait until server state to be active", d.Id())
-			waitUntilServerChangeState(d, meta, d.Id(), []string{"building", "stopped"}, []string{"active"})
+			// waitUntilServerChangeState(d, meta, d.Id(), []string{"building", "stopped"}, []string{"active"})
+			_, err = waitUntilServerStatusChangedState(d, meta, []string{"active"}, []string{"error"})
+			if err != nil {
+				return fmt.Errorf("Start server failed: %v", err)
+			}
 		} else if newState.(string) == "stopped" {
 			_, err := client.Server.Stop(d.Id())
 			if err != nil {
-				return fmt.Errorf("Error when changing state of server: %v", err)
+				return fmt.Errorf("Error when stop server: %v", err)
 			}
-			log.Printf("Wait until server state to be stopped", d.Id())
-			waitUntilServerChangeState(d, meta, d.Id(), []string{"building", "active"}, []string{"stopped"})
+			// waitUntilServerChangeState(d, meta, d.Id(), []string{"building", "active"}, []string{"stopped"})
+			_, err = waitUntilServerStatusChangedState(d, meta, []string{"stopped"}, []string{"error"})
+			if err != nil {
+				return fmt.Errorf("Stop server failed: %v", err)
+			}
 		} else {
 			return fmt.Errorf("New state of server must be 'active' or 'stopped'")
 		}
@@ -257,7 +270,11 @@ func resourceServerDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := client.Server.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete cloud server: %v", err)
+		return fmt.Errorf("Error delete server: %v", err)
+	}
+	_, err = waitUntilServerDeleted(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error delete server: %v", err)
 	}
 	return nil
 }
@@ -267,34 +284,6 @@ func resourceServerImport(d *schema.ResourceData, meta interface{}) ([]*schema.R
 	return []*schema.ResourceData{d}, err
 }
 
-func waitUntilServerChangeState(d *schema.ResourceData, meta interface{}, id string, pendingStatus []string, targetStatus []string) (interface{}, error) {
-	log.Printf("[INFO] Waiting for server with id (%s) to be "+strings.Join(targetStatus, ","), id)
-	stateConf := &resource.StateChangeConf{
-		Pending:        pendingStatus,
-		Target:         targetStatus,
-		Refresh:        serverStateRefreshfunc(d, meta, id),
-		Timeout:        1200 * time.Second,
-		Delay:          20 * time.Second,
-		MinTimeout:     3 * time.Second,
-		NotFoundChecks: 100,
-	}
-	return stateConf.WaitForState()
-	// return stateConf.WaitForStateContext(context.Background())
-}
-
-func serverStateRefreshfunc(d *schema.ResourceData, meta interface{}, id string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		client := meta.(*CombinedConfig).goCMCClient()
-		server, err := client.Server.Get(d.Id(), false)
-		if err != nil {
-			fmt.Errorf("Error retrieving server %s: %v", id, err)
-			return nil, "", err
-		}
-		log.Println("[DEBUG] Server status = " + server.VMState)
-		gocmcapiv2.Logs("[DEBUG] Server " + d.Id() + " status = " + server.VMState)
-		return server, server.VMState, nil
-	}
-}
 func convertVolumeAttachs(vols []gocmcapiv2.VolumeAttach) []map[string]interface{} {
 	result := make([]map[string]interface{}, len(vols))
 	for i, vol := range vols {
@@ -318,4 +307,24 @@ func convertNics(nics []gocmcapiv2.Nic) []map[string]interface{} {
 		}
 	}
 	return result
+}
+
+func waitUntilServerDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+	return waitUntilResourceDeleted(d, meta, WaitConf{
+		Delay:      10 * time.Second,
+		MinTimeout: 30 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).Server.Get(id, false)
+	})
+}
+
+func waitUntilServerStatusChangedState(d *schema.ResourceData, meta interface{}, targetStatus []string, errorStatus []string) (interface{}, error) {
+	return waitUntilResourceStatusChanged(d, meta, targetStatus, errorStatus, WaitConf{
+		Delay:      10 * time.Second,
+		MinTimeout: 30 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).Server.Get(id, false)
+	}, func(obj interface{}) string {
+		return obj.(gocmcapiv2.Server).VMState
+	})
 }

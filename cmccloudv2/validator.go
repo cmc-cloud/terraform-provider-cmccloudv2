@@ -10,6 +10,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
+// Hàm để tùy chỉnh diff và bỏ qua các thay đổi của các thuộc tính cụ thể
+func ignoreChangesCustomizeDiff(fieldsToIgnore ...string) schema.CustomizeDiffFunc {
+	return func(diff *schema.ResourceDiff, v interface{}) error {
+		for _, field := range fieldsToIgnore {
+			if diff.HasChange(field) {
+				diff.Clear(field)
+			}
+		}
+		return nil
+	}
+}
+
 func validateBillingMode(v interface{}, key string) (warnings []string, errors []error) {
 	biling_mode := v.(string)
 	if biling_mode != "monthly" && biling_mode != "hourly" {

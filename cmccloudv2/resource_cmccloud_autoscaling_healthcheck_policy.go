@@ -2,6 +2,7 @@ package cmccloudv2
 
 import (
 	"fmt"
+	"time"
 
 	// "strconv"
 
@@ -16,6 +17,10 @@ func resourceAutoScalingHealthCheckPolicy() *schema.Resource {
 		Delete: resourceAutoScalingHealthCheckPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceAutoScalingHealthCheckPolicyImport,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(2 * time.Minute),
+			Delete: schema.DefaultTimeout(2 * time.Minute),
 		},
 		SchemaVersion: 1,
 		Schema:        autoscalingHealthCheckPolicySchema(),
@@ -67,6 +72,10 @@ func resourceAutoScalingHealthCheckPolicyDelete(d *schema.ResourceData, meta int
 	client := meta.(*CombinedConfig).goCMCClient()
 	_, err := client.AutoScalingPolicy.Delete(d.Id())
 
+	if err != nil {
+		return fmt.Errorf("Error delete healcheck policy: %v", err)
+	}
+	_, err = waitUntilAutoScalingPolicyDeleted(d, meta)
 	if err != nil {
 		return fmt.Errorf("Error delete healcheck policy: %v", err)
 	}

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cmc-cloud/gocmcapiv2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -16,6 +15,10 @@ func resourceVolumeAttachment() *schema.Resource {
 		Delete: resourceVolumeAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceVolumeAttachmentImport,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(2 * time.Minute),
+			Delete: schema.DefaultTimeout(2 * time.Minute),
 		},
 		SchemaVersion: 1,
 		Schema:        volumeAttachmentSchema(),
@@ -35,7 +38,10 @@ func resourceVolumeAttachmentCreate(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId(d.Get("volume_id").(string))
 
-	waitUntilVolumeAttachedStateChanged(d, meta, server_id, []string{"", "Detached"}, []string{"Attached"})
+	_, err = waitUntilVolumeAttachedStateChanged(d, meta, server_id, []string{"", "Detached"}, []string{"Attached"})
+	if err != nil {
+		return fmt.Errorf("[ERROR] Error attach volume %s to server %s: %v", d.Id(), server_id, err)
+	}
 	return resourceVolumeAttachmentRead(d, meta)
 }
 
@@ -61,7 +67,10 @@ func resourceVolumeAttachmentDelete(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("[ERROR] Error detaching volume %s from server %s: %v", d.Id(), server_id, err)
 	}
 	// wait until detached
-	waitUntilVolumeAttachedStateChanged(d, meta, server_id, []string{"", "Attached"}, []string{"Detached"})
+	_, err = waitUntilVolumeAttachedStateChanged(d, meta, server_id, []string{"", "Attached"}, []string{"Detached"})
+	if err != nil {
+		return fmt.Errorf("[ERROR] Error detaching volume %s from server %s: %v", d.Id(), server_id, err)
+	}
 	return nil
 }
 
@@ -75,10 +84,10 @@ func waitUntilVolumeAttachedStateChanged(d *schema.ResourceData, meta interface{
 		Pending:        pendingStatus,
 		Target:         targetStatus,
 		Refresh:        volumeAttachedStateRefreshfunc(d, meta, server_id),
-		Timeout:        30 * time.Second,
+		Timeout:        d.Timeout(schema.TimeoutDelete),
 		Delay:          2 * time.Second,
-		MinTimeout:     2 * time.Second,
-		NotFoundChecks: 20,
+		MinTimeout:     5 * time.Second,
+		NotFoundChecks: 5,
 	}
 	return stateConf.WaitForState()
 }
@@ -92,13 +101,10 @@ func volumeAttachedStateRefreshfunc(d *schema.ResourceData, meta interface{}, se
 			return nil, "", err
 		}
 		for _, attachment := range volume.Attachments {
-			gocmcapiv2.Logs("compare " + attachment.ServerID + " & " + server_id)
 			if attachment.ServerID == server_id {
-				gocmcapiv2.Logs("found server_id => Attached")
 				return volume, "Attached", nil
 			}
 		}
-		gocmcapiv2.Logs("not found server_id => Detached")
 		return volume, "Detached", nil
 	}
 }

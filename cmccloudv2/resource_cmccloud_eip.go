@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/cmc-cloud/gocmcapiv2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -18,6 +19,7 @@ func resourceEIP() *schema.Resource {
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Delete: schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(10 * time.Minute),
 			Create: schema.DefaultTimeout(10 * time.Minute),
 		},
 		SchemaVersion: 1,
@@ -42,6 +44,10 @@ func resourceEIPCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 	d.SetId(eip.ID)
 
+	_, err = waitUntilEIPStatusChangedState(d, meta, []string{"ACTIVE", "DOWN"}, []string{"ERROR"})
+	if err != nil {
+		return fmt.Errorf("Error creating EIP: %s", err)
+	}
 	return resourceEIPRead(d, meta)
 }
 
@@ -104,7 +110,11 @@ func resourceEIPDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := client.EIP.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete cloud EIP: %v", err)
+		return fmt.Errorf("Error delete EIP: %v", err)
+	}
+	_, err = waitUntilEIPDeleted(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error delete EIP: %v", err)
 	}
 	return nil
 }
@@ -112,4 +122,25 @@ func resourceEIPDelete(d *schema.ResourceData, meta interface{}) error {
 func resourceEIPImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	err := resourceEIPRead(d, meta)
 	return []*schema.ResourceData{d}, err
+}
+
+func waitUntilEIPDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+	return waitUntilResourceDeleted(d, meta, WaitConf{
+		Delay:      10 * time.Second,
+		MinTimeout: 30 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).EIP.Get(id)
+	})
+}
+
+func waitUntilEIPStatusChangedState(d *schema.ResourceData, meta interface{}, targetStatus []string, errorStatus []string) (interface{}, error) {
+	return waitUntilResourceStatusChanged(d, meta, targetStatus, errorStatus, WaitConf{
+		Timeout:    d.Timeout(schema.TimeoutCreate),
+		Delay:      5 * time.Second,
+		MinTimeout: 10 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).EIP.Get(id)
+	}, func(obj interface{}) string {
+		return obj.(gocmcapiv2.EIP).Status
+	})
 }

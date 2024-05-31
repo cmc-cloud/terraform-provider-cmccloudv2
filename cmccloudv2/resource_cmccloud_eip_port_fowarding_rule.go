@@ -2,6 +2,7 @@ package cmccloudv2
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -14,6 +15,11 @@ func resourceEIPPortForwardingRule() *schema.Resource {
 		Delete: resourceEIPPortForwardingRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceEIPPortForwardingRuleImport,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Delete: schema.DefaultTimeout(1 * time.Minute),
+			Update: schema.DefaultTimeout(2 * time.Minute),
+			Create: schema.DefaultTimeout(2 * time.Minute),
 		},
 		SchemaVersion: 1,
 		Schema:        createEipPortForwardingRuleElementSchema(),
@@ -86,7 +92,11 @@ func resourceEIPPortForwardingRuleDelete(d *schema.ResourceData, meta interface{
 	_, err := client.EIP.DeletePortForwardingRule(d.Get("eip_id").(string), d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete cloud EIP Port Forwarding Rule: %v", err)
+		return fmt.Errorf("Error delete EIP Port Forwarding Rule: %v", err)
+	}
+	_, err = waitUntilEIPPortForwardingRuleDeleted(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error delete EIP Port Forwarding Rule [%s]: %v", d.Id(), err)
 	}
 	return nil
 }
@@ -94,4 +104,13 @@ func resourceEIPPortForwardingRuleDelete(d *schema.ResourceData, meta interface{
 func resourceEIPPortForwardingRuleImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	err := resourceEIPPortForwardingRuleRead(d, meta)
 	return []*schema.ResourceData{d}, err
+}
+
+func waitUntilEIPPortForwardingRuleDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+	return waitUntilResourceDeleted(d, meta, WaitConf{
+		Delay:      10 * time.Second,
+		MinTimeout: 30 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).EIP.GetPortForwardingRule(d.Get("eip_id").(string), id)
+	})
 }
