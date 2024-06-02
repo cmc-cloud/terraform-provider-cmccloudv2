@@ -19,14 +19,53 @@ func datasourceEFSSchema() map[string]*schema.Schema {
 		},
 		"name": {
 			Type:        schema.TypeString,
-			Description: "Filter by ip address of efs",
+			Description: "Filter EFS by name, match exactly",
 			Optional:    true,
 			ForceNew:    true,
+		},
+		"endpoint": {
+			Type:        schema.TypeString,
+			Description: "Filter EFS by endpoint, match exactly",
+			Optional:    true,
+			ForceNew:    true,
+		},
+		"description": {
+			Type:        schema.TypeString,
+			Description: "Filter EFS that has description contains this text",
+			Computed:    true,
+			ForceNew:    true,
+		},
+		"vpc_id": {
+			Type:        schema.TypeString,
+			Description: "Filter EFS by vpc_id, match exactly",
+			Optional:    true,
+			ForceNew:    true,
+		},
+		"subnet_id": {
+			Type:        schema.TypeString,
+			Description: "Filter EFS by subnet_id, match exactly",
+			Optional:    true,
+			ForceNew:    true,
+		},
+		"type": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"protocol_type": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"status": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"capacity": {
+			Type:     schema.TypeString,
+			Computed: true,
 		},
 		"created_at": {
 			Type:     schema.TypeString,
 			Computed: true,
-			ForceNew: true,
 		},
 	}
 }
@@ -52,12 +91,10 @@ func dataSourceEFSRead(d *schema.ResourceData, meta interface{}) error {
 		}
 		allEFSs = append(allEFSs, efs)
 	} else {
-		params := map[string]string{
-			"vpc_id": d.Get("vpc_id").(string),
-		}
+		params := map[string]string{}
 		efss, err := client.EFS.List(params)
 		if err != nil {
-			return fmt.Errorf("Error when get efss %v", err)
+			return fmt.Errorf("Error when get efses %v", err)
 		}
 		allEFSs = append(allEFSs, efss...)
 	}
@@ -66,6 +103,26 @@ func dataSourceEFSRead(d *schema.ResourceData, meta interface{}) error {
 		for _, efs := range allEFSs {
 			if v := d.Get("name").(string); v != "" {
 				if strings.ToLower(efs.Name) != strings.ToLower(v) {
+					continue
+				}
+			}
+			if v := d.Get("endpoint").(string); v != "" {
+				if strings.ToLower(efs.Endpoint) != strings.ToLower(v) {
+					continue
+				}
+			}
+			if v := d.Get("description").(string); v != "" {
+				if !strings.Contains(strings.ToLower(efs.Description), strings.ToLower(v)) {
+					continue
+				}
+			}
+			if v := d.Get("vpc_id").(string); v != "" {
+				if strings.ToLower(efs.VpcID) != strings.ToLower(v) {
+					continue
+				}
+			}
+			if v := d.Get("subnet_id").(string); v != "" {
+				if strings.ToLower(efs.VpcID) != strings.ToLower(v) {
 					continue
 				}
 			}
@@ -89,7 +146,15 @@ func dataSourceComputeEFSAttributes(d *schema.ResourceData, efs gocmcapiv2.EFS) 
 	log.Printf("[DEBUG] Retrieved efs %s: %#v", efs.ID, efs)
 	d.SetId(efs.ID)
 	d.Set("name", efs.Name)
-	d.Set("cidr", efs.Cidr)
+	d.Set("type", efs.Type)
+	d.Set("status", efs.Status)
+	d.Set("capacity", efs.Capacity)
+	d.Set("protocol_type", efs.ProtocolType)
+	d.Set("vpc_id", efs.VpcID)
+	d.Set("subnet_id", efs.SubnetID)
 	d.Set("created_at", efs.CreatedAt)
+	d.Set("endpoint", efs.Endpoint)
+	d.Set("shared_path", efs.SharedPath)
+	d.Set("command_line", efs.CommandLine)
 	return nil
 }

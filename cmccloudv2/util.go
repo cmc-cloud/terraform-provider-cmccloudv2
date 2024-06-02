@@ -55,11 +55,55 @@ func setInt(d *schema.ResourceData, key string, newval int) {
 func setString(d *schema.ResourceData, key string, newval string) {
 	// kiem tra xem co khac voi gia tri hien tai ko, gia tri hien tai co the chi la gia tri default
 	v, ok := d.GetOk(key)
-	gocmcapiv2.Logs("setString old val " + v.(string) + ", newval = " + newval)
+	// gocmcapiv2.Logs("setString old val " + v.(string) + ", newval = " + newval)
 	if ok && v.(string) != newval {
-		gocmcapiv2.Logs("setString old val " + v.(string) + ", newval = " + newval)
+		// gocmcapiv2.Logs("setString old val " + v.(string) + ", newval = " + newval)
 		_ = d.Set(key, newval)
 	}
+}
+
+// set các giá trị dạng []string không phân biệt thứ tự (TypeSet)
+func setTypeSet(d *schema.ResourceData, key string, newval []string) {
+	// kiem tra xem co khac voi gia tri hien tai ko, gia tri hien tai co the chi la gia tri default
+	v, ok := d.GetOk(key)
+	items := v.(*schema.Set).List()
+	itemStrings := make([]string, len(items))
+	index := 0
+	for _, val := range items {
+		itemStrings[index] = val.(string)
+		index++
+	}
+	if ok && !areTypeSetEqual(itemStrings, newval) {
+		_ = d.Set(key, newval)
+	}
+}
+
+// areSlicesEqual so sánh hai slice mà không phân biệt thứ tự phần tử
+func areTypeSetEqual(a, b []string) bool {
+	// Nếu độ dài khác nhau, chắc chắn hai slice không giống nhau
+	if len(a) != len(b) {
+		return false
+	}
+
+	// Tạo map để đếm số lần xuất hiện của từng phần tử trong slice a
+	counts := make(map[string]int)
+	for _, item := range a {
+		counts[item]++
+	}
+
+	// Giảm đếm số lần xuất hiện của từng phần tử trong slice b
+	for _, item := range b {
+		if _, found := counts[item]; !found {
+			return false
+		}
+		counts[item]--
+		if counts[item] == 0 {
+			delete(counts, item)
+		}
+	}
+
+	// Kiểm tra xem map counts có trống không
+	return len(counts) == 0
 }
 
 func arrayContains(slice []string, item string) bool {

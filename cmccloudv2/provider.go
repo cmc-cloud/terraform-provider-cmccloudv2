@@ -47,6 +47,9 @@ func Provider() terraform.ResourceProvider {
 			"cmccloudv2_elb_listener":                    resourceELBListener(),
 			"cmccloudv2_elb_healthmonitor":               resourceELBHealthMonitor(),
 			"cmccloudv2_elb_pool_member":                 resourceELBPoolMember(),
+			"cmccloudv2_ecs_group":                       resourceEcsGroup(),
+			"cmccloudv2_eip_port":                        resourceEIPPort(),
+			"cmccloudv2_efs":                             resourceEFS(),
 			"cmccloudv2_security_group":                  resourceSecurityGroup(),
 			"cmccloudv2_kubernetes":                      resourceKubernates(),
 			"cmccloudv2_kubernetes_nodegroup":            resourceKubernatesNodeGroup(),
@@ -61,8 +64,6 @@ func Provider() terraform.ResourceProvider {
 			"cmccloudv2_autoscaling_scale_out_policy":    resourceAutoScalingScaleOutPolicy(),
 			"cmccloudv2_autoscaling_az_policy":           resourceAutoScalingAZPolicy(),
 			"cmccloudv2_autoscaling_lb_policy":           resourceAutoScalingLBPolicy(),
-			"cmccloudv2_ecs_group":                       resourceEcsGroup(),
-			"cmccloudv2_eip_port":                        resourceEIPPort(),
 			"cmccloudv2_server_interface":                resourceServerInterface(),
 		},
 
@@ -74,6 +75,8 @@ func Provider() terraform.ResourceProvider {
 			"cmccloudv2_flavor_elb":                datasourceFlavorForELB(),
 			"cmccloudv2_elb":                       datasourceELB(),
 			"cmccloudv2_eip":                       datasourceEIP(),
+			"cmccloudv2_ecs_group":                 datasourceEcsGroup(),
+			"cmccloudv2_efs":                       datasourceEFS(),
 			"cmccloudv2_vpc":                       datasourceVPC(),
 			"cmccloudv2_subnet":                    datasourceSubnet(),
 			"cmccloudv2_volume":                    datasourceVolume(),
@@ -85,7 +88,6 @@ func Provider() terraform.ResourceProvider {
 			"cmccloudv2_snapshot":                  datasourceVolumeSnapshot(),
 			"cmccloudv2_autoscaling_configuration": datasourceAutoScalingConfiguration(),
 			"cmccloudv2_autoscaling_group":         datasourceAutoScalingGroup(),
-			"cmccloudv2_ecs_group":                 datasourceEcsGroup(),
 		},
 	}
 	p.ConfigureFunc = func(d *schema.ResourceData) (interface{}, error) {
