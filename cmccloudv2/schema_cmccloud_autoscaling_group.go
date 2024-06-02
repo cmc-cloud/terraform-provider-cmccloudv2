@@ -2,7 +2,6 @@ package cmccloudv2
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func autoscalingGroupSchema() map[string]*schema.Schema {
@@ -10,7 +9,7 @@ func autoscalingGroupSchema() map[string]*schema.Schema {
 		"name": {
 			Type:         schema.TypeString,
 			Required:     true,
-			ValidateFunc: validation.NoZeroValues,
+			ValidateFunc: validateName,
 		},
 		"min_size": {
 			Type:     schema.TypeInt,

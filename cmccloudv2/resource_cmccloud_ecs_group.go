@@ -14,7 +14,7 @@ func ecsgroupSchema() map[string]*schema.Schema {
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.NoZeroValues,
+			ValidateFunc: validateName,
 		},
 		"policy": {
 			Type:         schema.TypeString,

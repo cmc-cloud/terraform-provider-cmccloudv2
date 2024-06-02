@@ -70,12 +70,12 @@ func createLabelsSchema() map[string]*schema.Schema {
 	}
 }
 
-func kubernatesSchema() map[string]*schema.Schema {
+func kubernetesSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
 			Type:         schema.TypeString,
 			Required:     true,
-			ValidateFunc: validation.NoZeroValues,
+			ValidateFunc: validateName,
 		},
 		"zone": {
 			Type:     schema.TypeString,

@@ -90,7 +90,7 @@ func securityGroupSchema() map[string]*schema.Schema {
 		"name": {
 			Type:         schema.TypeString,
 			Required:     true,
-			ValidateFunc: validation.NoZeroValues,
+			ValidateFunc: validateName,
 		},
 		"description": {
 			Type:     schema.TypeString,

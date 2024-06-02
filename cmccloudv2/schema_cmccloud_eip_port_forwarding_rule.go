@@ -29,12 +29,14 @@ func createEipPortForwardingRuleElementSchema() map[string]*schema.Schema {
 			ValidateFunc: validateUUID,
 		},
 		"internal_port": {
-			Type:     schema.TypeInt,
-			Optional: true,
+			Type:         schema.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntBetween(1, 65535),
 		},
 		"external_port": {
-			Type:     schema.TypeInt,
-			Optional: true,
+			Type:         schema.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntBetween(1, 65535),
 		},
 		"internal_port_range": {
 			Type:     schema.TypeString,

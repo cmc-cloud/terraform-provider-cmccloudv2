@@ -1,6 +1,7 @@
 package cmccloudv2
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"regexp"
@@ -22,6 +23,35 @@ func ignoreChangesCustomizeDiff(fieldsToIgnore ...string) schema.CustomizeDiffFu
 	}
 }
 
+func field1RequiredWhenOtherField2Is(field1 string, field2 string, values []string) schema.CustomizeDiffFunc {
+	return func(diff *schema.ResourceDiff, v interface{}) error {
+		field2Val := diff.Get(field2).(string)
+
+		if arrayContains(values, field2Val) {
+			// yeu cau field1 phai duoc set gia tri
+			field1Val, field1Set := diff.GetOkExists(field1)
+			if !field1Set || field1Val.(string) == "" {
+				return errors.New(field1 + " must be set when " + field2 + " is " + field2Val)
+			}
+		}
+		return nil
+	}
+}
+
+func ensureField2RequiredWhenField1True(field1, field2 string) schema.CustomizeDiffFunc {
+	return func(diff *schema.ResourceDiff, v interface{}) error {
+		// Kiểm tra nếu field1 được đặt thành true
+		field1Set := diff.Get(field1).(bool)
+
+		// Kiểm tra nếu field2 có giá trị hay không
+		field2Set := diff.Get(field2).(string) != ""
+
+		if field1Set && !field2Set {
+			return errors.New(field2 + " must be set when " + field1 + " is true")
+		}
+		return nil
+	}
+}
 func validateBillingMode(v interface{}, key string) (warnings []string, errors []error) {
 	biling_mode := v.(string)
 	if biling_mode != "monthly" && biling_mode != "hourly" {
@@ -36,6 +66,10 @@ func validateNetmask(v interface{}, k string) (warnings []string, errors []error
 }
 func validateUUID(v interface{}, k string) (warnings []string, errors []error) {
 	re := `^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$`
+	return validateRegexp(re)(v, k)
+}
+func validateName(v interface{}, k string) (warnings []string, errors []error) {
+	re := `^[a-zA-Z]+[a-zA-Z0-9\-_]*[a-zA-Z0-9]+$`
 	return validateRegexp(re)(v, k)
 }
 

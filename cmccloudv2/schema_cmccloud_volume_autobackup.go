@@ -2,7 +2,6 @@ package cmccloudv2
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 // $name, $volume_id, $hour, $minute, $interval, $max_keep, $incremental
@@ -12,7 +11,7 @@ func volumeAutoBackupSchema() map[string]*schema.Schema {
 		"name": {
 			Type:         schema.TypeString,
 			Required:     true,
-			ValidateFunc: validation.NoZeroValues,
+			ValidateFunc: validateName,
 		},
 		"volume_id": {
 			Type:         schema.TypeString,

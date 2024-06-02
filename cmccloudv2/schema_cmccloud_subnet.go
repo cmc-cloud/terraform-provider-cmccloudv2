@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func createHostRouteElementSchema() map[string]*schema.Schema {
@@ -42,7 +41,7 @@ func subnetSchema() map[string]*schema.Schema {
 		"name": {
 			Type:         schema.TypeString,
 			Required:     true,
-			ValidateFunc: validation.NoZeroValues,
+			ValidateFunc: validateName,
 		},
 		"ip_version": {
 			Type:     schema.TypeInt,

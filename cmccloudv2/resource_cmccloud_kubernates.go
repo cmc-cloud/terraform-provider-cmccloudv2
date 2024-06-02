@@ -23,7 +23,7 @@ func resourceKubernates() *schema.Resource {
 			Update: schema.DefaultTimeout(120 * time.Minute),
 		},
 		SchemaVersion: 1,
-		Schema:        kubernatesSchema(),
+		Schema:        kubernetesSchema(),
 		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
 			if v, ok := d.GetOk("labels"); ok {
 				blockList := v.([]interface{})
@@ -93,11 +93,11 @@ func resourceKubernatesCreate(d *schema.ResourceData, meta interface{}) error {
 		"labels":             labels,
 	}
 
-	kubernates, err := client.Kubernates.Create(params)
+	kubernetes, err := client.Kubernates.Create(params)
 	if err != nil {
 		return fmt.Errorf("Error creating Kubernates: %s", err)
 	}
-	d.SetId(kubernates.ID)
+	d.SetId(kubernetes.ID)
 
 	_, err = waitUntilKubernatesStatusChangedState(d, meta, []string{"CREATE_COMPLETE", "HEALTHY"}, []string{"CREATE_FAILED"}, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
@@ -108,56 +108,56 @@ func resourceKubernatesCreate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceKubernatesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
-	kubernates, err := client.Kubernates.Get(d.Id())
+	kubernetes, err := client.Kubernates.Get(d.Id())
 	if err != nil {
 		return fmt.Errorf("Error retrieving Kubernates %s: %v", d.Id(), err)
 	}
 
 	labels := make([]map[string]interface{}, 1)
 	labels[0] = map[string]interface{}{
-		"kube_dashboard_enabled": kubernates.Labels.KubeDashboardEnabled,
-		"metrics_server_enabled": kubernates.Labels.MetricsServerEnabled,
-		"npd_enabled":            kubernates.Labels.NpdEnabled,
-		"auto_scaling_enabled":   kubernates.Labels.AutoScalingEnabled,
-		"auto_healing_enabled":   kubernates.Labels.AutoHealingEnabled,
+		"kube_dashboard_enabled": kubernetes.Labels.KubeDashboardEnabled,
+		"metrics_server_enabled": kubernetes.Labels.MetricsServerEnabled,
+		"npd_enabled":            kubernetes.Labels.NpdEnabled,
+		"auto_scaling_enabled":   kubernetes.Labels.AutoScalingEnabled,
+		"auto_healing_enabled":   kubernetes.Labels.AutoHealingEnabled,
 
-		"kube_tag":           kubernates.Labels.KubeTag,
-		"network_driver":     kubernates.Labels.NetworkDriver,
-		"calico_ipv4pool":    kubernates.Labels.CalicoIpv4Pool,
-		"docker_volume_type": kubernates.Labels.DockerVolumeType,
-		// "create_timeout":        kubernates.Labels.CreateTimeout,
-		"zone": kubernates.Labels.AvailabilityZone,
+		"kube_tag":           kubernetes.Labels.KubeTag,
+		"network_driver":     kubernetes.Labels.NetworkDriver,
+		"calico_ipv4pool":    kubernetes.Labels.CalicoIpv4Pool,
+		"docker_volume_type": kubernetes.Labels.DockerVolumeType,
+		// "create_timeout":        kubernetes.Labels.CreateTimeout,
+		"zone": kubernetes.Labels.AvailabilityZone,
 	}
 
-	if kubernates.Labels.AutoScalingEnabled {
-		labels[0]["max_node_count"] = kubernates.Labels.MaxNodeCount
-		labels[0]["min_node_count"] = kubernates.Labels.MinNodeCount
+	if kubernetes.Labels.AutoScalingEnabled {
+		labels[0]["max_node_count"] = kubernetes.Labels.MaxNodeCount
+		labels[0]["min_node_count"] = kubernetes.Labels.MinNodeCount
 	}
 
-	_ = d.Set("id", kubernates.ID)
-	_ = d.Set("name", kubernates.Name)
-	_ = d.Set("zone", kubernates.Labels.AvailabilityZone)
-	_ = d.Set("subnet_id", kubernates.SubnetID)
-	_ = d.Set("docker_volume_size", kubernates.DockerVolumeSize)
-	_ = d.Set("docker_volume_type", kubernates.Labels.DockerVolumeType)
-	_ = d.Set("keypair", kubernates.Keypair)
-	_ = d.Set("create_timeout", kubernates.CreateTimeout)
+	_ = d.Set("id", kubernetes.ID)
+	_ = d.Set("name", kubernetes.Name)
+	_ = d.Set("zone", kubernetes.Labels.AvailabilityZone)
+	_ = d.Set("subnet_id", kubernetes.SubnetID)
+	_ = d.Set("docker_volume_size", kubernetes.DockerVolumeSize)
+	_ = d.Set("docker_volume_type", kubernetes.Labels.DockerVolumeType)
+	_ = d.Set("keypair", kubernetes.Keypair)
+	_ = d.Set("create_timeout", kubernetes.CreateTimeout)
 
 	default_master := map[string]interface{}{
-		"node_count":   kubernates.MasterCount,
-		"flavor_id":    kubernates.MasterFlavorID,
-		"billing_mode": kubernates.MasterBillingMode,
+		"node_count":   kubernetes.MasterCount,
+		"flavor_id":    kubernetes.MasterFlavorID,
+		"billing_mode": kubernetes.MasterBillingMode,
 	}
 	d.Set("default_master", []interface{}{default_master})
 
 	default_worker := map[string]interface{}{
-		"node_count":   kubernates.NodeCount,
-		"flavor_id":    kubernates.NodeFlavorID,
-		"billing_mode": kubernates.NodeBillingMode,
+		"node_count":   kubernetes.NodeCount,
+		"flavor_id":    kubernetes.NodeFlavorID,
+		"billing_mode": kubernetes.NodeBillingMode,
 	}
 	d.Set("default_worker", []interface{}{default_worker})
 
-	_ = d.Set("created_at", kubernates.CreatedAt)
+	_ = d.Set("created_at", kubernetes.CreatedAt)
 	_ = d.Set("labels", labels)
 
 	return nil
@@ -199,11 +199,11 @@ func resourceKubernatesDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := client.Kubernates.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete kubernates [%s]: %v", d.Id(), err)
+		return fmt.Errorf("Error delete kubernetes [%s]: %v", d.Id(), err)
 	}
 	_, err = waitUntilKubernatesDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete kubernates [%s]: %v", d.Id(), err)
+		return fmt.Errorf("Error delete kubernetes [%s]: %v", d.Id(), err)
 	}
 	return nil
 }

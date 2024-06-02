@@ -168,6 +168,10 @@ func resourceELBDelete(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return fmt.Errorf("Error delete ELB: %v", err)
 	}
+	_, err = waitUntilELBDeleted(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error delete ELB: %v", err)
+	}
 	return nil
 }
 
@@ -193,6 +197,6 @@ func waitUntilELBStatusChangedState(d *schema.ResourceData, meta interface{}, ta
 	}, func(id string) (any, error) {
 		return getClient(meta).ELB.Get(id)
 	}, func(obj interface{}) string {
-		return obj.(gocmcapiv2.ELB).OperatingStatus
+		return obj.(gocmcapiv2.ELB).ProvisioningStatus
 	})
 }

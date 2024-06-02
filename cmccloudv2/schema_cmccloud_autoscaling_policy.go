@@ -8,8 +8,9 @@ import (
 func autoscalingHealthCheckPolicySchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
-			Type:     schema.TypeString,
-			Required: true,
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validateName,
 		},
 		"interval": {
 			Type:     schema.TypeInt,
@@ -28,8 +29,9 @@ func autoscalingHealthCheckPolicySchema() map[string]*schema.Schema {
 func autoscalingDeletePolicySchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
-			Type:     schema.TypeString,
-			Required: true,
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validateName,
 		},
 		"criteria": {
 			Type:         schema.TypeString,
@@ -71,8 +73,9 @@ func autoscalingDeletePolicySchema() map[string]*schema.Schema {
 func autoscalingAZPolicySchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
-			Type:     schema.TypeString,
-			Required: true,
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validateName,
 		},
 		"zones": {
 			Type:     schema.TypeSet,
@@ -89,8 +92,9 @@ func autoscalingAZPolicySchema() map[string]*schema.Schema {
 func autoscalingLoadbalancerPolicySchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
-			Type:     schema.TypeString,
-			Required: true,
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validateName,
 		},
 		"lb_id": {
 			Type:     schema.TypeString,
@@ -103,10 +107,11 @@ func autoscalingLoadbalancerPolicySchema() map[string]*schema.Schema {
 			ForceNew: true,
 		},
 		"lb_protocol_port": {
-			Type:     schema.TypeInt,
-			Optional: true,
-			Default:  443,
-			ForceNew: true,
+			Type:         schema.TypeInt,
+			Optional:     true,
+			Default:      443,
+			ForceNew:     true,
+			ValidateFunc: validation.IntBetween(1, 65535),
 		},
 		"as_configuration_id": {
 			Type:         schema.TypeString,
@@ -125,8 +130,9 @@ func autoscalingLoadbalancerPolicySchema() map[string]*schema.Schema {
 func autoscalingScaleInOutPolicySchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
-			Type:     schema.TypeString,
-			Required: true,
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validateName,
 		},
 		"scale_number": {
 			Type:     schema.TypeInt,

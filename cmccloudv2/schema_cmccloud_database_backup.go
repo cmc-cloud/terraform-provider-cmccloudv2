@@ -7,8 +7,9 @@ import (
 func databaseBackupSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
-			Type:     schema.TypeString,
-			Required: true,
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validateName,
 		},
 		"instance_id": {
 			Type:         schema.TypeString,

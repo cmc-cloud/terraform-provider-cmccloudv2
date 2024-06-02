@@ -7,8 +7,9 @@ import (
 func volumeSnapshotSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
-			Type:     schema.TypeString,
-			Required: true,
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validateName,
 		},
 		"volume_id": {
 			Type:         schema.TypeString,

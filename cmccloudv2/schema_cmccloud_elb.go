@@ -24,8 +24,9 @@ func elbSchema() map[string]*schema.Schema {
 			ValidateFunc: validateUUID,
 		},
 		"name": {
-			Type:     schema.TypeString,
-			Required: true,
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validateName,
 		},
 		"network_type": {
 			Type:         schema.TypeString,

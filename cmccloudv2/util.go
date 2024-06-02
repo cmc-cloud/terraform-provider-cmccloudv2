@@ -18,6 +18,58 @@ type WaitConf struct {
 	Timeout    time.Duration // The amount of time to wait before timeout
 }
 
+func isSet(diff *schema.ResourceDiff, key string) bool {
+	v, ok := diff.GetOkExists(key)
+	if !ok {
+		gocmcapiv2.Logo("isSet "+key+" not exists ", v)
+		return false
+	} else {
+		gocmcapiv2.Logo("isSet "+key+" exists ", v)
+		switch v.(type) {
+		case int:
+			if v.(int) == 0 {
+				return false
+			}
+			return true
+		case string:
+			if v.(string) == "" {
+				return false
+			}
+			return true
+		case bool:
+			if v.(bool) == false {
+				return false
+			}
+			return true
+		default:
+		}
+	}
+	return ok
+}
+func setInt(d *schema.ResourceData, key string, newval int) {
+	// kiem tra xem co khac voi gia tri hien tai ko, gia tri hien tai co the chi la gia tri default
+	if v, ok := d.GetOk(key); ok && v.(int) != newval {
+		_ = d.Set(key, newval)
+	}
+}
+func setString(d *schema.ResourceData, key string, newval string) {
+	// kiem tra xem co khac voi gia tri hien tai ko, gia tri hien tai co the chi la gia tri default
+	v, ok := d.GetOk(key)
+	gocmcapiv2.Logs("setString old val " + v.(string) + ", newval = " + newval)
+	if ok && v.(string) != newval {
+		gocmcapiv2.Logs("setString old val " + v.(string) + ", newval = " + newval)
+		_ = d.Set(key, newval)
+	}
+}
+
+func arrayContains(slice []string, item string) bool {
+	for _, v := range slice {
+		if v == item {
+			return true
+		}
+	}
+	return false
+}
 func getClient(meta interface{}) *gocmcapiv2.Client {
 	return meta.(*CombinedConfig).goCMCClient()
 }

@@ -23,7 +23,7 @@ func resourceKubernatesNodeGroup() *schema.Resource {
 			Update: schema.DefaultTimeout(120 * time.Minute),
 		},
 		SchemaVersion: 1,
-		Schema:        kubernatesNodeGroupSchema(),
+		Schema:        kubernetesNodeGroupSchema(),
 	}
 }
 
@@ -45,11 +45,11 @@ func resourceKubernatesNodeGroupCreate(d *schema.ResourceData, meta interface{})
 		},
 	}
 
-	kubernatesnodegroup, err := client.Kubernates.CreateNodeGroup(d.Get("cluster_id").(string), params)
+	kubernetesnodegroup, err := client.Kubernates.CreateNodeGroup(d.Get("cluster_id").(string), params)
 	if err != nil {
 		return fmt.Errorf("Error creating Kubernates NodeGroup: %s", err)
 	}
-	d.SetId(kubernatesnodegroup.ID)
+	d.SetId(kubernetesnodegroup.ID)
 
 	_, err = waitUntilKubernatesNodeGroupStatusChangedState(d, meta, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
@@ -127,11 +127,11 @@ func resourceKubernatesNodeGroupDelete(d *schema.ResourceData, meta interface{})
 	_, err := client.Kubernates.DeleteNodeGroup(d.Get("cluster_id").(string), d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete kubernates nodegroup [%s]: %v", d.Id(), err)
+		return fmt.Errorf("Error delete kubernetes nodegroup [%s]: %v", d.Id(), err)
 	}
 	_, err = waitUntilKubernatesNodeGroupDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete kubernates nodegroup [%s]: %v", d.Id(), err)
+		return fmt.Errorf("Error delete kubernetes nodegroup [%s]: %v", d.Id(), err)
 	}
 	return nil
 }

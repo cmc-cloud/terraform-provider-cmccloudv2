@@ -23,7 +23,7 @@ func databaseinstanceSchema() map[string]*schema.Schema {
 		"name": {
 			Type:         schema.TypeString,
 			Required:     true,
-			ValidateFunc: validation.NoZeroValues,
+			ValidateFunc: validateName,
 		},
 		"flavor_id": {
 			Type:         schema.TypeString,

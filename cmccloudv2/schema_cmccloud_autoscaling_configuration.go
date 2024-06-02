@@ -29,7 +29,7 @@ func autoscalingConfigurationSchema() map[string]*schema.Schema {
 		"name": {
 			Type:         schema.TypeString,
 			Required:     true,
-			ValidateFunc: validation.NoZeroValues,
+			ValidateFunc: validateName,
 		},
 		"source_type": {
 			Type:         schema.TypeString,

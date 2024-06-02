@@ -4,7 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func kubernatesNodeGroupSchema() map[string]*schema.Schema {
+func kubernetesNodeGroupSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"cluster_id": {
 			Type:         schema.TypeString,
@@ -13,9 +13,10 @@ func kubernatesNodeGroupSchema() map[string]*schema.Schema {
 			ForceNew:     true,
 		},
 		"name": {
-			Type:        schema.TypeString,
-			Required:    true,
-			Description: "Name of node group, this can't be changed after created",
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validateName,
+			Description:  "Name of node group, this can't be changed after created",
 		},
 		"flavor_id": {
 			Type:         schema.TypeString,
