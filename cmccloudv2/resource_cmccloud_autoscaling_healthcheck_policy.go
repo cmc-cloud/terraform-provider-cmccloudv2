@@ -30,6 +30,7 @@ func resourceAutoScalingHealthCheckPolicyCreate(d *schema.ResourceData, meta int
 	client := meta.(*CombinedConfig).goCMCClient()
 	params := map[string]interface{}{
 		"name":                  d.Get("name").(string),
+		"action":                d.Get("action").(string),
 		"health_check_interval": d.Get("interval").(int),
 		"health_check_period":   d.Get("period").(int),
 	}
@@ -51,6 +52,9 @@ func resourceAutoScalingHealthCheckPolicyRead(d *schema.ResourceData, meta inter
 	_ = d.Set("name", policy.Name)
 	_ = d.Set("interval", policy.Spec.Properties.Detection.Interval)
 	_ = d.Set("period", policy.Spec.Properties.Detection.NodeUpdateTimeout)
+	if len(policy.Spec.Properties.Recovery.Actions) > 0 {
+		_ = d.Set("action", policy.Spec.Properties.Recovery.Actions[0].Name)
+	}
 	return nil
 }
 

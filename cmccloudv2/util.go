@@ -154,10 +154,6 @@ func _checkStatusRefreshFunc(d *schema.ResourceData, meta interface{}, errorStat
 				return resource, newStatus, fmt.Errorf("got the status " + newStatus)
 			}
 		}
-		// if err2 != nil {
-		// 	fmt.Errorf("Error retrieving resource %s: %v", d.Id(), err2)
-		// 	return nil, "", err
-		// }
 		return resource, newStatus, nil
 	}
 }

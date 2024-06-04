@@ -12,17 +12,25 @@ func autoscalingHealthCheckPolicySchema() map[string]*schema.Schema {
 			Required:     true,
 			ValidateFunc: validateName,
 		},
+		"action": {
+			Type:         schema.TypeString,
+			Required:     true,
+			Description:  "Name of action to execute",
+			ValidateFunc: validation.StringInSlice([]string{"REBOOT", "REBUILD", "RECREATE"}, false),
+		},
 		"interval": {
-			Type:     schema.TypeInt,
-			Optional: true,
-			ForceNew: true,
-			Default:  300,
+			Type:        schema.TypeInt,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     300,
+			Description: "Number of seconds between two adjacent checking",
 		},
 		"period": {
-			Type:     schema.TypeInt,
-			Optional: true,
-			ForceNew: true,
-			Default:  60,
+			Type:        schema.TypeInt,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     60,
+			Description: "Number of seconds since last node update to wait before checking node health",
 		},
 	}
 }
