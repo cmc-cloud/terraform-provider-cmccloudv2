@@ -174,7 +174,7 @@ func dataSourceComputeFlavorAttributes(d *schema.ResourceData, flavor gocmcapiv2
 	d.Set("name", flavor.Name)
 	d.Set("cpu", flavor.Vcpus)
 	d.Set("ram", flavor.RAM/1024)
-	if flavor_type == "Kubernates" {
+	if flavor_type == "Kubernetes" {
 		d.Set("disk", flavor.Disk)
 	}
 	return nil

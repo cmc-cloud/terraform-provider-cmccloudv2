@@ -37,13 +37,13 @@ func resourceDatabaseAutoBackupCreate(d *schema.ResourceData, meta interface{}) 
 	minute := parts[1]
 
 	vol, err := client.DatabaseAutoBackup.Create(map[string]interface{}{
-		"name":        d.Get("name").(string),
-		"instance_id": d.Get("instance_id").(string),
-		"hour":        hour,
-		"minute":      minute,
-		"interval":    d.Get("interval").(int),
-		"max_keep":    d.Get("max_keep").(int),
-		"incremental": d.Get("incremental").(bool),
+		"name":           d.Get("name").(string),
+		"instance_id":    d.Get("instance_id").(string),
+		"hour":           hour,
+		"minute":         minute,
+		"interval":       d.Get("interval").(int),
+		"max_keep":       d.Get("max_keep").(int),
+		"is_full_backup": !d.Get("incremental").(bool),
 	})
 	if err != nil {
 		return fmt.Errorf("Error creating Database AutoBackup: %s", err)
@@ -84,12 +84,12 @@ func resourceDatabaseAutoBackupUpdate(d *schema.ResourceData, meta interface{}) 
 
 	if d.HasChange("name") || d.HasChange("schedule_time") || d.HasChange("interval") || d.HasChange("max_keep") || d.HasChange("incremental") {
 		_, err := client.DatabaseAutoBackup.Update(id, map[string]interface{}{
-			"name":        d.Get("name").(string),
-			"hour":        hour,
-			"minute":      minute,
-			"interval":    d.Get("interval").(int),
-			"max_keep":    d.Get("max_keep").(int),
-			"incremental": d.Get("incremental").(bool),
+			"name":           d.Get("name").(string),
+			"hour":           hour,
+			"minute":         minute,
+			"interval":       d.Get("interval").(int),
+			"max_keep":       d.Get("max_keep").(int),
+			"is_full_backup": !d.Get("incremental").(bool),
 		})
 		if err != nil {
 			return fmt.Errorf("Error when update Database AutoBackup [%s]: %v", id, err)

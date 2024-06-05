@@ -8,14 +8,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceKubernates() *schema.Resource {
+func resourceKubernetes() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceKubernatesCreate,
-		Read:   resourceKubernatesRead,
-		Update: resourceKubernatesUpdate,
-		Delete: resourceKubernatesDelete,
+		Create: resourceKubernetesCreate,
+		Read:   resourceKubernetesRead,
+		Update: resourceKubernetesUpdate,
+		Delete: resourceKubernetesDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceKubernatesImport,
+			State: resourceKubernetesImport,
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Delete: schema.DefaultTimeout(10 * time.Minute),
@@ -54,7 +54,7 @@ func resourceKubernates() *schema.Resource {
 	}
 }
 
-func resourceKubernatesCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	metas := getFirstBlock(d, "labels")
 	labels := map[string]interface{}{
@@ -93,24 +93,24 @@ func resourceKubernatesCreate(d *schema.ResourceData, meta interface{}) error {
 		"labels":             labels,
 	}
 
-	kubernetes, err := client.Kubernates.Create(params)
+	kubernetes, err := client.Kubernetes.Create(params)
 	if err != nil {
-		return fmt.Errorf("Error creating Kubernates: %s", err)
+		return fmt.Errorf("Error creating Kubernetes: %s", err)
 	}
 	d.SetId(kubernetes.ID)
 
-	_, err = waitUntilKubernatesStatusChangedState(d, meta, []string{"CREATE_COMPLETE", "HEALTHY"}, []string{"CREATE_FAILED"}, d.Timeout(schema.TimeoutCreate))
+	_, err = waitUntilKubernetesStatusChangedState(d, meta, []string{"CREATE_COMPLETE", "HEALTHY"}, []string{"CREATE_FAILED"}, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return fmt.Errorf("Error creating Kubernates: %s", err)
+		return fmt.Errorf("Error creating Kubernetes: %s", err)
 	}
-	return resourceKubernatesRead(d, meta)
+	return resourceKubernetesRead(d, meta)
 }
 
-func resourceKubernatesRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
-	kubernetes, err := client.Kubernates.Get(d.Id())
+	kubernetes, err := client.Kubernetes.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving Kubernates %s: %v", d.Id(), err)
+		return fmt.Errorf("Error retrieving Kubernetes %s: %v", d.Id(), err)
 	}
 
 	labels := make([]map[string]interface{}, 1)
@@ -130,8 +130,14 @@ func resourceKubernatesRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if kubernetes.Labels.AutoScalingEnabled {
-		labels[0]["max_node_count"] = kubernetes.Labels.MaxNodeCount
-		labels[0]["min_node_count"] = kubernetes.Labels.MinNodeCount
+		v, ok := d.GetOkExists("min_node_count")
+		if ok && v.(int) != 0 {
+			labels[0]["min_node_count"] = kubernetes.Labels.MinNodeCount
+		}
+		v, ok = d.GetOkExists("max_node_count")
+		if ok && v.(int) != 0 {
+			labels[0]["max_node_count"] = kubernetes.Labels.MaxNodeCount
+		}
 	}
 
 	_ = d.Set("id", kubernetes.ID)
@@ -163,73 +169,73 @@ func resourceKubernatesRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceKubernatesUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	id := d.Id()
 	master_billing_mode_changed, new_master_billing_mode := isSubBlockFieldChanged(d, "default_master", "billing_mode")
 	worker_billing_mode_changed, new_worker_billing_mode := isSubBlockFieldChanged(d, "default_worker", "billing_mode")
 
 	if d.HasChange("node_count") {
-		_, err := client.Kubernates.UpdateNodeCount(id, d.Get("node_count").(int))
+		_, err := client.Kubernetes.UpdateNodeCount(id, d.Get("node_count").(int))
 		if err != nil {
-			return fmt.Errorf("Error when update Kubernates node count [%s]: %v", id, err)
+			return fmt.Errorf("Error when update Kubernetes node count [%s]: %v", id, err)
 		}
-		_, err = waitUntilKubernatesStatusChangedState(d, meta, []string{"UPDATE_COMPLETE", "HEALTHY"}, []string{"UPDATE_FAILED"}, d.Timeout(schema.TimeoutUpdate))
+		_, err = waitUntilKubernetesStatusChangedState(d, meta, []string{"UPDATE_COMPLETE", "HEALTHY"}, []string{"UPDATE_FAILED"}, d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
-			return fmt.Errorf("Error when update Kubernates node count [%s]: %v", id, err)
+			return fmt.Errorf("Error when update Kubernetes node count [%s]: %v", id, err)
 		}
 	} else if master_billing_mode_changed {
 		_, err := client.BillingMode.SetKubernateBilingMode(id, new_master_billing_mode.(string), "master")
 		if err != nil {
-			return fmt.Errorf("Error when change default master biling mode of Kubernates cluster [%s]: %v", id, err)
+			return fmt.Errorf("Error when change default master biling mode of Kubernetes cluster [%s]: %v", id, err)
 		}
 	} else if worker_billing_mode_changed {
 		_, err := client.BillingMode.SetKubernateBilingMode(id, new_worker_billing_mode.(string), "worker")
 		if err != nil {
-			return fmt.Errorf("Error when change default worker biling mode of Kubernates cluster [%s]: %v", id, err)
+			return fmt.Errorf("Error when change default worker biling mode of Kubernetes cluster [%s]: %v", id, err)
 		}
 	} else {
-		return fmt.Errorf("Only `node_count`, `billing_mode` fields can be updated after Kubernates cluster created")
+		return fmt.Errorf("Only `node_count`, `billing_mode` fields can be updated after Kubernetes cluster created")
 	}
-	return resourceKubernatesRead(d, meta)
+	return resourceKubernetesRead(d, meta)
 }
 
-func resourceKubernatesDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
-	_, err := client.Kubernates.Delete(d.Id())
+	_, err := client.Kubernetes.Delete(d.Id())
 
 	if err != nil {
 		return fmt.Errorf("Error delete kubernetes [%s]: %v", d.Id(), err)
 	}
-	_, err = waitUntilKubernatesDeleted(d, meta)
+	_, err = waitUntilKubernetesDeleted(d, meta)
 	if err != nil {
 		return fmt.Errorf("Error delete kubernetes [%s]: %v", d.Id(), err)
 	}
 	return nil
 }
 
-func resourceKubernatesImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	err := resourceKubernatesRead(d, meta)
+func resourceKubernetesImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	err := resourceKubernetesRead(d, meta)
 	return []*schema.ResourceData{d}, err
 }
 
-func waitUntilKubernatesDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+func waitUntilKubernetesDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
 	return waitUntilResourceDeleted(d, meta, WaitConf{
 		Delay:      20 * time.Second,
 		MinTimeout: 3 * 60 * time.Second,
 	}, func(id string) (any, error) {
-		return getClient(meta).Kubernates.Get(id)
+		return getClient(meta).Kubernetes.Get(id)
 	})
 }
 
-func waitUntilKubernatesStatusChangedState(d *schema.ResourceData, meta interface{}, targetStatus []string, errorStatus []string, timeout time.Duration) (interface{}, error) {
+func waitUntilKubernetesStatusChangedState(d *schema.ResourceData, meta interface{}, targetStatus []string, errorStatus []string, timeout time.Duration) (interface{}, error) {
 	return waitUntilResourceStatusChanged(d, meta, targetStatus, errorStatus, WaitConf{
 		Timeout:    timeout,
 		Delay:      10 * time.Second,
 		MinTimeout: 30 * time.Second,
 	}, func(id string) (any, error) {
-		return getClient(meta).Kubernates.Get(id)
+		return getClient(meta).Kubernetes.Get(id)
 	}, func(obj interface{}) string {
-		return obj.(gocmcapiv2.Kubernates).Status
+		return obj.(gocmcapiv2.Kubernetes).Status
 	})
 }

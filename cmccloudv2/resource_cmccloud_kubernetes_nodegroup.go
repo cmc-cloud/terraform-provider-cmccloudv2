@@ -8,14 +8,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceKubernatesNodeGroup() *schema.Resource {
+func resourceKubernetesNodeGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceKubernatesNodeGroupCreate,
-		Read:   resourceKubernatesNodeGroupRead,
-		Update: resourceKubernatesNodeGroupUpdate,
-		Delete: resourceKubernatesNodeGroupDelete,
+		Create: resourceKubernetesNodeGroupCreate,
+		Read:   resourceKubernetesNodeGroupRead,
+		Update: resourceKubernetesNodeGroupUpdate,
+		Delete: resourceKubernetesNodeGroupDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceKubernatesNodeGroupImport,
+			State: resourceKubernetesNodeGroupImport,
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Delete: schema.DefaultTimeout(10 * time.Minute),
@@ -27,7 +27,7 @@ func resourceKubernatesNodeGroup() *schema.Resource {
 	}
 }
 
-func resourceKubernatesNodeGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesNodeGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 
 	params := map[string]interface{}{
@@ -45,25 +45,25 @@ func resourceKubernatesNodeGroupCreate(d *schema.ResourceData, meta interface{})
 		},
 	}
 
-	kubernetesnodegroup, err := client.Kubernates.CreateNodeGroup(d.Get("cluster_id").(string), params)
+	kubernetesnodegroup, err := client.Kubernetes.CreateNodeGroup(d.Get("cluster_id").(string), params)
 	if err != nil {
-		return fmt.Errorf("Error creating Kubernates NodeGroup: %s", err)
+		return fmt.Errorf("Error creating Kubernetes NodeGroup: %s", err)
 	}
 	d.SetId(kubernetesnodegroup.ID)
 
-	_, err = waitUntilKubernatesNodeGroupStatusChangedState(d, meta, d.Timeout(schema.TimeoutCreate))
+	_, err = waitUntilKubernetesNodeGroupStatusChangedState(d, meta, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return fmt.Errorf("Error creating Kubernates NodeGroup: %v", err)
+		return fmt.Errorf("Error creating Kubernetes NodeGroup: %v", err)
 	}
 
-	return resourceKubernatesNodeGroupRead(d, meta)
+	return resourceKubernetesNodeGroupRead(d, meta)
 }
 
-func resourceKubernatesNodeGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesNodeGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
-	nodegroup, err := client.Kubernates.GetNodeGroup(d.Get("cluster_id").(string), d.Id())
+	nodegroup, err := client.Kubernetes.GetNodeGroup(d.Get("cluster_id").(string), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving Kubernates NodeGroup %s: %v", d.Id(), err)
+		return fmt.Errorf("Error retrieving Kubernetes NodeGroup %s: %v", d.Id(), err)
 	}
 
 	_ = d.Set("id", nodegroup.ID)
@@ -82,7 +82,7 @@ func resourceKubernatesNodeGroupRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceKubernatesNodeGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesNodeGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	id := d.Id()
 	if d.HasChange("name") {
@@ -92,72 +92,72 @@ func resourceKubernatesNodeGroupUpdate(d *schema.ResourceData, meta interface{})
 	if d.HasChange("billing_mode") {
 		_, err := client.BillingMode.SetKubernateBilingMode(d.Get("cluster_id").(string), d.Get("billing_mode").(string), "worker")
 		if err != nil {
-			return fmt.Errorf("Error when update billing mode of Kubernates NodeGroup [%s]: %v", id, err)
+			return fmt.Errorf("Error when update billing mode of Kubernetes NodeGroup [%s]: %v", id, err)
 		}
 	}
 	if d.HasChange("node_count") {
-		_, err := client.Kubernates.ResizeNodeGroup(d.Get("cluster_id").(string), map[string]interface{}{
+		_, err := client.Kubernetes.ResizeNodeGroup(d.Get("cluster_id").(string), map[string]interface{}{
 			"nodegroup":  d.Get("name").(string),
 			"node_count": d.Get("node_count").(int),
 		})
 		if err != nil {
-			return fmt.Errorf("Error when change Kubernates NodeGroup [%s] node count: %v", id, err)
+			return fmt.Errorf("Error when change Kubernetes NodeGroup [%s] node count: %v", id, err)
 		}
-		_, err = waitUntilKubernatesNodeGroupStatusChangedState(d, meta, d.Timeout(schema.TimeoutUpdate))
+		_, err = waitUntilKubernetesNodeGroupStatusChangedState(d, meta, d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
-			return fmt.Errorf("Error when change Kubernates NodeGroup [%s] node count: %v", id, err)
+			return fmt.Errorf("Error when change Kubernetes NodeGroup [%s] node count: %v", id, err)
 		}
 	}
 
 	if d.HasChange("min_node_count") || d.HasChange("max_node_count") {
-		_, err := client.Kubernates.UpdateNodeGroup(d.Get("cluster_id").(string), id, d.Get("min_node_count").(int), d.Get("max_node_count").(int))
+		_, err := client.Kubernetes.UpdateNodeGroup(d.Get("cluster_id").(string), id, d.Get("min_node_count").(int), d.Get("max_node_count").(int))
 		if err != nil {
-			return fmt.Errorf("Error when change min_node_count/max_node_count of Kubernates NodeGroup [%s]: %v", id, err)
+			return fmt.Errorf("Error when change min_node_count/max_node_count of Kubernetes NodeGroup [%s]: %v", id, err)
 		}
-		_, err = waitUntilKubernatesNodeGroupStatusChangedState(d, meta, d.Timeout(schema.TimeoutUpdate))
+		_, err = waitUntilKubernetesNodeGroupStatusChangedState(d, meta, d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
-			return fmt.Errorf("Error when change min_node_count/max_node_count of Kubernates NodeGroup [%s]: %v", id, err)
+			return fmt.Errorf("Error when change min_node_count/max_node_count of Kubernetes NodeGroup [%s]: %v", id, err)
 		}
 	}
-	return resourceKubernatesNodeGroupRead(d, meta)
+	return resourceKubernetesNodeGroupRead(d, meta)
 }
 
-func resourceKubernatesNodeGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKubernetesNodeGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
-	_, err := client.Kubernates.DeleteNodeGroup(d.Get("cluster_id").(string), d.Id())
+	_, err := client.Kubernetes.DeleteNodeGroup(d.Get("cluster_id").(string), d.Id())
 
 	if err != nil {
 		return fmt.Errorf("Error delete kubernetes nodegroup [%s]: %v", d.Id(), err)
 	}
-	_, err = waitUntilKubernatesNodeGroupDeleted(d, meta)
+	_, err = waitUntilKubernetesNodeGroupDeleted(d, meta)
 	if err != nil {
 		return fmt.Errorf("Error delete kubernetes nodegroup [%s]: %v", d.Id(), err)
 	}
 	return nil
 }
 
-func resourceKubernatesNodeGroupImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	err := resourceKubernatesNodeGroupRead(d, meta)
+func resourceKubernetesNodeGroupImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	err := resourceKubernetesNodeGroupRead(d, meta)
 	return []*schema.ResourceData{d}, err
 }
 
-func waitUntilKubernatesNodeGroupDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+func waitUntilKubernetesNodeGroupDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
 	return waitUntilResourceDeleted(d, meta, WaitConf{
 		Delay:      30 * time.Second,
 		MinTimeout: 5 * 60 * time.Second,
 	}, func(id string) (any, error) {
-		return getClient(meta).Kubernates.GetNodeGroup(d.Get("cluster_id").(string), id)
+		return getClient(meta).Kubernetes.GetNodeGroup(d.Get("cluster_id").(string), id)
 	})
 }
 
-func waitUntilKubernatesNodeGroupStatusChangedState(d *schema.ResourceData, meta interface{}, timeout time.Duration) (interface{}, error) {
+func waitUntilKubernetesNodeGroupStatusChangedState(d *schema.ResourceData, meta interface{}, timeout time.Duration) (interface{}, error) {
 	return waitUntilResourceStatusChanged(d, meta, []string{"CREATE_COMPLETE", "UPDATE_COMPLETE", "HEALTHY"}, []string{"CREATE_FAILED", "UPDATE_FAILED"}, WaitConf{
 		Timeout:    timeout,
 		Delay:      10 * time.Second,
 		MinTimeout: 30 * time.Second,
 	}, func(id string) (any, error) {
-		return getClient(meta).Kubernates.GetNodeGroup(d.Get("cluster_id").(string), id)
+		return getClient(meta).Kubernetes.GetNodeGroup(d.Get("cluster_id").(string), id)
 	}, func(obj interface{}) string {
-		return obj.(gocmcapiv2.KubernatesNodeGroup).Status
+		return obj.(gocmcapiv2.KubernetesNodeGroup).Status
 	})
 }
