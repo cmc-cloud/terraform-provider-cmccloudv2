@@ -82,10 +82,10 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return fmt.Errorf("create server failed: %v", err)
 	}
-	return resourceServerRead(d, meta)
+	return readOrImport(d, meta, false)
 }
 
-func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
+func readOrImport(d *schema.ResourceData, meta interface{}, isImport bool) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	server, err := client.Server.Get(d.Id(), true)
 	if err != nil {
@@ -105,35 +105,16 @@ func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("billing_mode", server.BillingMode)
 	_ = d.Set("vm_state", server.VMState)
 	_ = d.Set("volumes", convertVolumeAttachs(server.VolumesAttached))
-	_ = d.Set("nics", convertNics(server.Nics))
-
-	// neu server chi co 1 nics / chua set id cho nics nao thi moi set gia tri nics, neu khong order co the thay doi
-	// if curr_nics, ok := d.GetOkExists("nics"); !ok {
-	// 	gocmcapiv2.Logo("curr_nics =", curr_nics)
-	// 	if len(server.Nics) == 1 {
-	// 		// chi co 1 nic
-	// 	} else {
-	// 		// kiem tra xem truoc do nics da set chua
-	// 		if len(curr_nics.([]gocmcapiv2.Nic)) > 0 {
-	// 			da_set_id := false
-	// 			for _, nic := range curr_nics.([]gocmcapiv2.Nic) {
-	// 				if nic.Id != "" {
-	// 					da_set_id = true
-	// 				}
-	// 			}
-	// 			if !da_set_id {
-	// 				// chua set id cho nics nao thi moi set gia tri nics
-	// 				_ = d.Set("nics", convertNics(server.Nics))
-	// 			}
-	// 		}
-	// 	}
-	// } else {
-	// 	_ = d.Set("nics", convertNics(server.Nics))
-	// }
+	if isImport {
+		_ = d.Set("nics", convertNics(server.Nics))
+	}
 	if server.KeyName != "" {
 		_ = d.Set("key_name", server.KeyName)
 	}
 	return nil
+}
+func resourceServerRead(d *schema.ResourceData, meta interface{}) error {
+	return readOrImport(d, meta, false)
 }
 func convertSecurityGroups(groups []gocmcapiv2.ServerSecurityGroup) []string {
 	seen := make(map[string]bool)
@@ -262,7 +243,7 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	return resourceServerRead(d, meta)
+	return readOrImport(d, meta, false)
 }
 
 func resourceServerDelete(d *schema.ResourceData, meta interface{}) error {
@@ -280,7 +261,7 @@ func resourceServerDelete(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceServerImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	err := resourceServerRead(d, meta)
+	err := readOrImport(d, meta, true)
 	return []*schema.ResourceData{d}, err
 }
 
