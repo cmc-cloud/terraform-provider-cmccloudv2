@@ -25,30 +25,32 @@ func resourceKubernetes() *schema.Resource {
 		SchemaVersion: 1,
 		Schema:        kubernetesSchema(),
 		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
-			if v, ok := d.GetOk("labels"); ok {
-				blockList := v.([]interface{})
-				if len(blockList) > 0 {
-					labels := blockList[0].(map[string]interface{})
-					auto_scaling_enabled := labels["auto_scaling_enabled"].(bool)
-					if auto_scaling_enabled {
-						// co enable => phai set 2 truong nay, khong set => thong bao
-						if labels["max_node_count"].(int) <= 0 { // khong duoc set max_node_count
-							return fmt.Errorf("min_node_count & max_node_count must be set > 0 when auto_scaling_enabled is 'true'")
-						}
-						if labels["min_node_count"].(int) <= 0 { // khong duoc set min_node_count
-							return fmt.Errorf("min_node_count & max_node_count must be set > 0 when auto_scaling_enabled is 'true'")
-						}
-					} else {
-						// khong enable => ko set 2 truong nay
-						if labels["max_node_count"].(int) > 0 {
-							return fmt.Errorf("min_node_count & max_node_count must not be set when auto_scaling_enabled is 'false'")
-						}
-						if labels["min_node_count"].(int) > 0 {
-							return fmt.Errorf("min_node_count & max_node_count must not be set when auto_scaling_enabled is 'false'")
-						}
-					}
-				}
-			}
+			// if v, ok := d.GetOk("labels"); ok {
+			// 	blockList := v.([]interface{})
+			// 	if len(blockList) > 0 {
+			// 		labels := blockList[0].(map[string]interface{})
+			// 		auto_scaling_enabled := labels["auto_scaling_enabled"].(bool)
+
+			// 		default_worker := d.Get("default_worker").([]interface{})[0].(map[string]interface{})
+			// 		if auto_scaling_enabled {
+			// 			// co enable => phai set 2 truong nay, khong set => thong bao
+			// 			if default_worker["max_node_count"].(int) <= 0 { // khong duoc set max_node_count
+			// 				return fmt.Errorf("min_node_count & max_node_count must be set > 0 when auto_scaling_enabled is 'true'")
+			// 			}
+			// 			if default_worker["min_node_count"].(int) <= 0 { // khong duoc set min_node_count
+			// 				return fmt.Errorf("min_node_count & max_node_count must be set > 0 when auto_scaling_enabled is 'true'")
+			// 			}
+			// 		} else {
+			// 			// khong enable => ko set 2 truong nay
+			// 			if default_worker["max_node_count"].(int) > 0 {
+			// 				return fmt.Errorf("min_node_count & max_node_count must not be set when auto_scaling_enabled is 'false'")
+			// 			}
+			// 			if default_worker["min_node_count"].(int) > 0 {
+			// 				return fmt.Errorf("min_node_count & max_node_count must not be set when auto_scaling_enabled is 'false'")
+			// 			}
+			// 		}
+			// 	}
+			// }
 			return nil
 		},
 	}
@@ -57,14 +59,16 @@ func resourceKubernetes() *schema.Resource {
 func resourceKubernetesCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	metas := getFirstBlock(d, "labels")
+	default_worker := getFirstBlock(d, "default_worker")
+	default_master := getFirstBlock(d, "default_master")
 	labels := map[string]interface{}{
 		"kube_dashboard_enabled": metas["kube_dashboard_enabled"].(bool),
 		"metrics_server_enabled": metas["metrics_server_enabled"].(bool),
 		"npd_enabled":            metas["npd_enabled"].(bool),
 		"auto_scaling_enabled":   metas["auto_scaling_enabled"].(bool),
 		"auto_healing_enabled":   metas["auto_healing_enabled"].(bool),
-		"max_node_count":         metas["max_node_count"].(int),
-		"min_node_count":         metas["min_node_count"].(int),
+		"max_node_count":         default_worker["max_node_count"].(int),
+		"min_node_count":         default_worker["min_node_count"].(int),
 		"kube_tag":               metas["kube_tag"].(string),
 		"network-driver":         metas["network_driver"].(string),
 		"calico_ipv4pool":        metas["calico_ipv4pool"].(string),
@@ -72,8 +76,6 @@ func resourceKubernetesCreate(d *schema.ResourceData, meta interface{}) error {
 		"zone":                   d.Get("zone").(string),
 	}
 
-	default_master := getFirstBlock(d, "default_master")
-	default_worker := getFirstBlock(d, "default_worker")
 	params := map[string]interface{}{
 		"name": d.Get("name").(string),
 
@@ -129,17 +131,6 @@ func resourceKubernetesRead(d *schema.ResourceData, meta interface{}) error {
 		// "zone": kubernetes.Labels.AvailabilityZone,
 	}
 
-	if kubernetes.Labels.AutoScalingEnabled {
-		v, ok := d.GetOkExists("min_node_count")
-		if ok && v.(int) != 0 {
-			labels[0]["min_node_count"] = kubernetes.Labels.MinNodeCount
-		}
-		v, ok = d.GetOkExists("max_node_count")
-		if ok && v.(int) != 0 {
-			labels[0]["max_node_count"] = kubernetes.Labels.MaxNodeCount
-		}
-	}
-
 	_ = d.Set("id", kubernetes.ID)
 	_ = d.Set("name", kubernetes.Name)
 	_ = d.Set("zone", kubernetes.Labels.AvailabilityZone)
@@ -157,10 +148,31 @@ func resourceKubernetesRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("default_master", []interface{}{default_master})
 
 	default_worker := map[string]interface{}{
-		"node_count":   kubernetes.NodeCount,
 		"flavor_id":    kubernetes.NodeFlavorID,
 		"billing_mode": kubernetes.NodeBillingMode,
 	}
+	nodegroups, _ := client.Kubernetes.GetNodeGroups(d.Id(), false) // pass
+	for _, nodegroup := range nodegroups {
+		if nodegroup.Name == "default-worker" {
+			// kubernetes.NodeCount = tong so node cua tat ca nodegroup loai worker
+			// khong lay gia tri min_node_count va max_node_count tu labels, vi gia tri nay chi la gia tri init tu khi tao cluster
+			// khi doi min_node_count, max_node_count cua nodegroup default worker thi gia tri nay van khong thay doi
+			default_worker["min_node_count"] = nodegroup.MinNodeCount
+			default_worker["max_node_count"] = nodegroup.MaxNodeCount
+			default_worker["node_count"] = nodegroup.NodeCount
+		}
+	}
+
+	// if kubernetes.Labels.AutoScalingEnabled {
+	// 	default_worker_block := getFirstBlock(d, "default_worker")
+	// 	if default_worker_block["min_node_count"].(int) != 0 {
+	// 		default_worker["min_node_count"] = kubernetes.Labels.MinNodeCount
+	// 	}
+	// 	if default_worker_block["max_node_count"] != 0 {
+	// 		default_worker["max_node_count"] = kubernetes.Labels.MaxNodeCount
+	// 	}
+	// }
+
 	d.Set("default_worker", []interface{}{default_worker})
 
 	_ = d.Set("created_at", kubernetes.CreatedAt)
@@ -175,25 +187,41 @@ func resourceKubernetesUpdate(d *schema.ResourceData, meta interface{}) error {
 	master_billing_mode_changed, new_master_billing_mode := isSubBlockFieldChanged(d, "default_master", "billing_mode")
 	worker_billing_mode_changed, new_worker_billing_mode := isSubBlockFieldChanged(d, "default_worker", "billing_mode")
 	worker_node_count_changed, new_worker_node_count := isSubBlockFieldChanged(d, "default_worker", "node_count")
+	min_node_count_changed, _ := isSubBlockFieldChanged(d, "default_worker", "min_node_count")
+	max_node_count_changed, _ := isSubBlockFieldChanged(d, "default_worker", "max_node_count")
 
 	if worker_node_count_changed {
 		// _, err := client.Kubernetes.UpdateNodeCount(id, new_worker_node_count.(int))
 		found := false
-		nodegroups, _ := client.Kubernetes.GetNodeGroups(id)
+		nodegroups, _ := client.Kubernetes.GetNodeGroups(id, false)
 		for _, nodegroup := range nodegroups {
 			// gocmcapiv2.Logs("nodegroup " + nodegroup.Name)
 			if nodegroup.Name == "default-worker" {
 				found = true
-				_, err := client.Kubernetes.ResizeNodeGroup(id, map[string]interface{}{
-					"node_count": new_worker_node_count,
-					"nodegroup":  nodegroup.ID,
-				})
-				if err != nil {
-					return fmt.Errorf("Error when update Kubernetes worker node count [%s]: %v", id, err)
+				if min_node_count_changed || max_node_count_changed {
+					default_worker_block := getFirstBlock(d, "default_worker")
+					_, err := client.Kubernetes.UpdateNodeGroup(id, nodegroup.ID, default_worker_block["min_node_count"].(int), default_worker_block["max_node_count"].(int))
+					if err != nil {
+						return fmt.Errorf("Error when update Kubernetes worker min/max node count [%s]: %v", id, err)
+					}
+					_, err = waitUntilKubernetesStatusChangedState(d, meta, []string{"UPDATE_COMPLETE", "HEALTHY"}, []string{"UPDATE_FAILED"}, d.Timeout(schema.TimeoutUpdate))
+					if err != nil {
+						return fmt.Errorf("Error when update Kubernetes worker min/max node count [%s]: %v", id, err)
+					}
 				}
-				_, err = waitUntilKubernetesStatusChangedState(d, meta, []string{"UPDATE_COMPLETE", "HEALTHY"}, []string{"UPDATE_FAILED"}, d.Timeout(schema.TimeoutUpdate))
-				if err != nil {
-					return fmt.Errorf("Error when update Kubernetes worker node count [%s]: %v", id, err)
+
+				if worker_node_count_changed {
+					_, err := client.Kubernetes.ResizeNodeGroup(id, map[string]interface{}{
+						"node_count": new_worker_node_count,
+						"nodegroup":  nodegroup.ID,
+					})
+					if err != nil {
+						return fmt.Errorf("Error when update Kubernetes worker node count [%s]: %v", id, err)
+					}
+					_, err = waitUntilKubernetesStatusChangedState(d, meta, []string{"UPDATE_COMPLETE", "HEALTHY"}, []string{"UPDATE_FAILED"}, d.Timeout(schema.TimeoutUpdate))
+					if err != nil {
+						return fmt.Errorf("Error when update Kubernetes worker node count [%s]: %v", id, err)
+					}
 				}
 			}
 		}

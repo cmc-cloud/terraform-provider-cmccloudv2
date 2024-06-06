@@ -53,20 +53,6 @@ func createLabelsSchema() map[string]*schema.Schema {
 			ForceNew: true,
 			Default:  true,
 		},
-		"max_node_count": {
-			Type:     schema.TypeInt,
-			Optional: true,
-			ForceNew: true,
-			// Default:     50,
-			Description: "Required when auto_scaling_enabled = 'true'",
-		},
-		"min_node_count": {
-			Type:     schema.TypeInt,
-			Optional: true,
-			ForceNew: true,
-			// Default:     1,
-			Description: "Required when auto_scaling_enabled = 'true'",
-		},
 	}
 }
 
@@ -141,6 +127,18 @@ func kubernetesSchema() map[string]*schema.Schema {
 					"node_count": {
 						Type:     schema.TypeInt,
 						Required: true,
+					},
+					"max_node_count": {
+						Type:     schema.TypeInt,
+						Required: true,
+						// Default:  50,
+						// Description: "Required when auto_scaling_enabled = 'true'",
+					},
+					"min_node_count": {
+						Type:     schema.TypeInt,
+						Required: true,
+						// Default:  1,
+						// Description: "Required when auto_scaling_enabled = 'true'",
 					},
 					"billing_mode": {
 						Type:         schema.TypeString,
