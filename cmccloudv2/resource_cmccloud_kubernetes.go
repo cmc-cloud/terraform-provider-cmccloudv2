@@ -126,7 +126,7 @@ func resourceKubernetesRead(d *schema.ResourceData, meta interface{}) error {
 		"calico_ipv4pool":    kubernetes.Labels.CalicoIpv4Pool,
 		"docker_volume_type": kubernetes.Labels.DockerVolumeType,
 		// "create_timeout":        kubernetes.Labels.CreateTimeout,
-		"zone": kubernetes.Labels.AvailabilityZone,
+		// "zone": kubernetes.Labels.AvailabilityZone,
 	}
 
 	if kubernetes.Labels.AutoScalingEnabled {
@@ -174,29 +174,48 @@ func resourceKubernetesUpdate(d *schema.ResourceData, meta interface{}) error {
 	id := d.Id()
 	master_billing_mode_changed, new_master_billing_mode := isSubBlockFieldChanged(d, "default_master", "billing_mode")
 	worker_billing_mode_changed, new_worker_billing_mode := isSubBlockFieldChanged(d, "default_worker", "billing_mode")
+	worker_node_count_changed, new_worker_node_count := isSubBlockFieldChanged(d, "default_worker", "node_count")
 
-	if d.HasChange("node_count") {
-		_, err := client.Kubernetes.UpdateNodeCount(id, d.Get("node_count").(int))
-		if err != nil {
-			return fmt.Errorf("Error when update Kubernetes node count [%s]: %v", id, err)
+	if worker_node_count_changed {
+		// _, err := client.Kubernetes.UpdateNodeCount(id, new_worker_node_count.(int))
+		found := false
+		nodegroups, _ := client.Kubernetes.GetNodeGroups(id)
+		for _, nodegroup := range nodegroups {
+			// gocmcapiv2.Logs("nodegroup " + nodegroup.Name)
+			if nodegroup.Name == "default-worker" {
+				found = true
+				_, err := client.Kubernetes.ResizeNodeGroup(id, map[string]interface{}{
+					"node_count": new_worker_node_count,
+					"nodegroup":  nodegroup.ID,
+				})
+				if err != nil {
+					return fmt.Errorf("Error when update Kubernetes worker node count [%s]: %v", id, err)
+				}
+				_, err = waitUntilKubernetesStatusChangedState(d, meta, []string{"UPDATE_COMPLETE", "HEALTHY"}, []string{"UPDATE_FAILED"}, d.Timeout(schema.TimeoutUpdate))
+				if err != nil {
+					return fmt.Errorf("Error when update Kubernetes worker node count [%s]: %v", id, err)
+				}
+			}
 		}
-		_, err = waitUntilKubernetesStatusChangedState(d, meta, []string{"UPDATE_COMPLETE", "HEALTHY"}, []string{"UPDATE_FAILED"}, d.Timeout(schema.TimeoutUpdate))
-		if err != nil {
-			return fmt.Errorf("Error when update Kubernetes node count [%s]: %v", id, err)
+		if !found {
+			return fmt.Errorf("Not found default_worker nodegroup of kubernetes [%s]", id)
 		}
-	} else if master_billing_mode_changed {
+	}
+
+	if master_billing_mode_changed {
 		_, err := client.BillingMode.SetKubernateBilingMode(id, new_master_billing_mode.(string), "master")
 		if err != nil {
 			return fmt.Errorf("Error when change default master biling mode of Kubernetes cluster [%s]: %v", id, err)
 		}
-	} else if worker_billing_mode_changed {
+	}
+
+	if worker_billing_mode_changed {
 		_, err := client.BillingMode.SetKubernateBilingMode(id, new_worker_billing_mode.(string), "worker")
 		if err != nil {
 			return fmt.Errorf("Error when change default worker biling mode of Kubernetes cluster [%s]: %v", id, err)
 		}
-	} else {
-		return fmt.Errorf("Only `node_count`, `billing_mode` fields can be updated after Kubernetes cluster created")
 	}
+
 	return resourceKubernetesRead(d, meta)
 }
 
