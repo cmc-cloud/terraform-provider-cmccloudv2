@@ -25,6 +25,13 @@ func resourceKubernetes() *schema.Resource {
 		SchemaVersion: 1,
 		Schema:        kubernetesSchema(),
 		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
+			default_worker := d.Get("default_worker").([]interface{})[0].(map[string]interface{})
+			if default_worker["min_node_count"].(int) > default_worker["node_count"].(int) {
+				return fmt.Errorf("default_worker: min_node_count must be <= node_count")
+			}
+			if default_worker["max_node_count"].(int) < default_worker["node_count"].(int) {
+				return fmt.Errorf("default_worker: max_node_count must be >= node_count")
+			}
 			// if v, ok := d.GetOk("labels"); ok {
 			// 	blockList := v.([]interface{})
 			// 	if len(blockList) > 0 {
@@ -189,8 +196,9 @@ func resourceKubernetesUpdate(d *schema.ResourceData, meta interface{}) error {
 	worker_node_count_changed, new_worker_node_count := isSubBlockFieldChanged(d, "default_worker", "node_count")
 	min_node_count_changed, _ := isSubBlockFieldChanged(d, "default_worker", "min_node_count")
 	max_node_count_changed, _ := isSubBlockFieldChanged(d, "default_worker", "max_node_count")
+	default_worker_block := getFirstBlock(d, "default_worker")
 
-	if worker_node_count_changed {
+	if worker_node_count_changed || min_node_count_changed || max_node_count_changed {
 		// _, err := client.Kubernetes.UpdateNodeCount(id, new_worker_node_count.(int))
 		found := false
 		nodegroups, _ := client.Kubernetes.GetNodeGroups(id, false)
@@ -198,29 +206,62 @@ func resourceKubernetesUpdate(d *schema.ResourceData, meta interface{}) error {
 			// gocmcapiv2.Logs("nodegroup " + nodegroup.Name)
 			if nodegroup.Name == "default-worker" {
 				found = true
-				if min_node_count_changed || max_node_count_changed {
-					default_worker_block := getFirstBlock(d, "default_worker")
-					_, err := client.Kubernetes.UpdateNodeGroup(id, nodegroup.ID, default_worker_block["min_node_count"].(int), default_worker_block["max_node_count"].(int))
-					if err != nil {
-						return fmt.Errorf("Error when update Kubernetes worker min/max node count [%s]: %v", id, err)
-					}
-					_, err = waitUntilKubernetesStatusChangedState(d, meta, []string{"UPDATE_COMPLETE", "HEALTHY"}, []string{"UPDATE_FAILED"}, d.Timeout(schema.TimeoutUpdate))
-					if err != nil {
-						return fmt.Errorf("Error when update Kubernetes worker min/max node count [%s]: %v", id, err)
-					}
+				change_minmax_first := false
+				// nếu  Node count hiện tại nằm trong khoảng giá trị min_node_count mới & max_node_count
+				// thì update min,max trước
+				if default_worker_block["min_node_count"].(int) <= nodegroup.NodeCount && nodegroup.NodeCount <= default_worker_block["max_node_count"].(int) {
+					change_minmax_first = true
 				}
 
-				if worker_node_count_changed {
-					_, err := client.Kubernetes.ResizeNodeGroup(id, map[string]interface{}{
-						"node_count": new_worker_node_count,
-						"nodegroup":  nodegroup.ID,
-					})
-					if err != nil {
-						return fmt.Errorf("Error when update Kubernetes worker node count [%s]: %v", id, err)
+				if change_minmax_first {
+					if min_node_count_changed || max_node_count_changed {
+						_, err := client.Kubernetes.UpdateNodeGroup(id, nodegroup.ID, default_worker_block["min_node_count"].(int), default_worker_block["max_node_count"].(int))
+						if err != nil {
+							return fmt.Errorf("Error when update Kubernetes worker min/max node count [%s]: %v", id, err)
+						}
+						_, err = waitUntilKubernetesStatusChangedState(d, meta, []string{"UPDATE_COMPLETE", "HEALTHY"}, []string{"UPDATE_FAILED"}, d.Timeout(schema.TimeoutUpdate))
+						if err != nil {
+							return fmt.Errorf("Error when update Kubernetes worker min/max node count [%s]: %v", id, err)
+						}
 					}
-					_, err = waitUntilKubernetesStatusChangedState(d, meta, []string{"UPDATE_COMPLETE", "HEALTHY"}, []string{"UPDATE_FAILED"}, d.Timeout(schema.TimeoutUpdate))
-					if err != nil {
-						return fmt.Errorf("Error when update Kubernetes worker node count [%s]: %v", id, err)
+
+					if worker_node_count_changed {
+						_, err := client.Kubernetes.ResizeNodeGroup(id, map[string]interface{}{
+							"node_count": new_worker_node_count,
+							"nodegroup":  nodegroup.ID,
+						})
+						if err != nil {
+							return fmt.Errorf("Error when update Kubernetes worker node count [%s]: %v", id, err)
+						}
+						_, err = waitUntilKubernetesStatusChangedState(d, meta, []string{"UPDATE_COMPLETE", "HEALTHY"}, []string{"UPDATE_FAILED"}, d.Timeout(schema.TimeoutUpdate))
+						if err != nil {
+							return fmt.Errorf("Error when update Kubernetes worker node count [%s]: %v", id, err)
+						}
+					}
+				} else {
+					if worker_node_count_changed {
+						_, err := client.Kubernetes.ResizeNodeGroup(id, map[string]interface{}{
+							"node_count": new_worker_node_count,
+							"nodegroup":  nodegroup.ID,
+						})
+						if err != nil {
+							return fmt.Errorf("Error when update Kubernetes worker node count [%s]: %v", id, err)
+						}
+						_, err = waitUntilKubernetesStatusChangedState(d, meta, []string{"UPDATE_COMPLETE", "HEALTHY"}, []string{"UPDATE_FAILED"}, d.Timeout(schema.TimeoutUpdate))
+						if err != nil {
+							return fmt.Errorf("Error when update Kubernetes worker node count [%s]: %v", id, err)
+						}
+					}
+
+					if min_node_count_changed || max_node_count_changed {
+						_, err := client.Kubernetes.UpdateNodeGroup(id, nodegroup.ID, default_worker_block["min_node_count"].(int), default_worker_block["max_node_count"].(int))
+						if err != nil {
+							return fmt.Errorf("Error when update Kubernetes worker min/max node count [%s]: %v", id, err)
+						}
+						_, err = waitUntilKubernetesStatusChangedState(d, meta, []string{"UPDATE_COMPLETE", "HEALTHY"}, []string{"UPDATE_FAILED"}, d.Timeout(schema.TimeoutUpdate))
+						if err != nil {
+							return fmt.Errorf("Error when update Kubernetes worker min/max node count [%s]: %v", id, err)
+						}
 					}
 				}
 			}
