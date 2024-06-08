@@ -53,6 +53,8 @@ func Provider() terraform.ResourceProvider {
 			"cmccloudv2_security_group":                  resourceSecurityGroup(),
 			"cmccloudv2_kubernetes":                      resourceKubernetes(),
 			"cmccloudv2_kubernetes_nodegroup":            resourceKubernetesNodeGroup(),
+			"cmccloudv2_kubernetesv2":                    resourceKubernetesv2(),
+			"cmccloudv2_kubernetesv2_nodegroup":          resourceKubernetesv2NodeGroup(),
 			"cmccloudv2_database_configuration":          resourceDatabaseConfiguration(),
 			"cmccloudv2_database_instance":               resourceDatabaseInstance(),
 			"cmccloudv2_database_autobackup":             resourceDatabaseAutoBackup(),

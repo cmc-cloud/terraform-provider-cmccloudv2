@@ -16,6 +16,7 @@ func kubernetesNodeGroupSchema() map[string]*schema.Schema {
 			Type:         schema.TypeString,
 			Required:     true,
 			ValidateFunc: validateName,
+			ForceNew:     true,
 			Description:  "Name of node group, this can't be changed after created",
 		},
 		"flavor_id": {

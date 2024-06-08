@@ -44,10 +44,29 @@ func ensureField2RequiredWhenField1True(field1, field2 string) schema.CustomizeD
 		field1Set := diff.Get(field1).(bool)
 
 		// Kiểm tra nếu field2 có giá trị hay không
-		field2Set := diff.Get(field2).(string) != ""
-
-		if field1Set && !field2Set {
-			return errors.New(field2 + " must be set when " + field1 + " is true")
+		val2, ok := diff.GetOkExists(field2)
+		if field1Set {
+			if !ok {
+				return errors.New(field2 + " must be set when " + field1 + " is true")
+			}
+			switch val2.(type) {
+			case int:
+				if v.(int) == 0 {
+					return errors.New(field2 + " must be set when " + field1 + " is true")
+				}
+				return nil
+			case string:
+				if v.(string) == "" {
+					return errors.New(field2 + " must be set when " + field1 + " is true")
+				}
+				return nil
+			case bool:
+				if v.(bool) == false {
+					return errors.New(field2 + " must be set when " + field1 + " is true")
+				}
+				return nil
+			default:
+			}
 		}
 		return nil
 	}

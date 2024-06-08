@@ -113,7 +113,7 @@ func dataSourceFlavorRead(d *schema.ResourceData, meta interface{}, flavor_type 
 		}
 		allFlavors = append(allFlavors, flavor)
 	} else {
-		flavors, err := client.Flavor.List()
+		flavors, err := client.Flavor.List(map[string]string{"name": d.Get("name").(string)})
 		if err != nil {
 			return fmt.Errorf("Error when get flavors %v", err)
 		}

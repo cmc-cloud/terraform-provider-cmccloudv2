@@ -1,0 +1,280 @@
+package cmccloudv2
+
+import (
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/cmc-cloud/gocmcapiv2"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+)
+
+func resourceKubernetesv2NodeGroup() *schema.Resource {
+	return &schema.Resource{
+		Create: resourceKubernetesv2NodeGroupCreate,
+		Read:   resourceKubernetesv2NodeGroupRead,
+		Update: resourceKubernetesv2NodeGroupUpdate,
+		Delete: resourceKubernetesv2NodeGroupDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceKubernetesv2NodeGroupImport,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Delete: schema.DefaultTimeout(10 * time.Minute),
+			Create: schema.DefaultTimeout(120 * time.Minute),
+			Update: schema.DefaultTimeout(120 * time.Minute),
+		},
+		SchemaVersion: 1,
+		Schema:        kubernetesv2NodeGroupSchema(),
+		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+			enable_autoscale := diff.Get("enable_autoscale").(bool)
+			enable_autohealing := diff.Get("enable_autohealing").(bool)
+
+			if enable_autoscale {
+				if !isSet(diff, "min_node") || !isSet(diff, "max_node") || !isSet(diff, "max_pods") || !isSet(diff, "cpu_threshold_percent") || !isSet(diff, "memory_threshold_percent") || !isSet(diff, "disk_threshold_percent") {
+					return fmt.Errorf("When `enable_autoscale` is 'true', `min_node, max_node, max_pods, cpu_threshold_percent, memory_threshold_percent, disk_threshold_percent` must be set")
+				}
+				if diff.Get("min_node").(int) >= diff.Get("max_node").(int) {
+					return fmt.Errorf("When `enable_autoscale` is 'true', `max_node` must > `min_node`")
+				}
+			} else {
+				if diff.Get("min_node").(int) != diff.Get("max_node").(int) {
+					return fmt.Errorf("When `enable_autoscale` is 'false', `max_node` must equals to `min_node`")
+				}
+			}
+
+			if enable_autohealing {
+				if !isSet(diff, "max_unhealthy_percent") || !isSet(diff, "node_startup_timeout_minutes") {
+					return fmt.Errorf("When `enable_autohealing` is 'true', `max_unhealthy_percent, node_startup_timeout_minutes must be set")
+				}
+			}
+			return nil
+		},
+	}
+}
+
+func getAutoScaleConfig(d *schema.ResourceData, meta interface{}) (map[string]interface{}, gocmcapiv2.Flavor, error) {
+	client := meta.(*CombinedConfig).goCMCClient()
+	flavor, err := client.Flavor.Get(d.Get("flavor_id").(string))
+	if err != nil {
+		return nil, flavor, fmt.Errorf("Error receiving flavor %s: %v", d.Get("flavor_id").(string), err)
+	}
+
+	if !flavor.ExtraSpecs.IsK8sFlavor {
+		return nil, flavor, fmt.Errorf("Flavor %s is not a valid kubernetes flavor", d.Get("flavor_id").(string))
+	}
+
+	cpuThreshold := (float64(d.Get("cpu_threshold_percent").(int)) / 100.0) * float64(flavor.Vcpus)
+	memoryThreshold := (float64(d.Get("memory_threshold_percent").(int)) / 100.0) * float64(flavor.RAM)
+	diskThreshold := (float64(d.Get("disk_threshold_percent").(int)) / 100.0) * float64(flavor.Disk)
+
+	params := map[string]interface{}{
+		"minNode": d.Get("min_node").(int),
+		"maxNode": d.Get("max_node").(int),
+		"maxPods": d.Get("max_pods").(int),
+		"metaDataAutoScale": map[string]int{
+			"percentCpu":    d.Get("cpu_threshold_percent").(int),
+			"percentMemory": d.Get("memory_threshold_percent").(int),
+			"percentDisk":   d.Get("disk_threshold_percent").(int),
+		},
+		"cpuThreshold":    strconv.FormatFloat(cpuThreshold, 'f', 2, 64),
+		"memoryThreshold": strconv.FormatFloat(memoryThreshold, 'f', 2, 64) + "mb",
+		"diskThreshold":   strconv.FormatFloat(diskThreshold, 'f', 2, 64) + "Gb",
+	}
+
+	if !d.Get("enable_autoscale").(bool) {
+		params["maxNode"] = params["minNode"]
+	}
+	return params, flavor, nil
+}
+func resourceKubernetesv2NodeGroupCreate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*CombinedConfig).goCMCClient()
+
+	cluster_id := d.Get("cluster_id").(string)
+	params, flavor, err := getAutoScaleConfig(d, meta)
+	if err != nil {
+		return err
+	}
+	params["region"] = client.Configs.RegionId
+	params["project"] = client.Configs.ProjectId
+	params["nameNodeGroup"] = d.Get("name").(string)
+	params["clusterId"] = cluster_id
+	params["flavorId"] = flavor.Name
+	params["securityGroups"] = d.Get("security_group_ids").([]interface{})
+	params["zone"] = d.Get("zone").(string)
+	params["sshKeyName"] = d.Get("key_name").(string)
+	params["isAutoscale"] = d.Get("enable_autoscale").(bool)
+	params["workerImageGPUTag"] = d.Get("image_gpu_tag").(string)
+
+	kubernetesv2nodegroup, err := client.Kubernetesv2.CreateNodeGroup(cluster_id, params)
+	if err != nil {
+		return fmt.Errorf("Error creating Kubernetesv2 NodeGroup: %s", err)
+	}
+	d.SetId(kubernetesv2nodegroup.ID)
+
+	_, err = waitUntilKubernetesv2NodeGroupStatusChangedState(d, meta, d.Timeout(schema.TimeoutCreate))
+	if err != nil {
+		return fmt.Errorf("Error creating Kubernetesv2 NodeGroup: %v", err)
+	}
+
+	if d.Get("enable_autohealing").(bool) {
+		params := map[string]interface{}{
+			"action":                "enable",
+			"maxUnhealthy":          strconv.Itoa(d.Get("max_unhealthy_percent").(int)) + "%",
+			"nodeStartupTimeout":    strconv.Itoa(d.Get("node_startup_timeout_minutes").(int)) + "m",
+			"externalProviderNames": "auto-healing-node-group",
+			"nodeGroupId":           d.Id(),
+		}
+		client.Kubernetesv2.UpdateNodeGroup(cluster_id, params)
+
+		_, err := waitUntilKubernetesv2NodeGroupStatusChangedState(d, meta, d.Timeout(schema.TimeoutCreate))
+		if err != nil {
+			return fmt.Errorf("Error creating Kubernetes NodeGroup: %v", err)
+		}
+	}
+
+	return resourceKubernetesv2NodeGroupRead(d, meta)
+}
+
+func resourceKubernetesv2NodeGroupRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*CombinedConfig).goCMCClient()
+	nodegroup, err := client.Kubernetesv2.GetNodeGroup(d.Get("cluster_id").(string), d.Id())
+	if err != nil {
+		return fmt.Errorf("Error retrieving Kubernetesv2 NodeGroup %s: %v", d.Id(), err)
+	}
+
+	_ = d.Set("id", nodegroup.ID)
+	_ = d.Set("name", nodegroup.Name)
+	// _ = d.Set("clusterId", nodegroup.ID)
+	// _ = d.Set("flavor_id", nodegroup.MetadataMachineDeployment.FlavorName)
+	_ = d.Set("key_name", nodegroup.KeyName)
+	// _ = d.Set("security_group_ids", nodegroup.MinNodeCount)
+	// _ = d.Set("zone", nodegroup.DockerVolumeSize)
+	// _ = d.Set("image_gpu_tag", "")
+	_ = d.Set("enable_autoscale", false)
+	_ = d.Set("enable_autohealing", false)
+	_ = d.Set("status", nodegroup.Status)
+	for _, provider := range nodegroup.ExternalProviders {
+		// gocmcapiv2.Logs("provider name = " + provider.Name)
+		if strings.Contains(provider.Name, "auto-scale") {
+			if provider.Config.MaxNode > provider.Config.MinNode {
+				_ = d.Set("enable_autoscale", true)
+			}
+			setInt(d, "min_node", provider.Config.MinNode)
+			setInt(d, "max_node", provider.Config.MaxNode)
+			setInt(d, "max_pods", provider.Config.MaxPods)
+			setInt(d, "cpu_threshold_percent", provider.Config.MetaDataAutoScale.PercentCPU)
+			setInt(d, "memory_threshold_percent", provider.Config.MetaDataAutoScale.PercentMemory)
+			setInt(d, "disk_threshold_percent", provider.Config.MetaDataAutoScale.PercentDisk)
+		}
+		if strings.Contains(provider.Name, "auto-healing") {
+			if provider.Status == "active" {
+				_ = d.Set("enable_autohealing", true)
+			}
+			setInt(d, "max_unhealthy_percent", int(provider.Config.MaxUnhealthy))
+			setInt(d, "node_startup_timeout_minutes", int(provider.Config.NodeStartupTimeout))
+		}
+	}
+	return nil
+}
+
+func resourceKubernetesv2NodeGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*CombinedConfig).goCMCClient()
+	cluster_id := d.Get("cluster_id").(string)
+	if d.HasChange("enable_autoscale") || d.HasChange("min_node") || d.HasChange("max_node") || d.HasChange("max_pods") || d.HasChange("cpu_threshold_percent") || d.HasChange("memory_threshold_percent") || d.HasChange("disk_threshold_percent") {
+		params, _, err := getAutoScaleConfig(d, meta)
+		if err != nil {
+			return err
+		}
+		action := "disable"
+		if d.Get("enable_autoscale").(bool) {
+			action = "enable"
+		}
+		params["action"] = action
+		params["externalProviderNames"] = "auto-scale-node-group"
+		params["nodeGroupId"] = d.Id()
+		client.Kubernetesv2.UpdateNodeGroup(cluster_id, params)
+
+		_, err = waitUntilKubernetesv2NodeGroupStatusChangedState(d, meta, d.Timeout(schema.TimeoutCreate))
+		if err != nil {
+			return fmt.Errorf("Error creating Kubernetes NodeGroup: %v", err)
+		}
+	}
+	if d.HasChange("enable_autohealing") || d.HasChange("max_unhealthy_percent") || d.HasChange("node_startup_timeout_minutes") {
+		action := "disable"
+		if d.Get("enable_autohealing").(bool) {
+			action = "enable"
+		}
+		params := map[string]interface{}{
+			"action":                action,
+			"maxUnhealthy":          strconv.Itoa(d.Get("max_unhealthy_percent").(int)) + "%",
+			"nodeStartupTimeout":    strconv.Itoa(d.Get("node_startup_timeout_minutes").(int)) + "m",
+			"externalProviderNames": "auto-healing-node-group",
+			"nodeGroupId":           d.Id(),
+		}
+		client.Kubernetesv2.UpdateNodeGroup(cluster_id, params)
+
+		_, err := waitUntilKubernetesv2NodeGroupStatusChangedState(d, meta, d.Timeout(schema.TimeoutCreate))
+		if err != nil {
+			return fmt.Errorf("Error creating Kubernetes NodeGroup: %v", err)
+		}
+	}
+
+	return resourceKubernetesv2NodeGroupRead(d, meta)
+}
+
+func resourceKubernetesv2NodeGroupDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*CombinedConfig).goCMCClient()
+	_, err := client.Kubernetesv2.DeleteNodeGroup(d.Get("cluster_id").(string), d.Id())
+
+	if err != nil {
+		return fmt.Errorf("Error delete kubernetesv2 nodegroup [%s]: %v", d.Id(), err)
+	}
+	_, err = waitUntilKubernetesv2NodeGroupDeleted(d, meta)
+	if err != nil {
+		return fmt.Errorf("Error delete kubernetesv2 nodegroup [%s]: %v", d.Id(), err)
+	}
+	return nil
+}
+
+func resourceKubernetesv2NodeGroupImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	id := d.Id()
+
+	// Tách ID thành hai tham số
+	parts := strings.Split(id, "/")
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("Expected import ID to be in the format 'cluster_id/nodegroup_id'")
+	}
+
+	cluster_id := parts[0]
+	nodegroup_id := parts[1]
+
+	d.Set("cluster_id", cluster_id)
+
+	// Thiết lập ID cho resource
+	d.SetId(nodegroup_id)
+	err := resourceKubernetesv2NodeGroupRead(d, meta)
+	return []*schema.ResourceData{d}, err
+}
+
+func waitUntilKubernetesv2NodeGroupDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+	return waitUntilResourceDeleted(d, meta, WaitConf{
+		Delay:      30 * time.Second,
+		MinTimeout: 5 * 60 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).Kubernetesv2.GetNodeGroup(d.Get("cluster_id").(string), id)
+	})
+}
+
+func waitUntilKubernetesv2NodeGroupStatusChangedState(d *schema.ResourceData, meta interface{}, timeout time.Duration) (interface{}, error) {
+	return waitUntilResourceStatusChanged(d, meta, []string{"HEALTHY", "RUNNING", "active", "Ready", "Running"}, []string{"ERROR", "SHUTDOWN", "FAILURE", "failure", "deleting"}, WaitConf{
+		Timeout:    timeout,
+		Delay:      10 * time.Second,
+		MinTimeout: 30 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).Kubernetesv2.GetNodeGroup(d.Get("cluster_id").(string), id)
+	}, func(obj interface{}) string {
+		gocmcapiv2.Logs("status new = " + obj.(gocmcapiv2.Kubernetesv2NodeGroup).Status)
+		return obj.(gocmcapiv2.Kubernetesv2NodeGroup).Status
+	})
+}

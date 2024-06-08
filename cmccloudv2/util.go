@@ -21,10 +21,10 @@ type WaitConf struct {
 func isSet(diff *schema.ResourceDiff, key string) bool {
 	v, ok := diff.GetOkExists(key)
 	if !ok {
-		gocmcapiv2.Logo("isSet "+key+" not exists ", v)
+		// gocmcapiv2.Logo("isSet "+key+" not exists ", v)
 		return false
 	} else {
-		gocmcapiv2.Logo("isSet "+key+" exists ", v)
+		// gocmcapiv2.Logo("isSet "+key+" exists ", v)
 		switch v.(type) {
 		case int:
 			if v.(int) == 0 {
@@ -48,15 +48,17 @@ func isSet(diff *schema.ResourceDiff, key string) bool {
 }
 func setInt(d *schema.ResourceData, key string, newval int) {
 	// kiem tra xem co khac voi gia tri hien tai ko, gia tri hien tai co the chi la gia tri default
-	if v, ok := d.GetOk(key); ok && v.(int) != newval {
+	v, _ := d.GetOk(key)
+	// gocmcapiv2.Logs("setInt " + key + " => ok = " + strconv.FormatBool(ok) + " " + strconv.Itoa(newval))
+	if v.(int) != newval {
 		_ = d.Set(key, newval)
 	}
 }
 func setString(d *schema.ResourceData, key string, newval string) {
 	// kiem tra xem co khac voi gia tri hien tai ko, gia tri hien tai co the chi la gia tri default
-	v, ok := d.GetOk(key)
+	v, _ := d.GetOk(key)
 	// gocmcapiv2.Logs("setString old val " + v.(string) + ", newval = " + newval)
-	if ok && v.(string) != newval {
+	if v.(string) != newval {
 		// gocmcapiv2.Logs("setString old val " + v.(string) + ", newval = " + newval)
 		_ = d.Set(key, newval)
 	}
@@ -120,7 +122,7 @@ func getClient(meta interface{}) *gocmcapiv2.Client {
 func _checkDeletedRefreshFunc(d *schema.ResourceData, meta interface{}, getResourceFunc func(id string) (interface{}, error)) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resource, err := getResourceFunc(d.Id())
-		if errors.Is(err, gocmcapiv2.ErrNotFound) {
+		if errors.Is(err, gocmcapiv2.ErrNotFound) || strings.Contains(err.Error(), "not found") {
 			return resource, "true", nil
 		}
 		return resource, "false", nil
