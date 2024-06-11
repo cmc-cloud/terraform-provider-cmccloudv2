@@ -107,6 +107,14 @@ func areTypeSetEqual(a, b []string) bool {
 	// Kiểm tra xem map counts có trống không
 	return len(counts) == 0
 }
+func caseInsensitiveContains(str, substr string) bool {
+	strLower := strings.ToLower(str)
+	substrLower := strings.ToLower(substr)
+	return strings.Contains(strLower, substrLower)
+}
+func caseInsensitiveDiffSuppress(k, old, new string, d *schema.ResourceData) bool {
+	return strings.EqualFold(old, new)
+}
 
 func arrayContains(slice []string, item string) bool {
 	for _, v := range slice {
