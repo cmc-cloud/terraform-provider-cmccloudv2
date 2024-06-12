@@ -170,6 +170,7 @@ func serverSchema() map[string]*schema.Schema {
 		"password": {
 			Type:         schema.TypeString,
 			Optional:     true,
+			Sensitive:    true,
 			ValidateFunc: validation.NoZeroValues,
 		},
 		"created": {

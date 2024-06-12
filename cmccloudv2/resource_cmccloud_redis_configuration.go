@@ -31,35 +31,48 @@ func resourceRedisConfiguration() *schema.Resource {
 func resourceRedisConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	datastores, _ := client.RedisInstance.ListDatastore(map[string]string{})
+	database_engine := d.Get("database_engine").(string)
 	database_version := d.Get("database_version").(string)
-	database_type := d.Get("database_type").(string)
+	database_mode := d.Get("database_mode").(string)
 
+	datastoreEngine := ""
 	datastoreModeId := ""
-	cacheEngine := ""
+	datastoreVersionId := ""
 	for _, datastore := range datastores {
-		for _, version := range datastore.VersionInfos {
-			if database_version == datastore.Name+" "+version.VersionName {
-				cacheEngine = version.ID
-				for _, mode := range version.ModeInfo {
-					if strings.Contains(mode.Name, database_type) {
-						datastoreModeId = mode.ID
+		if database_engine == datastore.Name {
+			datastoreEngine = datastore.ID
+
+			versions := make([]string, len(datastore.VersionInfos))
+			for index, version := range datastore.VersionInfos {
+				versions[index] = version.VersionName
+				if version.VersionName == database_version {
+					datastoreVersionId = version.ID
+					modes := make([]string, len(version.ModeInfo))
+					for i, mode := range version.ModeInfo {
+						modes[i] = mode.Name
+						if strings.Contains(mode.Name, database_mode) {
+							datastoreModeId = mode.ID
+						}
+					}
+					if datastoreModeId == "" {
+						return fmt.Errorf("Not found database_mode `%s`, must be one of %v", database_mode, modes)
 					}
 				}
+			}
+			if datastoreVersionId == "" {
+				return fmt.Errorf("Not found database_version `%s`, must be one of %v", database_version, versions)
 			}
 		}
 	}
 
-	if datastoreModeId == "" {
-		return fmt.Errorf("Not found database_version")
-	}
-	if cacheEngine == "" {
-		return fmt.Errorf("Not found database_type")
+	if datastoreEngine == "" {
+		return fmt.Errorf("Not found database_engine `%s`", database_engine)
 	}
 	configuration, err := client.RedisConfiguration.Create(map[string]interface{}{
 		"name":            d.Get("name").(string),
 		"description":     d.Get("description").(string),
 		"datastoreModeId": datastoreModeId,
-		"cacheEngine":     cacheEngine,
+		"cacheEngine":     datastoreVersionId,
 		"overridesConfig": d.Get("parameters").(map[string]interface{}),
 	})
 	if err != nil {
@@ -79,8 +92,9 @@ func resourceRedisConfigurationRead(d *schema.ResourceData, meta interface{}) er
 	_ = d.Set("id", configuration.ID)
 	_ = d.Set("name", configuration.Name)
 	_ = d.Set("description", configuration.Description)
-	_ = d.Set("datastore_type", configuration.DatastoreName+" "+configuration.DatastoreVersion)
-	_ = d.Set("datastore_version", configuration.DatastoreMode)
+	_ = d.Set("database_engine", configuration.DatastoreName)
+	_ = d.Set("database_version", configuration.DatastoreVersion)
+	_ = d.Set("database_mode", configuration.DatastoreMode)
 	_ = d.Set("parameters", convertRedisConfigurationParameters(configuration.Parameters))
 	return nil
 }
@@ -146,11 +160,11 @@ func resourceRedisConfigurationDelete(d *schema.ResourceData, meta interface{}) 
 	_, err := client.RedisConfiguration.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete database configuration: %v", err)
+		return fmt.Errorf("Error delete redis configuration: %v", err)
 	}
 	_, err = waitUntilRedisConfigurationDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete database configuration: %v", err)
+		return fmt.Errorf("Error delete redis configuration: %v", err)
 	}
 	return nil
 }

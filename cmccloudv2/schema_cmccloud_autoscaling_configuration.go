@@ -102,9 +102,10 @@ func autoscalingConfigurationSchema() map[string]*schema.Schema {
 			ForceNew: true,
 		},
 		"password": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Type:      schema.TypeString,
+			Optional:  true,
+			ForceNew:  true,
+			Sensitive: true,
 		},
 		"ecs_group_id": {
 			Type:     schema.TypeString,

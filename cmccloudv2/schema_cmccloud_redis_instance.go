@@ -128,6 +128,7 @@ func redisinstanceSchema() map[string]*schema.Schema {
 		"password": {
 			Type:         schema.TypeString,
 			Required:     true,
+			Sensitive:    true,
 			Description:  "Password must be 8-32 characters long, include upper and lower case letters and numbers, and contain no special characters.",
 			ValidateFunc: validateRedisPassword,
 		},

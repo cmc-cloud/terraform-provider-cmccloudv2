@@ -12,13 +12,34 @@ func keymanagementsecretSchema() map[string]*schema.Schema {
 		"container_id": {
 			Type:         schema.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.NoZeroValues,
 		},
 
 		"name": {
 			Type:         schema.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validateName,
+		},
+
+		"type": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"symmetric", "public", "private", "passphrase", "certificate",
+			}, false),
+		},
+
+		"content": {
+			Type:      schema.TypeString,
+			Required:  true,
+			Sensitive: true,
+			ForceNew:  true,
+			DiffSuppressFunc: func(k, o, n string, d *schema.ResourceData) bool {
+				return strings.TrimSpace(o) == strings.TrimSpace(n)
+			},
 		},
 
 		"expiration": {
@@ -26,26 +47,6 @@ func keymanagementsecretSchema() map[string]*schema.Schema {
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.IsRFC3339Time,
-		},
-
-		"type": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"symmetric", "public", "private", "passphrase", "certificate", "opaque",
-			}, false),
-		},
-
-		"content": {
-			Type:      schema.TypeString,
-			Optional:  true,
-			Sensitive: true,
-			ForceNew:  true,
-			DiffSuppressFunc: func(k, o, n string, d *schema.ResourceData) bool {
-				return strings.TrimSpace(o) == strings.TrimSpace(n)
-			},
 		},
 
 		"secret_ref": {

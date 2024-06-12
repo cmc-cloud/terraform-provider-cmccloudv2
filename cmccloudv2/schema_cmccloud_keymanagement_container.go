@@ -2,7 +2,6 @@ package cmccloudv2
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func keymanagementcontainerSchema() map[string]*schema.Schema {
@@ -11,11 +10,17 @@ func keymanagementcontainerSchema() map[string]*schema.Schema {
 			Type:         schema.TypeString,
 			Required:     true,
 			ValidateFunc: validateName,
+			ForceNew:     true,
 		},
-		"type": {
-			Type:         schema.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringInSlice([]string{"generic", "rsa", "certificate"}, true),
+		// "type": {
+		// 	Type:         schema.TypeString,
+		// 	Optional:     true,
+		// 	ForceNew:     true,
+		// 	ValidateFunc: validation.StringInSlice([]string{"generic", "rsa", "certificate"}, true),
+		// },
+		"container_ref": {
+			Type:     schema.TypeString,
+			Computed: true,
 		},
 		"created_at": {
 			Type:     schema.TypeString,

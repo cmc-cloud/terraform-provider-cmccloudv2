@@ -103,8 +103,9 @@ func databaseinstanceSchema() map[string]*schema.Schema {
 			Default:  "admin",
 		},
 		"admin_password": {
-			Type:     schema.TypeString,
-			Required: true,
+			Type:      schema.TypeString,
+			Required:  true,
+			Sensitive: true,
 		},
 		"billing_mode": {
 			Type:         schema.TypeString,

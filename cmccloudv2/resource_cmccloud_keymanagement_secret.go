@@ -31,36 +31,42 @@ func resourceKeyManagementSecret() *schema.Resource {
 // }
 
 func resourceKeyManagementSecretCreate(d *schema.ResourceData, meta interface{}) error {
-	keymanagementsecret, err := getClient(meta).KeyManagement.Create(map[string]interface{}{
+	params := map[string]interface{}{
 		"name":       d.Get("name").(string),
-		"type":       d.Get("type").(string),
+		"secretType": d.Get("type").(string),
 		"content":    d.Get("content").(string),
-		"expiration": d.Get("expiration").(string),
+	}
+	if d.Get("expiration").(string) != "" {
+		params["expireTime"] = d.Get("expiration").(string)
+	}
+	secret, err := getClient(meta).KeyManagement.CreateSecret(map[string]interface{}{
+		"containerUuid": d.Get("container_id").(string),
+		"secretDetails": []interface{}{params},
 	})
 	if err != nil {
 		return fmt.Errorf("Error creating KeyManagement Secret: %s", err)
 	}
-	d.SetId(keymanagementsecret.ID)
+	d.SetId(secret.Data.Secrets[0].ID)
 	return resourceKeyManagementSecretRead(d, meta)
 }
 
 func resourceKeyManagementSecretRead(d *schema.ResourceData, meta interface{}) error {
-	container, err := getClient(meta).KeyManagement.GetSecret(d.Get("container_id").(string), d.Id())
+	container, err := getClient(meta).KeyManagement.GetSecret(d.Id())
 	if err != nil {
 		return fmt.Errorf("Error retrieving KeyManagement Secret %s: %v", d.Id(), err)
 	}
 
 	_ = d.Set("name", container.Name)
-	_ = d.Set("expiration", container.Expiration)
+	// _ = d.Set("expiration", container.Expiration)
 	_ = d.Set("type", container.SecretType)
 	// _ = d.Set("content", container.)
-	_ = d.Set("secret_ref", container.SecretRef)
+	// _ = d.Set("secret_ref", container.SecretRef)
 	_ = d.Set("created_at", container.Created)
 	return nil
 }
 
 func resourceKeyManagementSecretDelete(d *schema.ResourceData, meta interface{}) error {
-	_, err := getClient(meta).KeyManagement.DeleteSecret(d.Get("container_id").(string), d.Id())
+	_, err := getClient(meta).KeyManagement.DeleteSecret(d.Id())
 	if err != nil {
 		return fmt.Errorf("Error delete KeyManagement Secret: %v", err)
 	}
@@ -77,6 +83,6 @@ func waitUntilKeyManagementSecretDeleted(d *schema.ResourceData, meta interface{
 		Delay:      10 * time.Second,
 		MinTimeout: 20 * time.Second,
 	}, func(id string) (any, error) {
-		return getClient(meta).KeyManagement.GetSecret(d.Get("container_id").(string), id)
+		return getClient(meta).KeyManagement.GetSecret(id)
 	})
 }

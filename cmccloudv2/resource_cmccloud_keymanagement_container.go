@@ -31,14 +31,14 @@ func resourceKeyManagementContainer() *schema.Resource {
 // }
 
 func resourceKeyManagementContainerCreate(d *schema.ResourceData, meta interface{}) error {
-	keymanagementcontainer, err := getClient(meta).KeyManagement.Create(map[string]interface{}{
+	container, err := getClient(meta).KeyManagement.Create(map[string]interface{}{
 		"name": d.Get("name").(string),
-		"type": d.Get("type").(string),
+		"type": "generic", // d.Get("type").(string),
 	})
 	if err != nil {
 		return fmt.Errorf("Error creating KeyManagementContainer: %s", err)
 	}
-	d.SetId(keymanagementcontainer.ID)
+	d.SetId(container.Data.ID)
 	return resourceKeyManagementContainerRead(d, meta)
 }
 
@@ -49,7 +49,8 @@ func resourceKeyManagementContainerRead(d *schema.ResourceData, meta interface{}
 	}
 
 	_ = d.Set("name", container.Name)
-	_ = d.Set("type", container.Type)
+	_ = d.Set("container_ref", container.ContainerRef)
+	_ = d.Set("created_at", container.Created)
 	return nil
 }
 

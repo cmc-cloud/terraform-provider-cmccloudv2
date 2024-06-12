@@ -69,6 +69,8 @@ func Provider() terraform.ResourceProvider {
 			"cmccloudv2_server_interface":                resourceServerInterface(),
 			"cmccloudv2_redis_instance":                  resourceRedisInstance(),
 			"cmccloudv2_redis_configuration":             resourceRedisConfiguration(),
+			"cmccloudv2_keymanagement_container":         resourceKeyManagementContainer(),
+			"cmccloudv2_keymanagement_secret":            resourceKeyManagementSecret(),
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -94,7 +96,8 @@ func Provider() terraform.ResourceProvider {
 			"cmccloudv2_autoscaling_group":         datasourceAutoScalingGroup(),
 			"cmccloudv2_redis_configuration":       datasourceRedisConfiguration(),
 			"cmccloudv2_security_group":            datasourceSecurityGroup(),
-			// "cmccloudv2_keymanagement_container": datasourceKey
+			"cmccloudv2_keymanagement_container":   datasourceKeyManagementContainer(),
+			// "cmccloudv2_keymanagement_secret":   datasourceKeyManagementSe(),
 			// "cmccloudv2_redis_instance":                  datasourceRedisInstance(),
 		},
 	}

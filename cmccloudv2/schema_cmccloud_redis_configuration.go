@@ -2,6 +2,7 @@ package cmccloudv2
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func redisconfigurationSchema() map[string]*schema.Schema {
@@ -11,13 +12,23 @@ func redisconfigurationSchema() map[string]*schema.Schema {
 			Required:     true,
 			ValidateFunc: validateName,
 		},
-		"database_version": {
-			Type:     schema.TypeString,
-			Required: true,
+		"database_engine": {
+			Type:         schema.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.NoZeroValues,
 		},
-		"database_type": {
-			Type:     schema.TypeString,
-			Required: true,
+		"database_version": {
+			Type:         schema.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.NoZeroValues,
+		},
+		"database_mode": {
+			Type:         schema.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.NoZeroValues,
 		},
 		"description": {
 			Type:     schema.TypeString,
