@@ -344,7 +344,7 @@ func waitUntilRedisInstanceJobFinished(d *schema.ResourceData, meta interface{},
 	}, func(id string) (any, error) {
 		return getClient(meta).RedisInstance.Get(id)
 	}, func(obj interface{}) string {
-		return obj.(gocmcapiv2.RedisInstance).Status
+		return strings.ToUpper(obj.(gocmcapiv2.RedisInstance).Status)
 	})
 }
 
