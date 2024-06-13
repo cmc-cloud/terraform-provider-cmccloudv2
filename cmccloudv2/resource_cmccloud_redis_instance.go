@@ -253,7 +253,11 @@ func resourceRedisInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	// _ = d.Set("ip_master", )
 	// _ = d.Set("ip_slave1", )
 	// _ = d.Set("ip_slave2", )
-	_ = d.Set("redis_configuration_id", instance.GroupConfigID)
+	if d.Get("redis_configuration_id").(string) == "" {
+		// ko set redis_configuration_id => se lay configuration default => khong set giá trị mới
+	} else {
+		_ = d.Set("redis_configuration_id", instance.GroupConfigID)
+	}
 	// _ = d.Set("password", )
 	_ = d.Set("status", instance.Status)
 	_ = d.Set("created_at", instance.Created)
