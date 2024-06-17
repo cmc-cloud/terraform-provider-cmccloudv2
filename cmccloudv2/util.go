@@ -50,7 +50,7 @@ func setInt(d *schema.ResourceData, key string, newval int) {
 	// kiem tra xem co khac voi gia tri hien tai ko, gia tri hien tai co the chi la gia tri default
 	v, _ := d.GetOk(key)
 	// gocmcapiv2.Logs("setInt " + key + " => ok = " + strconv.FormatBool(ok) + " " + strconv.Itoa(newval))
-	if v.(int) != newval {
+	if v.(int) != 0 && v.(int) != newval {
 		_ = d.Set(key, newval)
 	}
 }
@@ -58,7 +58,7 @@ func setString(d *schema.ResourceData, key string, newval string) {
 	// kiem tra xem co khac voi gia tri hien tai ko, gia tri hien tai co the chi la gia tri default
 	v, _ := d.GetOk(key)
 	// gocmcapiv2.Logs("setString old val " + v.(string) + ", newval = " + newval)
-	if v.(string) != newval {
+	if v.(string) != "" && v.(string) != newval {
 		// gocmcapiv2.Logs("setString old val " + v.(string) + ", newval = " + newval)
 		_ = d.Set(key, newval)
 	}
@@ -124,6 +124,24 @@ func arrayContains(slice []string, item string) bool {
 	}
 	return false
 }
+
+func isIpBelongToCidr(ip_str, cidr_str string) (bool, error) {
+	ip := net.ParseIP(ip_str)
+	if ip == nil {
+		return false, fmt.Errorf("Invalid IP address %s", ip_str)
+	}
+
+	_, cidr, err := net.ParseCIDR(cidr_str)
+	if err != nil {
+		return false, fmt.Errorf("Invalid IP CIDR %s %v", cidr_str, err)
+	}
+
+	if !cidr.Contains(ip) {
+		return false, fmt.Errorf("IP address %s is not within the CIDR block %s", ip_str, cidr_str)
+	}
+	return true, nil
+}
+
 func getClient(meta interface{}) *gocmcapiv2.Client {
 	return meta.(*CombinedConfig).goCMCClient()
 }
@@ -133,7 +151,7 @@ func _checkDeletedRefreshFunc(d *schema.ResourceData, meta interface{}, getResou
 		if errors.Is(err, gocmcapiv2.ErrNotFound) || strings.Contains(err.Error(), "not found") {
 			return resource, "true", nil
 		}
-		return resource, "false", nil
+		return resource, "false", err
 	}
 }
 func waitUntilResourceDeleted(d *schema.ResourceData, meta interface{}, timeout WaitConf, getResourceFunc func(id string) (interface{}, error)) (interface{}, error) {

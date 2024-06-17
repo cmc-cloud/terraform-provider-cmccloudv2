@@ -34,9 +34,9 @@ func resourceServer() *schema.Resource {
 				return fmt.Errorf("Can't shrink volume_size, new `volume_size` must be > %d", old.(int))
 			}
 			// bỏ qua các thay đổi của trường nics
-			if d.HasChange("nics") {
-				d.Clear("nics")
-			}
+			// if d.HasChange("nics") {
+			// 	d.Clear("nics")
+			// }
 			return nil
 		},
 	}
@@ -49,6 +49,23 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 	volumes[0] = map[string]interface{}{
 		"type": d.Get("volume_type").(string),
 		"size": d.Get("volume_size").(int),
+	}
+
+	subnets := make([]map[string]interface{}, 1)
+	subnets[0] = map[string]interface{}{
+		"subnet_id": d.Get("subnet_id").(string),
+	}
+	if d.Get("ip_address").(string) != "" {
+		subnet, err := client.Subnet.Get(d.Get("subnet_id").(string))
+
+		if err != nil {
+			return fmt.Errorf("Error when getting subnet info: %v", err)
+		}
+		_, err = isIpBelongToCidr(d.Get("ip_address").(string), subnet.Cidr)
+		if err != nil {
+			return err
+		}
+		subnets[0]["ip_address"] = d.Get("ip_address").(string)
 	}
 	datas := map[string]interface{}{
 		"project":              client.Configs.ProjectId,
@@ -65,7 +82,7 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 		"source_type":          d.Get("source_type").(string),
 		"source_id":            d.Get("source_id").(string),
 		"tags":                 d.Get("tags").(*schema.Set).List(),
-		"subnets":              d.Get("nics").([]interface{}),
+		"subnets":              subnets, // d.Get("nics").([]interface{}),
 		// "subnets":              d.Get("nics").(*schema.Set).List(),
 		// "eip_id":               d.Get("eip_id").(string),
 		// "domestic_bandwidth":   d.Get("domestic_bandwidth").(int),
@@ -77,7 +94,6 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error creating server: %v", err.Error())
 	}
 	d.SetId(res.Server.ID)
-	// waitUntilServerChangeState(d, meta, res.Server.ID, []string{"building"}, []string{"active"})
 	_, err = waitUntilServerStatusChangedState(d, meta, []string{"active"}, []string{"error"})
 	if err != nil {
 		return fmt.Errorf("create server failed: %v", err)
@@ -105,9 +121,30 @@ func readOrImport(d *schema.ResourceData, meta interface{}, isImport bool) error
 	_ = d.Set("billing_mode", server.BillingMode)
 	_ = d.Set("vm_state", server.VMState)
 	_ = d.Set("volumes", convertVolumeAttachs(server.VolumesAttached))
-	if isImport {
-		_ = d.Set("nics", convertNics(server.Nics))
+	if len(server.Nics) > 0 {
+		if isImport {
+			// khong set, neu set co the bi sai neu co >= 2 interfaces
+			_ = d.Set("subnet_id", server.Nics[0].FixedIps[0].SubnetID)
+		}
+
+		for _, nic := range server.Nics {
+			if nic.FixedIps[0].SubnetID == d.Get("subnet_id").(string) {
+				// chi set ngay sau khi tao server, vi khi do chua add them interface nao
+				// neu add >= 2 interfaces thi thu tu interface co the thay doi => bi doi interface_id
+				if d.Get("interface_id").(string) == "" {
+					_ = d.Set("interface_id", nic.ID)
+				}
+				// chua set thi moi set
+				if d.Get("ip_address").(string) == "" || d.Get("ip_address").(string) == nic.FixedIps[0].IPAddress {
+					setString(d, "ip_address", nic.FixedIps[0].IPAddress)
+				}
+				break
+			}
+		}
 	}
+	// if isImport {
+	// 	_ = d.Set("nics", convertNics(server.Nics))
+	// }
 	if server.KeyName != "" {
 		_ = d.Set("key_name", server.KeyName)
 	}

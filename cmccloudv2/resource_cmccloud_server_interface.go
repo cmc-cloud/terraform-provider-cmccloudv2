@@ -26,10 +26,23 @@ func resourceServerInterface() *schema.Resource {
 
 func resourceServerInterfaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
-	inter, err := client.NetworkInterface.Create(d.Get("server_id").(string), map[string]interface{}{
-		"subnet_id":  d.Get("subnet_id").(string),
-		"ip_address": d.Get("ip_address").(string),
-	})
+	params := map[string]interface{}{
+		"subnet_id": d.Get("subnet_id").(string),
+	}
+	if d.Get("ip_address").(string) != "" {
+		subnet, err := client.Subnet.Get(d.Get("subnet_id").(string))
+
+		if err != nil {
+			return fmt.Errorf("Error when getting subnet info: %v", err)
+		}
+		_, err = isIpBelongToCidr(d.Get("ip_address").(string), subnet.Cidr)
+		if err != nil {
+			return err
+		}
+		params["ip_address"] = d.Get("ip_address").(string)
+	}
+	inter, err := client.NetworkInterface.Create(d.Get("server_id").(string), params)
+
 	if err != nil {
 		return fmt.Errorf("Error when create Interface of Server %s: %s", d.Get("server_id").(string), err)
 	}
@@ -46,7 +59,10 @@ func resourceServerInterfaceRead(d *schema.ResourceData, meta interface{}) error
 	}
 	// _ = d.Set("server_id", inter.ServerID)
 	_ = d.Set("subnet_id", inter.FixedIps[0].SubnetID)
-	_ = d.Set("ip_address", inter.FixedIps[0].IPAddress)
+	// chua set thi moi set
+	if d.Get("ip_address").(string) == "" || d.Get("ip_address").(string) == inter.FixedIps[0].IPAddress {
+		setString(d, "ip_address", inter.FixedIps[0].IPAddress)
+	}
 	return nil
 }
 

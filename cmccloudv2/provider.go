@@ -71,6 +71,7 @@ func Provider() terraform.ResourceProvider {
 			"cmccloudv2_redis_configuration":             resourceRedisConfiguration(),
 			"cmccloudv2_keymanagement_container":         resourceKeyManagementContainer(),
 			"cmccloudv2_keymanagement_secret":            resourceKeyManagementSecret(),
+			"cmccloudv2_keymanagement_token":             resourceKeyManagementToken(),
 			"cmccloudv2_devops_project":                  resourceDevopsProject(),
 			"cmccloudv2_container_registry_repo":         resourceContainerRegistryRepository(),
 		},

@@ -56,6 +56,8 @@ func dataSourceRedisConfigurationRead(d *schema.ResourceData, meta interface{}) 
 		params := map[string]string{
 			// "name":          d.Get("name").(string),
 			// "database_mode": d.Get("database_mode").(string),
+			"page":          "1",
+			"size":          "1000",
 			"datastoreCode": "redis",
 		}
 		configurations, err := client.RedisConfiguration.List(params)

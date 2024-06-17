@@ -63,6 +63,8 @@ func dataSourceImageRead(d *schema.ResourceData, meta interface{}) error {
 	} else {
 		params := map[string]string{
 			"visibility": d.Get("visibility").(string),
+			"name":       d.Get("name").(string),
+			"os":         d.Get("os").(string),
 			"status":     "active",
 		}
 		images, err := client.Image.List(params)

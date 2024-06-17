@@ -253,8 +253,14 @@ func resourceRedisInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	// _ = d.Set("ip_master", )
 	// _ = d.Set("ip_slave1", )
 	// _ = d.Set("ip_slave2", )
+	gocmcapiv2.Logs("redis_configuration_id = " + d.Get("redis_configuration_id").(string))
 	if d.Get("redis_configuration_id").(string) == "" {
-		// ko set redis_configuration_id => se lay configuration default => khong set giá trị mới
+		// _, err := client.RedisConfiguration.Get(instance.GroupConfigID)
+		// if err == nil {
+		// 	// la default configuration => ko set
+		// } else {
+		// 	_ = d.Set("redis_configuration_id", instance.GroupConfigID)
+		// }
 	} else {
 		_ = d.Set("redis_configuration_id", instance.GroupConfigID)
 	}
@@ -290,7 +296,31 @@ func resourceRedisInstanceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 	if d.HasChange("redis_configuration_id") {
-		_, err := client.RedisInstance.SetConfigurationGroupId(id, d.Get("redis_configuration_id").(string))
+		defaultTemplateId := d.Get("redis_configuration_id").(string)
+		if d.Get("redis_configuration_id") == "" {
+			defaultTemplates, err := client.RedisConfiguration.List(map[string]string{
+				"page":          "1",
+				"size":          "1000",
+				"datastoreCode": "redis",
+				"getDefault":    "true",
+			})
+			if err != nil {
+				return fmt.Errorf("Error when getting default redis configuration templates: %v", err)
+			}
+			database_engine := d.Get("database_engine").(string)
+			database_version := d.Get("database_version").(string)
+			database_mode := d.Get("database_mode").(string)
+
+			for _, template := range defaultTemplates {
+				if template.DatastoreName == database_engine && template.DatastoreVersion == database_version && template.DatastoreMode == database_mode {
+					defaultTemplateId = template.ID
+					if template.ID2 != "" {
+						defaultTemplateId = template.ID2
+					}
+				}
+			}
+		}
+		_, err := client.RedisInstance.SetConfigurationGroupId(id, defaultTemplateId)
 		if err != nil {
 			return fmt.Errorf("Error when set configuration group to %s of redis database instance %s: %v", d.Get("redis_configuration_id").(string), id, err)
 		}

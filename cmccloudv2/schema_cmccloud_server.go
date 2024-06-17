@@ -117,17 +117,28 @@ func serverSchema() map[string]*schema.Schema {
 			Required: true,
 			ForceNew: true,
 		},
-		"nics": {
-			Type: schema.TypeList,
-			// Type: schema.TypeSet,
-			// Set: schema.HashResource(&schema.Resource{
-			// 	Schema: createServerNicsElementSchema(),
-			// }),
-			Required: true,
+		// "nics": {
+		// 	Type: schema.TypeList,
+		// 	// Type: schema.TypeSet,
+		// 	// Set: schema.HashResource(&schema.Resource{
+		// 	// 	Schema: createServerNicsElementSchema(),
+		// 	// }),
+		// 	Required: true,
+		// 	ForceNew: true,
+		// 	Elem: &schema.Resource{
+		// 		Schema: createServerNicsElementSchema(),
+		// 	},
+		// },
+		"subnet_id": {
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validateUUID,
+			ForceNew:     true,
+		},
+		"ip_address": {
+			Type:     schema.TypeString,
+			Optional: true,
 			ForceNew: true,
-			Elem: &schema.Resource{
-				Schema: createServerNicsElementSchema(),
-			},
 		},
 		"volumes": {
 			Type:     schema.TypeList,
@@ -172,6 +183,10 @@ func serverSchema() map[string]*schema.Schema {
 			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.NoZeroValues,
+		},
+		"interface_id": {
+			Type:     schema.TypeString,
+			Computed: true,
 		},
 		"created": {
 			Type:     schema.TypeString,

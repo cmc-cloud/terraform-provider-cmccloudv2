@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 
 	"github.com/cmc-cloud/gocmcapiv2"
@@ -113,7 +114,20 @@ func dataSourceFlavorRead(d *schema.ResourceData, meta interface{}, flavor_type 
 		}
 		allFlavors = append(allFlavors, flavor)
 	} else {
-		flavors, err := client.Flavor.List(map[string]string{"name": d.Get("name").(string)})
+		params := map[string]string{}
+		if d.Get("name").(string) != "" {
+			params["name"] = d.Get("name").(string)
+		}
+		if v, ok := d.GetOk("cpu"); ok && v.(int) != 0 {
+			params["cpu"] = strconv.Itoa(d.Get("cpu").(int))
+		}
+		if v, ok := d.GetOk("ram"); ok && v.(int) != 0 {
+			params["ram"] = strconv.Itoa(d.Get("ram").(int))
+		}
+		if v, ok := d.GetOk("disk"); ok && v.(int) != 0 {
+			params["disk"] = strconv.Itoa(d.Get("disk").(int))
+		}
+		flavors, err := client.Flavor.List(params)
 		if err != nil {
 			return fmt.Errorf("Error when get flavors %v", err)
 		}
@@ -174,7 +188,7 @@ func dataSourceComputeFlavorAttributes(d *schema.ResourceData, flavor gocmcapiv2
 	d.Set("name", flavor.Name)
 	d.Set("cpu", flavor.Vcpus)
 	d.Set("ram", flavor.RAM/1024)
-	if flavor_type == "Kubernetes" {
+	if flavor.Disk > 0 {
 		d.Set("disk", flavor.Disk)
 	}
 	return nil
