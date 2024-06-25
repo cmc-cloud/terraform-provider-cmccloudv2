@@ -46,6 +46,12 @@ func isSet(diff *schema.ResourceDiff, key string) bool {
 	}
 	return ok
 }
+func setBool(d *schema.ResourceData, key string, newval bool) {
+	v, exists := d.GetOkExists(key)
+	if exists && v.(bool) != newval {
+		_ = d.Set(key, newval)
+	}
+}
 func setInt(d *schema.ResourceData, key string, newval int) {
 	// kiem tra xem co khac voi gia tri hien tai ko, gia tri hien tai co the chi la gia tri default
 	v, _ := d.GetOk(key)

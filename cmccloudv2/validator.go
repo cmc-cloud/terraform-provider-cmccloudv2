@@ -11,6 +11,34 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
+func validateDomainName(val interface{}, key string) (warns []string, errs []error) {
+	v := val.(string)
+	if len(v) == 0 || len(v) > 253 {
+		errs = append(errs, fmt.Errorf("%q must be between 1 and 253 characters long", key))
+		return
+	}
+
+	domainRegex := `^[a-zA-Z0-9.-]+$`
+	match, _ := regexp.MatchString(domainRegex, v)
+	if !match {
+		errs = append(errs, fmt.Errorf("%q must match the pattern %s", key, domainRegex))
+		return
+	}
+
+	if v[len(v)-1] == '.' || v[0] == '-' || scontains(v, "-.") || scontains(v, ".-") {
+		errs = append(errs, fmt.Errorf("%q is not a valid domain name", key))
+	}
+
+	return
+}
+
+func scontains(s, substr string) bool {
+	return regexp.MustCompile(regexp.QuoteMeta(substr)).FindStringIndex(s) != nil
+}
+func isValidIP(ip string) bool {
+	return net.ParseIP(ip) != nil
+}
+
 // Hàm để tùy chỉnh diff và bỏ qua các thay đổi của các thuộc tính cụ thể
 func ignoreChangesCustomizeDiff(fieldsToIgnore ...string) schema.CustomizeDiffFunc {
 	return func(diff *schema.ResourceDiff, v interface{}) error {

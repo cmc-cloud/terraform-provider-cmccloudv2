@@ -74,6 +74,15 @@ func Provider() terraform.ResourceProvider {
 			"cmccloudv2_keymanagement_token":             resourceKeyManagementToken(),
 			"cmccloudv2_devops_project":                  resourceDevopsProject(),
 			"cmccloudv2_container_registry_repo":         resourceContainerRegistryRepository(),
+			"cmccloudv2_va":                              resourceVA(),
+			"cmccloudv2_waf":                             resourceWaf(),
+			"cmccloudv2_waf_cert":                        resourceWafCert(),
+			"cmccloudv2_waf_ip":                          resourceWafIP(),
+			"cmccloudv2_waf_rule":                        resourceWafRule(),
+			"cmccloudv2_waf_whitelist":                   resourceWafWhitelist(),
+			"cmccloudv2_dns_zone":                        resourceDns(),
+			"cmccloudv2_dns_record":                      resourceDnsRecord(),
+			"cmccloudv2_dns_acl":                         resourceDnsAcl(),
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
