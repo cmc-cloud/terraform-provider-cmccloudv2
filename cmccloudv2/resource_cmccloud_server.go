@@ -28,15 +28,10 @@ func resourceServer() *schema.Resource {
 		Schema:        serverSchema(),
 
 		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
-			// gocmcapiv2.Logs("CustomizeDiff")
 			old, new := d.GetChange("volume_size")
 			if old.(int) > new.(int) {
 				return fmt.Errorf("Can't shrink volume_size, new `volume_size` must be > %d", old.(int))
 			}
-			// bỏ qua các thay đổi của trường nics
-			// if d.HasChange("nics") {
-			// 	d.Clear("nics")
-			// }
 			return nil
 		},
 	}

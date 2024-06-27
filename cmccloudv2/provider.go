@@ -83,6 +83,8 @@ func Provider() terraform.ResourceProvider {
 			"cmccloudv2_dns_zone":                        resourceDns(),
 			"cmccloudv2_dns_record":                      resourceDnsRecord(),
 			"cmccloudv2_dns_acl":                         resourceDnsAcl(),
+			"cmccloudv2_cdn_cert":                        resourceCDNCert(),
+			"cmccloudv2_cdn":                             resourceCDN(),
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{

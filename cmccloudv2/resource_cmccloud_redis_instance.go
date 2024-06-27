@@ -198,9 +198,6 @@ func resourceRedisInstanceCreate(d *schema.ResourceData, meta interface{}) error
 
 	delete(params, "master")
 	delete(params, "slaves")
-	// gocmcapiv2.Logs("redisMode = " + redisMode)
-	// gocmcapiv2.Logo("params = ", params)
-	// return fmt.Errorf("Error creating RedisDatabase Instance: %s", "test")
 
 	instance, err := client.RedisInstance.Create(params)
 	if err != nil {
@@ -253,7 +250,6 @@ func resourceRedisInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	// _ = d.Set("ip_master", )
 	// _ = d.Set("ip_slave1", )
 	// _ = d.Set("ip_slave2", )
-	gocmcapiv2.Logs("redis_configuration_id = " + d.Get("redis_configuration_id").(string))
 	if d.Get("redis_configuration_id").(string) == "" {
 		// _, err := client.RedisConfiguration.Get(instance.GroupConfigID)
 		// if err == nil {

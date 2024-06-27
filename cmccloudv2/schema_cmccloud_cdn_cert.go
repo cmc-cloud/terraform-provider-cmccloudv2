@@ -2,47 +2,43 @@ package cmccloudv2
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func wafcertSchema() map[string]*schema.Schema {
+func cdnCertSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"name": {
-			Type:         schema.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.NoZeroValues,
-		},
 		"cert_name": {
 			Type:     schema.TypeString,
 			Required: true,
-			ForceNew: true,
 		},
 		"cert_data": {
 			Type:        schema.TypeString,
 			Required:    true,
-			ForceNew:    true,
 			Description: "Certificate data, generate example from https://en.rakko.tools/tools/46/",
 			Sensitive:   true,
 		},
 		"key_name": {
 			Type:     schema.TypeString,
 			Required: true,
-			ForceNew: true,
 		},
 		"key_data": {
 			Type:        schema.TypeString,
 			Required:    true,
 			Description: "Private key, generate example from https://en.rakko.tools/tools/46/",
-			ForceNew:    true,
 			Sensitive:   true,
 		},
-		"description": {
+		"certificate_type": {
 			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Computed: true,
 		},
-		"created_at": {
+		"common_name": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"expiration_date": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"status": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},

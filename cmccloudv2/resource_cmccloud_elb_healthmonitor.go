@@ -26,7 +26,6 @@ func resourceELBHealthMonitor() *schema.Resource {
 		Schema:        elbhealthmonitorSchema(),
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
 			_type := diff.Get("type").(string)
-			gocmcapiv2.Logs("type = " + _type)
 			if _type != "HTTP" && _type != "HTTPS" {
 				if isSet(diff, "http_method") || isSet(diff, "expected_codes") || isSet(diff, "url_path") {
 					return fmt.Errorf("`http_method`, `expected_codes`, `url_path` can be set only when `type` is HTTP or HTTPS ")

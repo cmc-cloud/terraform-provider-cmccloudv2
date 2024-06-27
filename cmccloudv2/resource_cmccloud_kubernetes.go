@@ -203,7 +203,6 @@ func resourceKubernetesUpdate(d *schema.ResourceData, meta interface{}) error {
 		found := false
 		nodegroups, _ := client.Kubernetes.GetNodeGroups(id, false)
 		for _, nodegroup := range nodegroups {
-			// gocmcapiv2.Logs("nodegroup " + nodegroup.Name)
 			if nodegroup.Name == "default-worker" {
 				found = true
 				change_minmax_first := false

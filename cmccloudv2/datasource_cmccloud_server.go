@@ -126,7 +126,6 @@ func dataSourceServerRead(d *schema.ResourceData, meta interface{}) error {
 			if v := d.Get("ip_address").(string); v != "" {
 				switch server.Addresses.(type) {
 				case []interface{}:
-					// gocmcapiv2.Logs("******** server.Addresses is []interface{}")
 				case map[string]interface{}:
 					found_ip := false
 					if m, ok := server.Addresses.(map[string]interface{}); ok {
@@ -145,7 +144,7 @@ func dataSourceServerRead(d *schema.ResourceData, meta interface{}) error {
 						continue
 					}
 				default:
-					// gocmcapiv2.Logs("******** server.Addresses is not []interface{} or map[string]interface{} " + v.(string))
+					//
 				}
 			}
 			filteredServers = append(filteredServers, server)

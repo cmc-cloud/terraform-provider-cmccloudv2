@@ -69,7 +69,6 @@ func dataSourceKeypairRead(d *schema.ResourceData, meta interface{}) error {
 		var filteredKeypairs []gocmcapiv2.Keypair
 		for _, keypair := range allKeypairs {
 			if v := d.Get("type").(string); v != "" {
-				gocmcapiv2.Logs("compare " + keypair.Type + " & " + v)
 				if strings.ToLower(keypair.Type) != strings.ToLower(v) {
 					continue
 				}

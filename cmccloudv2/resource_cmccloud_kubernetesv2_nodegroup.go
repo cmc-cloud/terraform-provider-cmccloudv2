@@ -155,7 +155,6 @@ func resourceKubernetesv2NodeGroupRead(d *schema.ResourceData, meta interface{})
 	_ = d.Set("enable_autohealing", false)
 	_ = d.Set("status", nodegroup.Status)
 	for _, provider := range nodegroup.ExternalProviders {
-		// gocmcapiv2.Logs("provider name = " + provider.Name)
 		if strings.Contains(provider.Name, "auto-scale") {
 			if provider.Config.MaxNode > provider.Config.MinNode {
 				_ = d.Set("enable_autoscale", true)
@@ -274,7 +273,6 @@ func waitUntilKubernetesv2NodeGroupStatusChangedState(d *schema.ResourceData, me
 	}, func(id string) (any, error) {
 		return getClient(meta).Kubernetesv2.GetNodeGroup(d.Get("cluster_id").(string), id)
 	}, func(obj interface{}) string {
-		gocmcapiv2.Logs("status new = " + obj.(gocmcapiv2.Kubernetesv2NodeGroup).Status)
 		return obj.(gocmcapiv2.Kubernetesv2NodeGroup).Status
 	})
 }
