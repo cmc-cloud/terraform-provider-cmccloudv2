@@ -35,19 +35,16 @@ func resourceCDNCreate(d *schema.ResourceData, meta interface{}) error {
 		"protocol": d.Get("protocol").(string),
 		"vod":      "false",
 	}
-	cdn, err := getClient(meta).CDN.Create(params)
+	cdn_id, err := getClient(meta).CDN.Create(params)
 
 	if err != nil {
 		return fmt.Errorf("Error creating cdn site: %s", err)
 	}
 
-	if cdn.ID == "" {
-		if cdn.ErrorMessage != "" {
-			return fmt.Errorf(cdn.ErrorMessage)
-		}
+	if cdn_id == "" {
 		return fmt.Errorf("Error creating cdn site")
 	}
-	d.SetId(cdn.ID)
+	d.SetId(cdn_id)
 
 	return resourceCDNRead(d, meta)
 }

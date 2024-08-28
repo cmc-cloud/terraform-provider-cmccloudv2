@@ -32,12 +32,12 @@ func resourceCDNCertCreate(d *schema.ResourceData, meta interface{}) error {
 		"key_name":  d.Get("key_name").(string),
 		"cert_name": d.Get("cert_name").(string),
 	}
-	cdn, err := getClient(meta).CDNCert.Create(params)
+	cdn_id, err := getClient(meta).CDNCert.Create(params)
 
 	if err != nil {
 		return fmt.Errorf("Error creating cdn cert: %s", err)
 	}
-	d.SetId(cdn.ID)
+	d.SetId(cdn_id)
 
 	return resourceCDNCertRead(d, meta)
 }

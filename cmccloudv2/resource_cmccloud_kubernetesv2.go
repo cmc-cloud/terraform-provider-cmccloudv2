@@ -123,9 +123,9 @@ func updateAutoHealingAddon(d *schema.ResourceData, meta interface{}) error {
 		"externalProviderNames": "auto-healing-control-plane",
 	}
 	getClient(meta).Kubernetesv2.UpdateAddon(d.Id(), params)
-	_, err := waitUntilKubernetesv2NodeGroupStatusChangedState(d, meta, d.Timeout(schema.TimeoutCreate))
+	_, err := waitUntilKubernetesv2StatusChangedStateReady(d, meta, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return fmt.Errorf("Error creating Kubernetes NodeGroup: %v", err)
+		return fmt.Errorf("Error update auto healing addon: %v", err)
 	}
 	return nil
 }
@@ -146,9 +146,9 @@ func updateAutoScaleAddon(d *schema.ResourceData, meta interface{}) error {
 		"maxCoreCluster":        d.Get("autoscale_max_core").(int),
 	}
 	getClient(meta).Kubernetesv2.UpdateAddon(d.Id(), params)
-	_, err := waitUntilKubernetesv2NodeGroupStatusChangedState(d, meta, d.Timeout(schema.TimeoutCreate))
+	_, err := waitUntilKubernetesv2StatusChangedStateReady(d, meta, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return fmt.Errorf("Error creating Kubernetes NodeGroup: %v", err)
+		return fmt.Errorf("Error update autoscale addon: %v", err)
 	}
 	return nil
 }
@@ -163,9 +163,9 @@ func updateMonitoringAddon(d *schema.ResourceData, meta interface{}) error {
 		"externalProviderNames": "monitoring",
 	}
 	getClient(meta).Kubernetesv2.UpdateAddon(d.Id(), params)
-	_, err := waitUntilKubernetesv2NodeGroupStatusChangedState(d, meta, d.Timeout(schema.TimeoutCreate))
+	_, err := waitUntilKubernetesv2StatusChangedStateReady(d, meta, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return fmt.Errorf("Error creating Kubernetes NodeGroup: %v", err)
+		return fmt.Errorf("Error update monitoring addon: %v", err)
 	}
 	return nil
 }
@@ -219,6 +219,9 @@ func waitUntilKubernetesv2Deleted(d *schema.ResourceData, meta interface{}) (int
 	})
 }
 
+func waitUntilKubernetesv2StatusChangedStateReady(d *schema.ResourceData, meta interface{}, timeout time.Duration) (interface{}, error) {
+	return waitUntilKubernetesv2StatusChangedState(d, meta, []string{"HEALTHY", "RUNNING", "active", "Ready", "Running"}, []string{"ERROR", "SHUTDOWN", "FAILURE", "failure", "deleting"}, d.Timeout(schema.TimeoutCreate))
+}
 func waitUntilKubernetesv2StatusChangedState(d *schema.ResourceData, meta interface{}, targetStatus []string, errorStatus []string, timeout time.Duration) (interface{}, error) {
 	return waitUntilResourceStatusChanged(d, meta, targetStatus, errorStatus, WaitConf{
 		Timeout:    timeout,
