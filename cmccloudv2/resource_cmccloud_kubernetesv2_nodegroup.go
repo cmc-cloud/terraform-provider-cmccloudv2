@@ -31,8 +31,8 @@ func resourceKubernetesv2NodeGroup() *schema.Resource {
 			enable_autohealing := diff.Get("enable_autohealing").(bool)
 
 			if enable_autoscale {
-				if !isSet(diff, "min_node") || !isSet(diff, "max_node") || !isSet(diff, "max_pods") || !isSet(diff, "cpu_threshold_percent") || !isSet(diff, "memory_threshold_percent") || !isSet(diff, "disk_threshold_percent") {
-					return fmt.Errorf("When `enable_autoscale` is 'true', `min_node, max_node, max_pods, cpu_threshold_percent, memory_threshold_percent, disk_threshold_percent` must be set")
+				if !isSet(diff, "min_node") || !isSet(diff, "max_node") { //} || !isSet(diff, "max_pods") || !isSet(diff, "cpu_threshold_percent") || !isSet(diff, "memory_threshold_percent") || !isSet(diff, "disk_threshold_percent") {
+					return fmt.Errorf("When `enable_autoscale` is 'true', `min_node, max_node must be set")
 				}
 				if diff.Get("min_node").(int) >= diff.Get("max_node").(int) {
 					return fmt.Errorf("When `enable_autoscale` is 'true', `max_node` must > `min_node`")
@@ -46,6 +46,10 @@ func resourceKubernetesv2NodeGroup() *schema.Resource {
 			if enable_autohealing {
 				if !isSet(diff, "max_unhealthy_percent") || !isSet(diff, "node_startup_timeout_minutes") {
 					return fmt.Errorf("When `enable_autohealing` is 'true', `max_unhealthy_percent, node_startup_timeout_minutes must be set")
+				}
+			} else {
+				if isSet(diff, "max_unhealthy_percent") || isSet(diff, "node_startup_timeout_minutes") {
+					return fmt.Errorf("When `enable_autohealing` is 'false', `max_unhealthy_percent, node_startup_timeout_minutes must not be set")
 				}
 			}
 			return nil
@@ -64,22 +68,22 @@ func getAutoScaleConfig(d *schema.ResourceData, meta interface{}) (map[string]in
 		return nil, flavor, fmt.Errorf("Flavor %s is not a valid kubernetes flavor", d.Get("flavor_id").(string))
 	}
 
-	cpuThreshold := (float64(d.Get("cpu_threshold_percent").(int)) / 100.0) * float64(flavor.Vcpus)
-	memoryThreshold := (float64(d.Get("memory_threshold_percent").(int)) / 100.0) * float64(flavor.RAM)
-	diskThreshold := (float64(d.Get("disk_threshold_percent").(int)) / 100.0) * float64(flavor.Disk)
+	// cpuThreshold := (float64(d.Get("cpu_threshold_percent").(int)) / 100.0) * float64(flavor.Vcpus)
+	// memoryThreshold := (float64(d.Get("memory_threshold_percent").(int)) / 100.0) * float64(flavor.RAM)
+	// diskThreshold := (float64(d.Get("disk_threshold_percent").(int)) / 100.0) * float64(flavor.Disk)
 
 	params := map[string]interface{}{
 		"minNode": d.Get("min_node").(int),
 		"maxNode": d.Get("max_node").(int),
-		"maxPods": d.Get("max_pods").(int),
-		"metaDataAutoScale": map[string]int{
-			"percentCpu":    d.Get("cpu_threshold_percent").(int),
-			"percentMemory": d.Get("memory_threshold_percent").(int),
-			"percentDisk":   d.Get("disk_threshold_percent").(int),
-		},
-		"cpuThreshold":    strconv.FormatFloat(cpuThreshold, 'f', 2, 64),
-		"memoryThreshold": strconv.FormatFloat(memoryThreshold, 'f', 2, 64) + "mb",
-		"diskThreshold":   strconv.FormatFloat(diskThreshold, 'f', 2, 64) + "Gb",
+		// "maxPods": d.Get("max_pods").(int),
+		// "metaDataAutoScale": map[string]int{
+		// 	"percentCpu":    d.Get("cpu_threshold_percent").(int),
+		// 	"percentMemory": d.Get("memory_threshold_percent").(int),
+		// 	"percentDisk":   d.Get("disk_threshold_percent").(int),
+		// },
+		// "cpuThreshold":    strconv.FormatFloat(cpuThreshold, 'f', 2, 64),
+		// "memoryThreshold": strconv.FormatFloat(memoryThreshold, 'f', 2, 64) + "mb",
+		// "diskThreshold":   strconv.FormatFloat(diskThreshold, 'f', 2, 64) + "Gb",
 	}
 
 	if !d.Get("enable_autoscale").(bool) {
@@ -163,10 +167,10 @@ func resourceKubernetesv2NodeGroupRead(d *schema.ResourceData, meta interface{})
 			}
 			setInt(d, "min_node", provider.Config.MinNode)
 			setInt(d, "max_node", provider.Config.MaxNode)
-			setInt(d, "max_pods", provider.Config.MaxPods)
-			setInt(d, "cpu_threshold_percent", provider.Config.MetaDataAutoScale.PercentCPU)
-			setInt(d, "memory_threshold_percent", provider.Config.MetaDataAutoScale.PercentMemory)
-			setInt(d, "disk_threshold_percent", provider.Config.MetaDataAutoScale.PercentDisk)
+			// setInt(d, "max_pods", provider.Config.MaxPods)
+			// setInt(d, "cpu_threshold_percent", provider.Config.MetaDataAutoScale.PercentCPU)
+			// setInt(d, "memory_threshold_percent", provider.Config.MetaDataAutoScale.PercentMemory)
+			// setInt(d, "disk_threshold_percent", provider.Config.MetaDataAutoScale.PercentDisk)
 		}
 		if strings.Contains(provider.Name, "auto-healing") {
 			if provider.Status == "active" {

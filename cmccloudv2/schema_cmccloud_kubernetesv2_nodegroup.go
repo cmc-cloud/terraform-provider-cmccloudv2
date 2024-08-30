@@ -71,26 +71,26 @@ func kubernetesv2NodeGroupSchema() map[string]*schema.Schema {
 			Optional:     true,
 			ValidateFunc: validation.IntAtLeast(1),
 		},
-		"max_pods": {
-			Type:         schema.TypeInt,
-			Optional:     true,
-			ValidateFunc: validation.IntAtLeast(1),
-		},
-		"cpu_threshold_percent": {
-			Type:         schema.TypeInt,
-			Optional:     true,
-			ValidateFunc: validation.IntAtLeast(10),
-		},
-		"memory_threshold_percent": {
-			Type:         schema.TypeInt,
-			Optional:     true,
-			ValidateFunc: validation.IntAtLeast(10),
-		},
-		"disk_threshold_percent": {
-			Type:         schema.TypeInt,
-			Optional:     true,
-			ValidateFunc: validation.IntAtLeast(10),
-		},
+		// "max_pods": {
+		// 	Type:         schema.TypeInt,
+		// 	Optional:     true,
+		// 	ValidateFunc: validation.IntAtLeast(1),
+		// },
+		// "cpu_threshold_percent": {
+		// 	Type:         schema.TypeInt,
+		// 	Optional:     true,
+		// 	ValidateFunc: validation.IntAtLeast(10),
+		// },
+		// "memory_threshold_percent": {
+		// 	Type:         schema.TypeInt,
+		// 	Optional:     true,
+		// 	ValidateFunc: validation.IntAtLeast(10),
+		// },
+		// "disk_threshold_percent": {
+		// 	Type:         schema.TypeInt,
+		// 	Optional:     true,
+		// 	ValidateFunc: validation.IntAtLeast(10),
+		// },
 		"image_gpu_tag": { // sshKeyName
 			Type:     schema.TypeString,
 			Optional: true,

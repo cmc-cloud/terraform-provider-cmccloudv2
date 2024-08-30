@@ -27,17 +27,21 @@ func resourceRedisInstance() *schema.Resource {
 		SchemaVersion: 1,
 		Schema:        redisinstanceSchema(),
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-			sourceType := diff.Get("source_type").(string)
-			_, sourceIDSet := diff.GetOk("backup_id")
-			if sourceType == "new" {
-				if sourceIDSet {
-					return fmt.Errorf("When source_type is 'new', 'backup_id' must not be set")
-				}
-			} else if sourceType == "backup" {
-				if !sourceIDSet {
-					return fmt.Errorf("When source_type is 'backup', 'backup_id' must be set")
-				}
-			}
+			// sourceType := diff.Get("source_type").(string)
+			// mode := diff.Get("mode").(string)
+
+			// _, sourceIDSet := diff.GetOk("backup_id")
+			// _, replicasSet := diff.GetOk("replicas")
+			// if sourceType == "new" {
+			// 	if sourceIDSet {
+			// 		return fmt.Errorf("When source_type is 'new', 'backup_id' must not be set")
+			// 	}
+			// } else if sourceType == "backup" {
+			// 	if !sourceIDSet {
+			// 		return fmt.Errorf("When source_type is 'backup', 'backup_id' must be set")
+			// 	}
+			// }
+
 			return nil
 		},
 	}
@@ -50,7 +54,11 @@ func resourceRedisInstanceCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Subnet id is not valid %v", err)
 	}
 
-	datastores, _ := client.RedisInstance.ListDatastore(map[string]string{})
+	datastores, err := client.RedisInstance.ListDatastore(map[string]string{})
+	if err != nil {
+		return fmt.Errorf("can't get list of datastore %v", err)
+	}
+
 	database_engine := d.Get("database_engine").(string)
 	database_version := d.Get("database_version").(string)
 	database_mode := d.Get("database_mode").(string)
@@ -61,7 +69,9 @@ func resourceRedisInstanceCreate(d *schema.ResourceData, meta interface{}) error
 	datastoreVersionId := ""
 	datastoreModeId := ""
 	for _, datastore := range datastores {
+		gocmcapiv2.Logo("datastore", datastore)
 		if strings.ToLower(database_engine) == strings.ToLower(datastore.Name) {
+			gocmcapiv2.Logs("found datastore " + database_engine + " & " + datastore.Name)
 			datastoreCode = datastore.Code
 			datastoreId = datastore.ID
 			for _, version := range datastore.VersionInfos {
@@ -89,6 +99,17 @@ func resourceRedisInstanceCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Not found database_engine %s", database_engine)
 	}
 
+	_, replicasSet := d.GetOk("replicas")
+	if redisMode == "cluster" {
+		if !replicasSet {
+			return fmt.Errorf("When `mode` is 'cluster', 'replicas' must be set")
+		}
+	} else {
+		if replicasSet {
+			return fmt.Errorf("When `mode` is not 'cluster', 'replicas' must not be set")
+		}
+	}
+
 	// if d.Get("redis_configuration_id").(string) != "" {
 	// 	configuration, err := client.RedisConfiguration.Get(d.Get("redis_configuration_id").(string))
 	// 	if err != nil {
@@ -101,103 +122,121 @@ func resourceRedisInstanceCreate(d *schema.ResourceData, meta interface{}) error
 	// }
 
 	params := map[string]interface{}{
-		"project":              client.Configs.ProjectId,
-		"region":               client.Configs.RegionId,
-		"name":                 d.Get("name").(string),
-		"billing_mode":         d.Get("billing_mode").(string),
-		"source_type":          d.Get("source_type").(string),
-		"source_id":            d.Get("source_id").(string),
-		"backupId":             d.Get("backup_id").(string),
-		"slaveCount":           2,
-		"volumeSize":           d.Get("volume_size").(int),
-		"volumeType":           d.Get("volume_type").(string),
-		"password":             d.Get("password").(string),
-		"enableMonitor":        true,
-		"enable_public_ip":     false,
-		"is_public":            false,
-		"replicate_count":      1,
-		"vpcId":                subnet.NetworkID,
-		"subnetId":             subnet.ID,
-		"zoneMaster":           d.Get("zone_master").(string),
-		"zoneSlaves":           d.Get("zone_slave").(string),
-		"flavorId":             d.Get("flavor_id").(string),
+		// "project":              client.Configs.ProjectId,
+		// "region":               client.Configs.RegionId,
+		"billing_mode": d.Get("billing_mode").(string),
+
+		"name":             d.Get("name").(string),
+		"securityGroupIds": strings.Join(getStringArrayFromTypeSet(d.Get("security_group_ids").(*schema.Set)), ","),
+		"flavorId":         d.Get("flavor_name").(string),
+		"password":         d.Get("password").(string),
+		"backupId":         d.Get("backup_id").(string),
+		"volumeSize":       d.Get("volume_size").(int),
+		// "volumeType":           d.Get("volume_type").(string),
 		"groupConfigurationId": d.Get("redis_configuration_id").(string),
-		"securityGroupIds":     strings.Join(getStringArrayFromTypeSet(d.Get("security_group_ids").(*schema.Set)), ","),
+		"networkId":            subnet.NetworkID,
+		"subnetId":             subnet.ID,
 		"datastore": map[string]string{
 			"datastoreCode":      datastoreCode,
 			"datastoreVersionId": datastoreVersionId,
 			"datastoreModeId":    datastoreModeId,
 		},
 		"datastore_type": datastoreId,
+
+		// "slaveCount":       2,
+		// "enableMonitor":    true,
+		// "enable_public_ip": false,
+		// "is_public":        false,
+		// "replicate_count":  1,
+		// "zoneMaster":       d.Get("zone_master").(string),
+		// "zoneSlaves":       d.Get("zone_slave").(string),
 	}
 
-	ip_master := d.Get("ip_master").(string)
-	if ip_master != "" {
-		params["master"] = map[string]interface{}{
-			"ipAddressType": "manual",
-			"ipAddress":     ip_master,
-		}
-	} else {
-		params["master"] = map[string]interface{}{
-			"ipAddressType": "auto",
-			"ipAddress":     "",
-		}
+	// ip_master := d.Get("ip_master").(string)
+	// if ip_master != "" {
+	// 	params["master"] = map[string]interface{}{
+	// 		"ipAddressType": "manual",
+	// 		"ipAddress":     ip_master,
+	// 	}
+	// } else {
+	// 	params["master"] = map[string]interface{}{
+	// 		"ipAddressType": "auto",
+	// 		"ipAddress":     "",
+	// 	}
+	// }
+
+	// ip_slave1 := d.Get("ip_slave1").(string)
+	// ip_slave2 := d.Get("ip_slave2").(string)
+	// slaves := make([]map[string]interface{}, 2)
+
+	// if ip_slave1 != "" {
+	// 	slaves[0] = map[string]interface{}{
+	// 		"ipAddressType": "manual",
+	// 		"ipAddress":     ip_slave1,
+	// 	}
+	// } else {
+	// 	slaves[0] = map[string]interface{}{
+	// 		"ipAddressType": "auto",
+	// 		"ipAddress":     "",
+	// 	}
+	// }
+
+	// if ip_slave2 != "" {
+	// 	slaves[1] = map[string]interface{}{
+	// 		"ipAddressType": "manual",
+	// 		"ipAddress":     ip_slave2,
+	// 	}
+	// } else {
+	// 	slaves[1] = map[string]interface{}{
+	// 		"ipAddressType": "auto",
+	// 		"ipAddress":     "",
+	// 	}
+	// }
+
+	// requestMetadataRaw := map[string]interface{}{
+	// 	"zoneMaster": params["zoneMaster"],
+	// 	"password":   d.Get("password").(string),
+	// }
+	// if redisMode == "master_slave" {
+	// 	requestMetadataRaw["master"] = params["master"]
+	// 	requestMetadataRaw["slaves"] = slaves
+	// 	requestMetadataRaw["zoneSlaves"] = params["zoneSlaves"]
+	// } else if redisMode == "standalone" {
+	// 	requestMetadataRaw["ipAddressType"] = params["master"].(map[string]interface{})["ipAddressType"]
+	// 	requestMetadataRaw["ipAddress"] = params["master"].(map[string]interface{})["ipAddress"]
+	// } else if redisMode == "cluster" {
+	// 	requestMetadataRaw["numOfMasterServer"] = d.Get("master_count").(int)
+	// 	requestMetadataRaw["zoneSlaves"] = params["zoneSlaves"]
+	// 	requestMetadataRaw["replicas"] = params["replicas"]
+	// }
+
+	// standalone   "requestMetadata": "{\"password\":\"myPassword123\",\"zone\":\"AZ1\"}"
+	// master-slave    "requestMetadata": "{\"password\":\"myPassword123\",\"zones\":[\"AZ1\",\"AZ2\"],\"numOfSlaves\":2}"
+	// cluster    "requestMetadata": "{\"password\":\"myPassword123\",\"replicas\":1,\"zones\":[\"AZ1\",\"AZ2\"],\"numOfMasterServer\":3}"
+
+	requestMetadata := map[string]interface{}{
+		"password": d.Get("password").(string),
 	}
 
-	ip_slave1 := d.Get("ip_slave1").(string)
-	ip_slave2 := d.Get("ip_slave2").(string)
-	slaves := make([]map[string]interface{}, 2)
-
-	if ip_slave1 != "" {
-		slaves[0] = map[string]interface{}{
-			"ipAddressType": "manual",
-			"ipAddress":     ip_slave1,
-		}
-	} else {
-		slaves[0] = map[string]interface{}{
-			"ipAddressType": "auto",
-			"ipAddress":     "",
-		}
-	}
-
-	if ip_slave2 != "" {
-		slaves[1] = map[string]interface{}{
-			"ipAddressType": "manual",
-			"ipAddress":     ip_slave2,
-		}
-	} else {
-		slaves[1] = map[string]interface{}{
-			"ipAddressType": "auto",
-			"ipAddress":     "",
-		}
-	}
-
-	requestMetadataRaw := map[string]interface{}{
-		"zoneMaster": params["zoneMaster"],
-		"password":   d.Get("password").(string),
-	}
-	if redisMode == "master_slave" {
-		requestMetadataRaw["master"] = params["master"]
-		requestMetadataRaw["slaves"] = slaves
-		requestMetadataRaw["zoneSlaves"] = params["zoneSlaves"]
-	} else if redisMode == "standalone" {
-		requestMetadataRaw["ipAddressType"] = params["master"].(map[string]interface{})["ipAddressType"]
-		requestMetadataRaw["ipAddress"] = params["master"].(map[string]interface{})["ipAddress"]
+	if redisMode == "standalone" {
+		zone := getStringArrayFromTypeSet(d.Get("zones").(*schema.Set))[0]
+		requestMetadata["zone"] = zone
+	} else if redisMode == "master_slave" {
+		zones := getStringArrayFromTypeSet(d.Get("zones").(*schema.Set))
+		requestMetadata["zone"] = zones
+		requestMetadata["numOfSlaves"] = 2
 	} else if redisMode == "cluster" {
-		requestMetadataRaw["numOfMasterServer"] = d.Get("master_count").(int)
-		requestMetadataRaw["zoneSlaves"] = params["zoneSlaves"]
-		requestMetadataRaw["replicas"] = params["replicas"]
+		zones := getStringArrayFromTypeSet(d.Get("zones").(*schema.Set))
+		requestMetadata["zone"] = zones
+		requestMetadata["numOfMasterServer"] = 3
+		requestMetadata["replicas"] = d.Get("replicas").(int)
 	}
 
-	jsonData, err := json.Marshal(requestMetadataRaw)
+	jsonData, err := json.Marshal(requestMetadata)
 	if err != nil {
 		return fmt.Errorf("Error creating RedisDatabase Instance: %s", err)
 	}
-	params["requestMetadataRaw"] = requestMetadataRaw
-	params["1"] = string(jsonData)
-
-	delete(params, "master")
-	delete(params, "slaves")
+	params["requestMetadata"] = string(jsonData)
 
 	instance, err := client.RedisInstance.Create(params)
 	if err != nil {
@@ -228,12 +267,13 @@ func resourceRedisInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	// _ = d.Set("source_id", )
 	// _ = d.Set("backup_id", )
 	_ = d.Set("database_engine", instance.DatastoreName)
+	_ = d.Set("database_engine", instance.DatastoreName)
 	_ = d.Set("database_version", instance.DatastoreVersion)
 	_ = d.Set("database_mode", instance.DatastoreMode)
-	_ = d.Set("zone_master", instance.DataDetail.MasterInfo.ZoneName)
-	if len(instance.DataDetail.SlavesInfo) > 0 {
-		setString(d, "zone_slave", instance.DataDetail.SlavesInfo[0].ZoneName)
-	}
+	// _ = d.Set("zone_master", instance.DataDetail.MasterInfo.ZoneName)
+	// if len(instance.DataDetail.SlavesInfo) > 0 {
+	// 	setString(d, "zone_slave", instance.DataDetail.SlavesInfo[0].ZoneName)
+	// }
 
 	var security_group_ids []string
 	err = json.Unmarshal([]byte(instance.SecurityClientIds), &security_group_ids)
@@ -242,7 +282,7 @@ func resourceRedisInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	_ = d.Set("security_group_ids", security_group_ids)
-	// _ = d.Set("flavor_id",      instance.)
+	_ = d.Set("flavor_name", instance.FlavorName)
 	// _ = d.Set("volume_type",           instance.)
 
 	_ = d.Set("volume_size", instance.DataDetail.MasterInfo.VolumeSize)
