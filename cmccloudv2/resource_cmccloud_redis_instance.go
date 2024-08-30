@@ -128,7 +128,7 @@ func resourceRedisInstanceCreate(d *schema.ResourceData, meta interface{}) error
 
 		"name":             d.Get("name").(string),
 		"securityGroupIds": strings.Join(getStringArrayFromTypeSet(d.Get("security_group_ids").(*schema.Set)), ","),
-		"flavorId":         d.Get("flavor_name").(string),
+		"flavorId":         d.Get("flavor_id").(string),
 		"password":         d.Get("password").(string),
 		"backupId":         d.Get("backup_id").(string),
 		"volumeSize":       d.Get("volume_size").(int),
@@ -217,20 +217,22 @@ func resourceRedisInstanceCreate(d *schema.ResourceData, meta interface{}) error
 	requestMetadata := map[string]interface{}{
 		"password": d.Get("password").(string),
 	}
-
+	zones := getStringArrayFromTypeSet(d.Get("zones").(*schema.Set))
+	// params["zones"] = zones
 	if redisMode == "standalone" {
 		zone := getStringArrayFromTypeSet(d.Get("zones").(*schema.Set))[0]
 		requestMetadata["zone"] = zone
 	} else if redisMode == "master_slave" {
-		zones := getStringArrayFromTypeSet(d.Get("zones").(*schema.Set))
-		requestMetadata["zone"] = zones
+		requestMetadata["zones"] = zones
 		requestMetadata["numOfSlaves"] = 2
+		params["zones"] = zones
 	} else if redisMode == "cluster" {
 		zones := getStringArrayFromTypeSet(d.Get("zones").(*schema.Set))
-		requestMetadata["zone"] = zones
+		requestMetadata["zones"] = zones
 		requestMetadata["numOfMasterServer"] = 3
 		requestMetadata["replicas"] = d.Get("replicas").(int)
 	}
+	// params["zone"] = requestMetadata["zone"]
 
 	jsonData, err := json.Marshal(requestMetadata)
 	if err != nil {
@@ -282,7 +284,7 @@ func resourceRedisInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	_ = d.Set("security_group_ids", security_group_ids)
-	_ = d.Set("flavor_name", instance.FlavorName)
+	_ = d.Set("flavor_id", instance.FlavorID)
 	// _ = d.Set("volume_type",           instance.)
 
 	_ = d.Set("volume_size", instance.DataDetail.MasterInfo.VolumeSize)

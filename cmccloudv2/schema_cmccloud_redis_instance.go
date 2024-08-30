@@ -99,11 +99,11 @@ func redisinstanceSchema() map[string]*schema.Schema {
 			},
 			Optional: true,
 		},
-		"flavor_name": {
+		"flavor_id": {
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.NoZeroValues,
+			ValidateFunc: validateUUID,
 		},
 		// "volume_type": {
 		// 	Type:         schema.TypeString, // name
