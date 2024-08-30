@@ -35,11 +35,17 @@ func kubernetesv2Schema() map[string]*schema.Schema {
 			Required: true,
 			ForceNew: true,
 		},
-		"max_node_count": {
-			Type:     schema.TypeInt,
-			Required: true,
-			ForceNew: true,
+		"master_flavor_name": {
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validation.NoZeroValues,
+			ForceNew:     true,
 		},
+		// "max_node_count": {
+		// 	Type:     schema.TypeInt,
+		// 	Required: true,
+		// 	ForceNew: true,
+		// },
 		"cidr_block_pod": {
 			Type:         schema.TypeString,
 			Required:     true,

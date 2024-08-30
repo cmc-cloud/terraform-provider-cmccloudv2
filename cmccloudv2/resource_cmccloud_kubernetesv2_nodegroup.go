@@ -105,6 +105,8 @@ func resourceKubernetesv2NodeGroupCreate(d *schema.ResourceData, meta interface{
 	params["sshKeyName"] = d.Get("key_name").(string)
 	params["isAutoscale"] = d.Get("enable_autoscale").(bool)
 	params["workerImageGPUTag"] = d.Get("image_gpu_tag").(string)
+	params["volumeType"] = d.Get("volume_type").(string)
+	params["volumeSize"] = d.Get("volume_size").(int)
 
 	kubernetesv2nodegroup, err := client.Kubernetesv2.CreateNodeGroup(cluster_id, params)
 	if err != nil {

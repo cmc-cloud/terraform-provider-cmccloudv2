@@ -37,6 +37,16 @@ func kubernetesv2NodeGroupSchema() map[string]*schema.Schema {
 			Required: true,
 			ForceNew: true,
 		},
+		"volume_type": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+		"volume_size": {
+			Type:     schema.TypeInt,
+			Required: true,
+			ForceNew: true,
+		},
 		"security_group_ids": { // securityGroups
 			Type: schema.TypeList,
 			// Set:  schema.HashString,
