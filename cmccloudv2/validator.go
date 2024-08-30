@@ -119,6 +119,10 @@ func validateName(v interface{}, k string) (warnings []string, errors []error) {
 	re := `^[a-zA-Z]+[a-zA-Z0-9\-_]*[a-zA-Z0-9]+$`
 	return validateRegexp(re)(v, k)
 }
+func validateNameK8s(v interface{}, k string) (warnings []string, errors []error) {
+	re := `^[a-zA-Z]+[a-zA-Z0-9\-]*[a-zA-Z0-9]+$`
+	return validateRegexp(re)(v, k)
+}
 
 func validateFirewallID(v interface{}, k string) (warnings []string, errors []error) {
 	re := `^(allow|deny|[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12})$`

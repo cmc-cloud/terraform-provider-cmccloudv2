@@ -24,6 +24,19 @@ func resourceKubernetesv2() *schema.Resource {
 		},
 		SchemaVersion: 1,
 		Schema:        kubernetesv2Schema(),
+		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+			enable_autoscale := diff.Get("enable_autoscale").(bool)
+			if enable_autoscale {
+				if !isSet(diff, "autoscale_max_node") || !isSet(diff, "autoscale_max_ram_gb") || !isSet(diff, "autoscale_max_core") {
+					return fmt.Errorf("When `enable_autoscale` is 'true', `autoscale_max_node, autoscale_max_ram_gb, autoscale_max_core must be set")
+				}
+			} else {
+				if isSet(diff, "autoscale_max_node") || isSet(diff, "autoscale_max_ram_gb") || isSet(diff, "autoscale_max_core") {
+					return fmt.Errorf("When `enable_autoscale` is 'false', `autoscale_max_node, autoscale_max_ram_gb, autoscale_max_core must not be set")
+				}
+			}
+			return nil
+		},
 	}
 }
 
@@ -139,12 +152,12 @@ func updateAutoScaleAddon(d *schema.ResourceData, meta interface{}) error {
 	params := map[string]interface{}{
 		"action":                action,
 		"externalProviderNames": "auto-scale",
-		"minNodeCluster":        d.Get("autoscale_min_node").(int),
-		"maxNodeCluster":        d.Get("autoscale_max_node").(int),
-		"minRamCluster":         d.Get("autoscale_min_ram_gb").(int),
-		"maxRamCluster":         d.Get("autoscale_max_ram_gb").(int),
-		"minCoreCluster":        d.Get("autoscale_min_core").(int),
-		"maxCoreCluster":        d.Get("autoscale_max_core").(int),
+		// "minNodeCluster":        d.Get("autoscale_min_node").(int),
+		"maxNodeCluster": d.Get("autoscale_max_node").(int),
+		// "minRamCluster":         d.Get("autoscale_min_ram_gb").(int),
+		"maxRamCluster": d.Get("autoscale_max_ram_gb").(int),
+		// "minCoreCluster":        d.Get("autoscale_min_core").(int),
+		"maxCoreCluster": d.Get("autoscale_max_core").(int),
 	}
 	getClient(meta).Kubernetesv2.UpdateAddon(d.Id(), params)
 	_, err := waitUntilKubernetesv2StatusChangedStateReady(d, meta, d.Timeout(schema.TimeoutCreate))
@@ -177,7 +190,8 @@ func resourceKubernetesv2Update(d *schema.ResourceData, meta interface{}) error 
 			return err
 		}
 	}
-	if d.HasChange("enable_autoscale") {
+
+	if d.HasChange("enable_autoscale") || d.HasChange("autoscale_max_node") || d.HasChange("autoscale_max_ram_gb") || d.HasChange("autoscale_max_core") {
 		err := updateAutoScaleAddon(d, meta)
 		if err != nil {
 			return err

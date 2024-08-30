@@ -194,7 +194,7 @@ func resourceRedisInstanceCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error creating RedisDatabase Instance: %s", err)
 	}
 	params["requestMetadataRaw"] = requestMetadataRaw
-	params["requestMetadata"] = string(jsonData)
+	params["1"] = string(jsonData)
 
 	delete(params, "master")
 	delete(params, "slaves")

@@ -10,7 +10,8 @@ func kubernetesv2Schema() map[string]*schema.Schema {
 		"name": {
 			Type:         schema.TypeString,
 			Required:     true,
-			ValidateFunc: validateName,
+			ValidateFunc: validateNameK8s,
+			Description:  "Cluster name, only allow digits, characters and -",
 			ForceNew:     true,
 		},
 		"zone": {
@@ -72,16 +73,27 @@ func kubernetesv2Schema() map[string]*schema.Schema {
 			Default:  false,
 		},
 
+		"enable_monitoring": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 		"enable_autoscale": {
 			Type:     schema.TypeBool,
 			Optional: true,
 			Default:  false,
 		},
-
-		"enable_monitoring": {
-			Type:     schema.TypeBool,
+		"autoscale_max_node": {
+			Type:     schema.TypeInt,
 			Optional: true,
-			Default:  false,
+		},
+		"autoscale_max_ram_gb": {
+			Type:     schema.TypeInt,
+			Optional: true,
+		},
+		"autoscale_max_core": {
+			Type:     schema.TypeInt,
+			Optional: true,
 		},
 		"state": {
 			Type:     schema.TypeString,
