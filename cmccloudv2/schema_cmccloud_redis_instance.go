@@ -79,6 +79,11 @@ func redisinstanceSchema() map[string]*schema.Schema {
 			ForceNew:         true,
 			Description:      "search by text, case-insensitive",
 		},
+		"replicas": {
+			Type:     schema.TypeInt,
+			Optional: true,
+			ForceNew: true,
+		},
 		// "zone_master": {
 		// 	Type:         schema.TypeString,
 		// 	Required:     true,

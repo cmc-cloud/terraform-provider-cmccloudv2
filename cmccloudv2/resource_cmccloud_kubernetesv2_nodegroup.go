@@ -112,6 +112,17 @@ func resourceKubernetesv2NodeGroupCreate(d *schema.ResourceData, meta interface{
 	params["volumeType"] = d.Get("volume_type").(string)
 	params["volumeSize"] = d.Get("volume_size").(int)
 
+	if d.Get("enable_autoscale").(bool) {
+		// kiem tra xem cluster co enable auto scale ko, neu ko enable => ko support
+		status, err := client.Kubernetesv2.GetStatus(cluster_id)
+		if err != nil {
+			return fmt.Errorf("Error getting Kubernetesv2 Cluster: %s", err)
+		}
+		if !status.EnableAutoScale {
+			return fmt.Errorf("You need to enable the autoscale on the cluster before creating a node group with the autoscale feature", err)
+		}
+	}
+
 	kubernetesv2nodegroup, err := client.Kubernetesv2.CreateNodeGroup(cluster_id, params)
 	if err != nil {
 		return fmt.Errorf("Error creating Kubernetesv2 NodeGroup: %s", err)
@@ -162,7 +173,7 @@ func resourceKubernetesv2NodeGroupRead(d *schema.ResourceData, meta interface{})
 	_ = d.Set("status", nodegroup.Status)
 	for _, provider := range nodegroup.ExternalProviders {
 		if strings.Contains(provider.Name, "auto-scale") {
-			if provider.Config.MaxNode > provider.Config.MinNode {
+			if provider.Status == "active" && provider.Config.MaxNode > provider.Config.MinNode {
 				_ = d.Set("enable_autoscale", true)
 			}
 			setInt(d, "min_node", provider.Config.MinNode)
@@ -187,6 +198,17 @@ func resourceKubernetesv2NodeGroupUpdate(d *schema.ResourceData, meta interface{
 	client := meta.(*CombinedConfig).goCMCClient()
 	cluster_id := d.Get("cluster_id").(string)
 	if d.HasChange("enable_autoscale") || d.HasChange("min_node") || d.HasChange("max_node") || d.HasChange("max_pods") || d.HasChange("cpu_threshold_percent") || d.HasChange("memory_threshold_percent") || d.HasChange("disk_threshold_percent") {
+		if d.Get("enable_autoscale").(bool) {
+			// kiem tra xem cluster co enable auto scale ko, neu ko enable => ko support
+			status, err := client.Kubernetesv2.GetStatus(cluster_id)
+			if err != nil {
+				return fmt.Errorf("Error getting Kubernetesv2 Cluster: %s", err)
+			}
+			if !status.EnableAutoScale {
+				return fmt.Errorf("You need to enable the autoscale on the cluster before creating a node group with the autoscale feature", err)
+			}
+		}
+
 		params, _, err := getAutoScaleConfig(d, meta)
 		if err != nil {
 			return err
