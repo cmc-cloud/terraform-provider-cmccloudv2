@@ -110,6 +110,10 @@ func resourceRedisInstanceCreate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
+	err = checkSecurityGroupConflict(d, meta)
+	if err != nil {
+		return err
+	}
 	// if d.Get("redis_configuration_id").(string) != "" {
 	// 	configuration, err := client.RedisConfiguration.Get(d.Get("redis_configuration_id").(string))
 	// 	if err != nil {
@@ -142,77 +146,7 @@ func resourceRedisInstanceCreate(d *schema.ResourceData, meta interface{}) error
 			"datastoreModeId":    datastoreModeId,
 		},
 		"datastore_type": datastoreId,
-
-		// "slaveCount":       2,
-		// "enableMonitor":    true,
-		// "enable_public_ip": false,
-		// "is_public":        false,
-		// "replicate_count":  1,
-		// "zoneMaster":       d.Get("zone_master").(string),
-		// "zoneSlaves":       d.Get("zone_slave").(string),
 	}
-
-	// ip_master := d.Get("ip_master").(string)
-	// if ip_master != "" {
-	// 	params["master"] = map[string]interface{}{
-	// 		"ipAddressType": "manual",
-	// 		"ipAddress":     ip_master,
-	// 	}
-	// } else {
-	// 	params["master"] = map[string]interface{}{
-	// 		"ipAddressType": "auto",
-	// 		"ipAddress":     "",
-	// 	}
-	// }
-
-	// ip_slave1 := d.Get("ip_slave1").(string)
-	// ip_slave2 := d.Get("ip_slave2").(string)
-	// slaves := make([]map[string]interface{}, 2)
-
-	// if ip_slave1 != "" {
-	// 	slaves[0] = map[string]interface{}{
-	// 		"ipAddressType": "manual",
-	// 		"ipAddress":     ip_slave1,
-	// 	}
-	// } else {
-	// 	slaves[0] = map[string]interface{}{
-	// 		"ipAddressType": "auto",
-	// 		"ipAddress":     "",
-	// 	}
-	// }
-
-	// if ip_slave2 != "" {
-	// 	slaves[1] = map[string]interface{}{
-	// 		"ipAddressType": "manual",
-	// 		"ipAddress":     ip_slave2,
-	// 	}
-	// } else {
-	// 	slaves[1] = map[string]interface{}{
-	// 		"ipAddressType": "auto",
-	// 		"ipAddress":     "",
-	// 	}
-	// }
-
-	// requestMetadataRaw := map[string]interface{}{
-	// 	"zoneMaster": params["zoneMaster"],
-	// 	"password":   d.Get("password").(string),
-	// }
-	// if redisMode == "master_slave" {
-	// 	requestMetadataRaw["master"] = params["master"]
-	// 	requestMetadataRaw["slaves"] = slaves
-	// 	requestMetadataRaw["zoneSlaves"] = params["zoneSlaves"]
-	// } else if redisMode == "standalone" {
-	// 	requestMetadataRaw["ipAddressType"] = params["master"].(map[string]interface{})["ipAddressType"]
-	// 	requestMetadataRaw["ipAddress"] = params["master"].(map[string]interface{})["ipAddress"]
-	// } else if redisMode == "cluster" {
-	// 	requestMetadataRaw["numOfMasterServer"] = d.Get("master_count").(int)
-	// 	requestMetadataRaw["zoneSlaves"] = params["zoneSlaves"]
-	// 	requestMetadataRaw["replicas"] = params["replicas"]
-	// }
-
-	// standalone   "requestMetadata": "{\"password\":\"myPassword123\",\"zone\":\"AZ1\"}"
-	// master-slave    "requestMetadata": "{\"password\":\"myPassword123\",\"zones\":[\"AZ1\",\"AZ2\"],\"numOfSlaves\":2}"
-	// cluster    "requestMetadata": "{\"password\":\"myPassword123\",\"replicas\":1,\"zones\":[\"AZ1\",\"AZ2\"],\"numOfMasterServer\":3}"
 
 	requestMetadata := map[string]interface{}{
 		"password": d.Get("password").(string),
@@ -252,6 +186,26 @@ func resourceRedisInstanceCreate(d *schema.ResourceData, meta interface{}) error
 	return resourceRedisInstanceRead(d, meta)
 }
 
+func checkSecurityGroupConflict(d *schema.ResourceData, meta interface{}) error {
+	security_group_ids := getStringArrayFromTypeSet(d.Get("security_group_ids").(*schema.Set))
+	if len(security_group_ids) > 1 {
+		firstValue := ""
+		for _, security_group_id := range security_group_ids {
+			group, err := meta.(*CombinedConfig).goCMCClient().SecurityGroup.Get(security_group_id)
+			if err != nil {
+				return err
+			}
+			if firstValue == "" {
+				firstValue = fmt.Sprintf("%t", group.Stateful)
+			}
+			if firstValue != fmt.Sprintf("%t", group.Stateful) {
+				return fmt.Errorf("Invalid security_group_ids, all security groups must have the same stateful")
+			}
+		}
+	}
+	return nil
+}
+
 func resourceRedisInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	instance, err := client.RedisInstance.Get(d.Id())
@@ -265,17 +219,10 @@ func resourceRedisInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	_ = d.Set("id", instance.ID)
 	_ = d.Set("name", instance.Name)
-	// _ = d.Set("source_type", )
-	// _ = d.Set("source_id", )
 	// _ = d.Set("backup_id", )
-	_ = d.Set("database_engine", instance.DatastoreName)
 	_ = d.Set("database_engine", instance.DatastoreName)
 	_ = d.Set("database_version", instance.DatastoreVersion)
 	_ = d.Set("database_mode", instance.DatastoreMode)
-	// _ = d.Set("zone_master", instance.DataDetail.MasterInfo.ZoneName)
-	// if len(instance.DataDetail.SlavesInfo) > 0 {
-	// 	setString(d, "zone_slave", instance.DataDetail.SlavesInfo[0].ZoneName)
-	// }
 
 	var security_group_ids []string
 	err = json.Unmarshal([]byte(instance.SecurityClientIds), &security_group_ids)
@@ -287,11 +234,8 @@ func resourceRedisInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("flavor_id", instance.FlavorID)
 	// _ = d.Set("volume_type",           instance.)
 
-	_ = d.Set("volume_size", instance.DataDetail.MasterInfo.VolumeSize)
+	_ = d.Set("volume_size", instance.VolumeSize)
 	_ = d.Set("subnet_id", instance.SubnetID)
-	// _ = d.Set("ip_master", )
-	// _ = d.Set("ip_slave1", )
-	// _ = d.Set("ip_slave2", )
 	if d.Get("redis_configuration_id").(string) == "" {
 		// _, err := client.RedisConfiguration.Get(instance.GroupConfigID)
 		// if err == nil {
@@ -302,7 +246,6 @@ func resourceRedisInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	} else {
 		_ = d.Set("redis_configuration_id", instance.GroupConfigID)
 	}
-	// _ = d.Set("password", )
 	_ = d.Set("status", instance.Status)
 	_ = d.Set("created_at", instance.Created)
 	return nil
@@ -368,6 +311,11 @@ func resourceRedisInstanceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 	if d.HasChange("security_group_ids") {
+		err := checkSecurityGroupConflict(d, meta)
+		if err != nil {
+			return err
+		}
+
 		removes, adds := getDiffSet(d.GetChange("security_group_ids"))
 
 		for _, security_group_id := range removes.List() {

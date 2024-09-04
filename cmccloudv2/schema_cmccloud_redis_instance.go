@@ -40,19 +40,6 @@ func redisinstanceSchema() map[string]*schema.Schema {
 			Required:    true,
 			ForceNew:    true,
 		},
-		// "source_type": {
-		// 	Type:     schema.TypeString,
-		// 	Required: true,
-		// 	ValidateFunc: validation.StringInSlice([]string{
-		// 		"new", "backup", "instance",
-		// 	}, false),
-		// 	ForceNew: true,
-		// },
-		// "source_id": {
-		// 	Type:     schema.TypeString,
-		// 	Optional: true,
-		// 	ForceNew: true,
-		// },
 		"backup_id": {
 			Type:     schema.TypeString,
 			Optional: true,
@@ -84,18 +71,6 @@ func redisinstanceSchema() map[string]*schema.Schema {
 			Optional: true,
 			ForceNew: true,
 		},
-		// "zone_master": {
-		// 	Type:         schema.TypeString,
-		// 	Required:     true,
-		// 	ValidateFunc: validation.NoZeroValues,
-		// 	ForceNew:     true,
-		// },
-		// "zone_slave": {
-		// 	Type:         schema.TypeString,
-		// 	Optional:     true,
-		// 	ValidateFunc: validation.NoZeroValues,
-		// 	ForceNew:     true,
-		// },
 		"security_group_ids": { // securityGroups
 			Type: schema.TypeSet,
 			Elem: &schema.Schema{
@@ -127,24 +102,6 @@ func redisinstanceSchema() map[string]*schema.Schema {
 			ForceNew:     true,
 			ValidateFunc: validateUUID,
 		},
-		// "ip_master": {
-		// 	Type:         schema.TypeString,
-		// 	Optional:     true,
-		// 	ForceNew:     true,
-		// 	ValidateFunc: validateIPAddress,
-		// },
-		// "ip_slave1": {
-		// 	Type:         schema.TypeString,
-		// 	Optional:     true,
-		// 	ForceNew:     true,
-		// 	ValidateFunc: validateIPAddress,
-		// },
-		// "ip_slave2": {
-		// 	Type:         schema.TypeString,
-		// 	Optional:     true,
-		// 	ForceNew:     true,
-		// 	ValidateFunc: validateIPAddress,
-		// },
 		"redis_configuration_id": {
 			Type:     schema.TypeString,
 			Optional: true,
