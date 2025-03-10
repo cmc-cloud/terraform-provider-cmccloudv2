@@ -104,24 +104,6 @@ func mongodbinstanceSchema() map[string]*schema.Schema {
 			ForceNew:     true,
 			ValidateFunc: validateUUID,
 		},
-		// "ip_master": {
-		// 	Type:         schema.TypeString,
-		// 	Optional:     true,
-		// 	ForceNew:     true,
-		// 	ValidateFunc: validateIPAddress,
-		// },
-		// "ip_slave1": {
-		// 	Type:         schema.TypeString,
-		// 	Optional:     true,
-		// 	ForceNew:     true,
-		// 	ValidateFunc: validateIPAddress,
-		// },
-		// "ip_slave2": {
-		// 	Type:         schema.TypeString,
-		// 	Optional:     true,
-		// 	ForceNew:     true,
-		// 	ValidateFunc: validateIPAddress,
-		// },
 		"mongodb_configuration_id": {
 			Type:     schema.TypeString,
 			Optional: true,

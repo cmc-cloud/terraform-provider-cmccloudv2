@@ -14,6 +14,12 @@ func kubernetesv2Schema() map[string]*schema.Schema {
 			Description:  "Cluster name, only allow digits, characters and -",
 			ForceNew:     true,
 		},
+		"billing_mode": {
+			Type:         schema.TypeString,
+			ValidateFunc: validateBillingMode,
+			Default:      "monthly",
+			Optional:     true,
+		},
 		"zone": {
 			Type:     schema.TypeString,
 			Required: true,

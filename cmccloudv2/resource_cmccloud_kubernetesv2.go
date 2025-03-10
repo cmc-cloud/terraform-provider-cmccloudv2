@@ -47,6 +47,7 @@ func resourceKubernetesv2Create(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error receving subnet with id = %s: %v", d.Get("subnet_id").(string), err)
 	}
 	kubernetes, err := client.Kubernetesv2.Create(map[string]interface{}{
+		"billingMode":    d.Get("billing_mode").(string),
 		"region":         client.Configs.RegionId,
 		"project":        client.Configs.ProjectId,
 		"name":           d.Get("name").(string),
