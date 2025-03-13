@@ -13,6 +13,12 @@ func kubernetesv2NodeGroupSchema() map[string]*schema.Schema {
 			ValidateFunc: validateUUID,
 			ForceNew:     true,
 		},
+		"billing_mode": {
+			Type:         schema.TypeString,
+			ValidateFunc: validateBillingMode,
+			Default:      "monthly",
+			Optional:     true,
+		},
 		"name": { // nameNodeGroup
 			Type:         schema.TypeString,
 			Required:     true,

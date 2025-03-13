@@ -111,6 +111,7 @@ func resourceKubernetesv2NodeGroupCreate(d *schema.ResourceData, meta interface{
 	params["workerImageGPUTag"] = d.Get("image_gpu_tag").(string)
 	params["volumeType"] = d.Get("volume_type").(string)
 	params["volumeSize"] = d.Get("volume_size").(int)
+	params["billingMode"] = d.Get("billing_mode").(string)
 
 	if d.Get("enable_autoscale").(bool) {
 		// kiem tra xem cluster co enable auto scale ko, neu ko enable => ko support
@@ -244,6 +245,13 @@ func resourceKubernetesv2NodeGroupUpdate(d *schema.ResourceData, meta interface{
 		_, err := waitUntilKubernetesv2NodeGroupStatusChangedState(d, meta, d.Timeout(schema.TimeoutCreate))
 		if err != nil {
 			return fmt.Errorf("Error creating Kubernetes NodeGroup: %v", err)
+		}
+	}
+
+	if d.HasChange("billing_mode") {
+		_, err := client.BillingMode.SetKubernateNodeGroupBilingMode(cluster_id, d.Id(), d.Get("billing_mode").(string))
+		if err != nil {
+			return fmt.Errorf("Error when update billing mode of Nodegroup [%s]: %v", d.Id(), err)
 		}
 	}
 
