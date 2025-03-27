@@ -67,7 +67,7 @@ func resourceVolumeRead(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("zone", volume.AvailabilityZone)
 	_ = d.Set("billing_mode", volume.BillingMode)
 	_ = d.Set("status", volume.Status)
-	_ = d.Set("tags", volume.Tags)
+	_ = d.Set("tags", convertTagsToSet(volume.Tags))
 	_ = d.Set("created_at", volume.CreatedAt)
 	return nil
 }

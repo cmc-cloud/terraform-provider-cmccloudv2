@@ -149,7 +149,7 @@ func resourceELBRead(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("name", elb.Name)
 	_ = d.Set("network_type", network_type)
 	_ = d.Set("created_at", elb.CreatedAt)
-	_ = d.Set("tags", elb.Tags)
+	_ = d.Set("tags", convertTagsToSet(elb.Tags))
 	_ = d.Set("description", elb.Description)
 	_ = d.Set("operating_status", elb.OperatingStatus)
 	_ = d.Set("provisioning_status", elb.ProvisioningStatus)

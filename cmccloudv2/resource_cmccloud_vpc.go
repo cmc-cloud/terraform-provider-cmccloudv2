@@ -55,7 +55,8 @@ func resourceVPCRead(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("billing_mode", vpc.BillingMode)
 	_ = d.Set("cidr", vpc.Cidr)
 	_ = d.Set("created", vpc.CreatedAt)
-	_ = d.Set("tags", vpc.Tags)
+	_ = d.Set("tags", convertTagsToSet(vpc.Tags))
+	// gocmcapiv2.Logo("tags", vpc.Tags)
 	return nil
 }
 

@@ -111,7 +111,7 @@ func readOrImport(d *schema.ResourceData, meta interface{}, isImport bool) error
 	_ = d.Set("security_group_names", convertSecurityGroups(server.SecurityGroups))
 	_ = d.Set("ecs_group_id", strings.Join(server.ServerGroups, ","))
 	_ = d.Set("created", server.Created)
-	_ = d.Set("tags", server.Tags)
+	_ = d.Set("tags", convertTagsToSet(server.Tags))
 	_ = d.Set("description", server.Description)
 	_ = d.Set("billing_mode", server.BillingMode)
 	_ = d.Set("vm_state", server.VMState)

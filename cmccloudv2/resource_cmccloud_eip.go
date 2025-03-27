@@ -60,7 +60,7 @@ func resourceEIPRead(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("description", eip.Description)
 	_ = d.Set("dns_domain", eip.DNSDomain)
 	_ = d.Set("dns_name", eip.DNSName)
-	_ = d.Set("tags", eip.Tags)
+	_ = d.Set("tags", convertTagsToSet(eip.Tags))
 	_ = d.Set("billing_mode", eip.BillingMode)
 	_ = d.Set("domestic_bandwidth", eip.DomesticBandwidthMbps)
 	_ = d.Set("inter_bandwidth", eip.InterBandwidthMbps)

@@ -64,7 +64,7 @@ func resourceSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("allocation_pools", convertAllocationPools(subnet.AllocationPools))
 	_ = d.Set("host_routes", convertHostRoutes(subnet.HostRoutes))
 	_ = d.Set("dns_nameservers", subnet.DNSNameservers)
-	_ = d.Set("tags", subnet.Tags)
+	_ = d.Set("tags", convertTagsToSet(subnet.Tags))
 	_ = d.Set("cidr", subnet.Cidr)
 	return nil
 }

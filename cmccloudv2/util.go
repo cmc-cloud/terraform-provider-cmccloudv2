@@ -86,6 +86,24 @@ func setTypeSet(d *schema.ResourceData, key string, newval []string) {
 	}
 }
 
+func convertTagsToSet(tags []gocmcapiv2.Tag) *schema.Set {
+	tagList := make([]interface{}, len(tags))
+
+	for i, tag := range tags {
+		tagList[i] = map[string]interface{}{
+			"key":   tag.Key,
+			"value": tag.Value,
+		}
+	}
+
+	return schema.NewSet(schema.HashResource(&schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"key":   {Type: schema.TypeString, Required: true},
+			"value": {Type: schema.TypeString, Required: true},
+		},
+	}), tagList)
+}
+
 // areSlicesEqual so sánh hai slice mà không phân biệt thứ tự phần tử
 func areTypeSetEqual(a, b []string) bool {
 	// Nếu độ dài khác nhau, chắc chắn hai slice không giống nhau
