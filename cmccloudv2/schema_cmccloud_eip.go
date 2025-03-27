@@ -22,13 +22,7 @@ func eipSchema() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "International bandwidth in Mbps",
 		},
-		"tags": {
-			Type: schema.TypeSet,
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
-			},
-			Optional: true,
-		},
+		"tags": tagSchema(),
 		"description": {
 			Type:     schema.TypeString,
 			Optional: true,

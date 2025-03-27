@@ -47,13 +47,7 @@ func elbSchema() map[string]*schema.Schema {
 			Optional:      true,
 			ConflictsWith: []string{"subnet_id"},
 		},
-		"tags": {
-			Type: schema.TypeSet,
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
-			},
-			Optional: true,
-		},
+		"tags": tagSchema(),
 		"description": {
 			Type:     schema.TypeString,
 			Optional: true,

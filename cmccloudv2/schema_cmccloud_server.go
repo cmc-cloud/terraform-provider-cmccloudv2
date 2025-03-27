@@ -155,13 +155,7 @@ func serverSchema() map[string]*schema.Schema {
 			},
 			Optional: true,
 		},
-		"tags": {
-			Type: schema.TypeSet,
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
-			},
-			Optional: true,
-		},
+		"tags": tagSchema(),
 		"ecs_group_id": {
 			Type:         schema.TypeString,
 			Optional:     true,

@@ -128,7 +128,7 @@ func resourceRedisInstanceCreate(d *schema.ResourceData, meta interface{}) error
 	params := map[string]interface{}{
 		// "project":              client.Configs.ProjectId,
 		// "region":               client.Configs.RegionId,
-		"billing_mode": d.Get("billing_mode").(string),
+		"billingMode": d.Get("billing_mode").(string),
 
 		"name":             d.Get("name").(string),
 		"securityGroupIds": strings.Join(getStringArrayFromTypeSet(d.Get("security_group_ids").(*schema.Set)), ","),
@@ -136,6 +136,7 @@ func resourceRedisInstanceCreate(d *schema.ResourceData, meta interface{}) error
 		"password":         d.Get("password").(string),
 		"backupId":         d.Get("backup_id").(string),
 		"volumeSize":       d.Get("volume_size").(int),
+		"volumeType":       d.Get("volume_type").(string),
 		// "volumeType":           d.Get("volume_type").(string),
 		"groupConfigurationId": d.Get("redis_configuration_id").(string),
 		"networkId":            subnet.NetworkID,

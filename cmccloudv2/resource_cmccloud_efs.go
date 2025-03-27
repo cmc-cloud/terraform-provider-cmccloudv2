@@ -66,7 +66,7 @@ func resourceEFSRead(d *schema.ResourceData, meta interface{}) error {
 	// các field optional phải set riêng
 	setString(d, "description", efs.Description)
 	setString(d, "billing_mode", efs.BillingMode)
-	setTypeSet(d, "tags", efs.Tags)
+	// setTypeSet(d, "tags", efs.Tags)
 
 	return nil
 }

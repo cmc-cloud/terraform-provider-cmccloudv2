@@ -50,11 +50,11 @@ func resourceVPCRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	_ = d.Set("id", vpc.ID)
-	_ = d.Set("created", vpc.CreatedAt)
 	_ = d.Set("name", vpc.Name)
 	_ = d.Set("description", vpc.Description)
 	_ = d.Set("billing_mode", vpc.BillingMode)
 	_ = d.Set("cidr", vpc.Cidr)
+	_ = d.Set("created", vpc.CreatedAt)
 	_ = d.Set("tags", vpc.Tags)
 	return nil
 }

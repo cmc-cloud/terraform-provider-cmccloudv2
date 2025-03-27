@@ -91,6 +91,11 @@ func redisinstanceSchema() map[string]*schema.Schema {
 		// 	ForceNew:     true,
 		// 	ValidateFunc: validation.NoZeroValues,
 		// },
+		"volume_type": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 		"volume_size": {
 			Type:     schema.TypeInt,
 			Required: true,

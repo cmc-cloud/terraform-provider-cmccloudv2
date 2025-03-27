@@ -42,13 +42,7 @@ func volumeSchema() map[string]*schema.Schema {
 		// 	Optional:     true,
 		// 	ValidateFunc: validateUUID,
 		// },
-		"tags": {
-			Type: schema.TypeSet,
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
-			},
-			Optional: true,
-		},
+		"tags": tagSchema(),
 		"status": {
 			Type:     schema.TypeString,
 			Computed: true,

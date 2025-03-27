@@ -23,13 +23,7 @@ func vpcSchema() map[string]*schema.Schema {
 			Default:      "monthly",
 			Optional:     true,
 		},
-		"tags": {
-			Type: schema.TypeSet,
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
-			},
-			Optional: true,
-		},
+		"tags": tagSchema(),
 		"cidr": {
 			Type:     schema.TypeString,
 			Required: true,

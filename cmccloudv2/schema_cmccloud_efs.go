@@ -44,13 +44,14 @@ func efsSchema() map[string]*schema.Schema {
 			ForceNew: true,
 			// Default:  "nfs",
 		},
-		"tags": {
-			Type: schema.TypeSet,
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
-			},
-			Optional: true,
-		},
+		"tags": tagSchema(),
+		// "tags": {
+		// 	Type: schema.TypeSet,
+		// 	Elem: &schema.Schema{
+		// 		Type: schema.TypeString,
+		// 	},
+		// 	Optional: true,
+		// },
 		"description": {
 			Type:     schema.TypeString,
 			Optional: true,
