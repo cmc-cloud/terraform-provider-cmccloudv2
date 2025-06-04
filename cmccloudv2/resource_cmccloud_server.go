@@ -117,6 +117,9 @@ func readOrImport(d *schema.ResourceData, meta interface{}, isImport bool) error
 	_ = d.Set("billing_mode", server.BillingMode)
 	_ = d.Set("vm_state", server.VMState)
 	_ = d.Set("volumes", convertVolumeAttachs(server.VolumesAttached))
+	if len(server.VolumesAttached) > 0 {
+		_ = d.Set("delete_on_termination", server.VolumesAttached[0].DeleteOnTermination)
+	}
 	if len(server.Nics) > 0 {
 		if isImport {
 			// khong set, neu set co the bi sai neu co >= 2 interfaces
