@@ -117,6 +117,12 @@ func serverSchema() map[string]*schema.Schema {
 			Required: true,
 			ForceNew: true,
 		},
+		"delete_on_termination": {
+			Type:     schema.TypeBool,
+			Required: false,
+			Default:  true,
+			ForceNew: true,
+		},
 		// "nics": {
 		// 	Type: schema.TypeList,
 		// 	// Type: schema.TypeSet,

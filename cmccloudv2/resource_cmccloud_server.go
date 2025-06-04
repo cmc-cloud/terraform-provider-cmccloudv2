@@ -42,8 +42,9 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 	flavor_id := d.Get("flavor_id").(string)
 	volumes := make([]map[string]interface{}, 1)
 	volumes[0] = map[string]interface{}{
-		"type": d.Get("volume_type").(string),
-		"size": d.Get("volume_size").(int),
+		"type":                  d.Get("volume_type").(string),
+		"size":                  d.Get("volume_size").(int),
+		"delete_on_termination": d.Get("delete_on_termination").(bool),
 	}
 
 	subnets := make([]map[string]interface{}, 1)
