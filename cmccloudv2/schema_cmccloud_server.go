@@ -119,7 +119,7 @@ func serverSchema() map[string]*schema.Schema {
 		},
 		"delete_on_termination": {
 			Type:     schema.TypeBool,
-			Required: false,
+			Optional: true,
 			Default:  true,
 			ForceNew: true,
 		},
