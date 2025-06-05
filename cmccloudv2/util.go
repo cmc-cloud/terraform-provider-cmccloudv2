@@ -191,13 +191,13 @@ func waitUntilResourceDeleted(d *schema.ResourceData, meta interface{}, timeout 
 	return stateConf.WaitForState()
 }
 
-func _checkStatusRefreshFunc(d *schema.ResourceData, meta interface{}, errorStatus []string,
+func _checkStatusRefreshFunc(id string, d *schema.ResourceData, meta interface{}, errorStatus []string,
 	getResourceFunc func(id string) (interface{}, error),
 	getStatusFunc func(obj interface{}) string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		resource, err := getResourceFunc(d.Id())
+		resource, err := getResourceFunc(id)
 		if err != nil {
-			fmt.Errorf("Error retrieving resource %s: %v", d.Id(), err)
+			fmt.Errorf("Error retrieving resource %s: %v", id, err)
 			return nil, "", err
 		}
 		newStatus := getStatusFunc(resource)
@@ -219,7 +219,25 @@ func waitUntilResourceStatusChanged(d *schema.ResourceData, meta interface{}, ta
 	stateConf := &resource.StateChangeConf{
 		// Pending:        []string{""},
 		Target:         targetStatus,
-		Refresh:        _checkStatusRefreshFunc(d, meta, errorStatus, getResourceFunc, getStatusFunc),
+		Refresh:        _checkStatusRefreshFunc(d.Id(), d, meta, errorStatus, getResourceFunc, getStatusFunc),
+		Timeout:        _timeout,
+		Delay:          timeout.Delay,
+		MinTimeout:     timeout.MinTimeout,
+		NotFoundChecks: 3,
+	}
+	return stateConf.WaitForState()
+}
+func waitUntilResourceIdStatusChanged(id string, d *schema.ResourceData, meta interface{}, targetStatus []string, errorStatus []string, timeout WaitConf,
+	getResourceFunc func(id string) (interface{}, error),
+	getStatusFunc func(obj interface{}) string) (interface{}, error) {
+	_timeout := d.Timeout(schema.TimeoutCreate) // neu ko set gia tri timeout thi mac dinh lay TimeoutCreate
+	if timeout.Timeout > 0 {                    // co set gia tri timeout, mot vai truong hop timeout nay se set = TimeoutUpdate
+		_timeout = timeout.Timeout
+	}
+	stateConf := &resource.StateChangeConf{
+		// Pending:        []string{""},
+		Target:         targetStatus,
+		Refresh:        _checkStatusRefreshFunc(id, d, meta, errorStatus, getResourceFunc, getStatusFunc),
 		Timeout:        _timeout,
 		Delay:          timeout.Delay,
 		MinTimeout:     timeout.MinTimeout,
@@ -228,32 +246,6 @@ func waitUntilResourceStatusChanged(d *schema.ResourceData, meta interface{}, ta
 	return stateConf.WaitForState()
 }
 
-// func waitUntilServerChangeState(d *schema.ResourceData, meta interface{}, id string, pendingStatus []string, targetStatus []string) (interface{}, error) {
-// 	log.Printf("[INFO] Waiting for server with id (%s) to be "+strings.Join(targetStatus, ","), id)
-// 	stateConf := &resource.StateChangeConf{
-// 		Pending:        pendingStatus,
-// 		Target:         targetStatus,
-// 		Refresh:        serverStateRefreshfunc(d, meta, id),
-// 		Timeout:        60 * 20 * time.Second,
-// 		Delay:          10 * time.Second,
-// 		MinTimeout:     10 * time.Second,
-// 		NotFoundChecks: 5,
-// 	}
-// 	return stateConf.WaitForState()
-// }
-
-//	func serverStateRefreshfunc(d *schema.ResourceData, meta interface{}, id string) resource.StateRefreshFunc {
-//		return func() (interface{}, string, error) {
-//			client := meta.(*CombinedConfig).goCMCClient()
-//			server, err := client.Server.Get(d.Id(), false)
-//			if err != nil {
-//				fmt.Errorf("Error retrieving server %s: %v", id, err)
-//				return nil, "", err
-//			}
-//			return server, server.VMState, nil
-//		}
-//	}
-//
 // kiem tra xem 1 truong trong sub block co thay doi hay khong
 func isSubBlockFieldChanged(d *schema.ResourceData, block_name string, field_name string) (bool, interface{}) {
 	if d.HasChange(block_name) {

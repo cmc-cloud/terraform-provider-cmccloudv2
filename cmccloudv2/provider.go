@@ -45,6 +45,8 @@ func Provider() terraform.ResourceProvider {
 			"cmccloudv2_elb":                             resourceELB(),
 			"cmccloudv2_elb_pool":                        resourceELBPool(),
 			"cmccloudv2_elb_listener":                    resourceELBListener(),
+			"cmccloudv2_elb_l7policy":                    resourceELBL7policy(),
+			"cmccloudv2_elb_l7policy_rule":               resourceELBL7policyRule(),
 			"cmccloudv2_elb_healthmonitor":               resourceELBHealthMonitor(),
 			"cmccloudv2_elb_pool_member":                 resourceELBPoolMember(),
 			"cmccloudv2_ecs_group":                       resourceEcsGroup(),
