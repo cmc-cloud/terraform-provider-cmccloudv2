@@ -232,17 +232,16 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 		if err != nil {
 			return fmt.Errorf("Error when resize server [%s]: %v", id, err)
 		}
-		// _, err = waitUntilServerChangeState(d, meta, d.Id(), []string{"building", "stopped", "active"}, []string{"resized"})
-		_, err = waitUntilServerStatusChangedState(d, meta, []string{"resized"}, []string{"error"})
-		if err != nil {
-			return fmt.Errorf("Resize server failed: %v", err)
-		}
+		time.Sleep(5 * time.Second)
+		// _, err = waitUntilServerStatusChangedState(d, meta, []string{"resized"}, []string{"error"})
+		// if err != nil {
+		// 	return fmt.Errorf("Resize server failed: %v", err)
+		// }
 
-		_, err = client.Server.ConfirmResize(id)
-		if err != nil {
-			return fmt.Errorf("Error when resize server [%s]: %v", id, err)
-		}
-		// _, err = waitUntilServerChangeState(d, meta, d.Id(), []string{"resized"}, []string{"active", "stopped"})
+		// _, err = client.Server.ConfirmResize(id)
+		// if err != nil {
+		// 	return fmt.Errorf("Error when resize server [%s]: %v", id, err)
+		// }
 		_, err = waitUntilServerStatusChangedState(d, meta, []string{"stopped", "active"}, []string{"error"})
 		if err != nil {
 			return fmt.Errorf("Resize server failed: %v", err)
