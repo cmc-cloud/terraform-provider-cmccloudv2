@@ -104,11 +104,11 @@ func kubernetesv2NodeGroupSchema() map[string]*schema.Schema {
 						Type:     schema.TypeString,
 						Optional: true,
 					},
-					"effect": {
+					"type": {
 						Type:     schema.TypeString,
 						Optional: true,
 					},
-					"type": {
+					"effect": {
 						Type:     schema.TypeString,
 						Optional: true,
 					},

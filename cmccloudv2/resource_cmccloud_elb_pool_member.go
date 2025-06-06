@@ -36,6 +36,7 @@ func resourceELBPoolMemberCreate(d *schema.ResourceData, meta interface{}) error
 		"weight":          d.Get("weight").(int),
 		"subnet_id":       d.Get("subnet_id").(string),
 		"monitor_address": d.Get("monitor_address").(string),
+		"backup":          d.Get("backup").(bool),
 	}
 	// truong nay lay rieng, neu ko gia tri default = 0 se bi loi ko thuoc rang 0 65535
 	if monitor_port, ok := d.GetOk("monitor_port"); ok && monitor_port.(int) > 0 {
@@ -72,6 +73,7 @@ func resourceELBPoolMemberUpdate(d *schema.ResourceData, meta interface{}) error
 		"weight":          d.Get("weight").(int),
 		"subnet_id":       d.Get("subnet_id").(string),
 		"monitor_address": d.Get("monitor_address").(string),
+		"backup":          d.Get("backup").(bool),
 	}
 	// truong nay lay rieng, neu ko gia tri default = 0 se bi loi ko thuoc rang 0 65535
 	if monitor_port, ok := d.GetOk("monitor_port"); ok && monitor_port.(int) > 0 {
@@ -102,6 +104,7 @@ func resourceELBPoolMemberRead(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("subnet_id", member.SubnetID)
 	_ = d.Set("monitor_address", member.MonitorAddress)
 	_ = d.Set("monitor_port", member.MonitorPort)
+	_ = d.Set("backup", member.Backup)
 	_ = d.Set("created_at", member.CreatedAt)
 	_ = d.Set("operating_status", member.OperatingStatus)
 	_ = d.Set("provisioning_status", member.ProvisioningStatus)

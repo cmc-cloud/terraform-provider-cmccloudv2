@@ -54,6 +54,11 @@ func elbPoolMemberSchema() map[string]*schema.Schema {
 			ValidateFunc: validation.IntBetween(1, 65535),
 			Description:  "An alternate protocol port used for health monitoring a backend member",
 		},
+		"backup": {
+			Type:        schema.TypeBool,
+			Optional:    false,
+			Description: "Is the member a backup? Backup members only receive traffic when all non-backup members are down.",
+		},
 		"created_at": {
 			Type:     schema.TypeString,
 			Computed: true,
