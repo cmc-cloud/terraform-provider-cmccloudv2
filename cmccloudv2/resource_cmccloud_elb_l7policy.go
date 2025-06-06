@@ -73,7 +73,8 @@ func resourceELBL7policyRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", l7policy.Name)
 	d.Set("action", l7policy.Action)
 	d.Set("listener_id", l7policy.ListenerID)
-	d.Set("position", l7policy.Position)
+	setInt(d, "position", l7policy.Position)
+	// d.Set("position", l7policy.Position)
 
 	if l7policy.Action == "REDIRECT_TO_POOL" {
 		d.Set("redirect_pool_id", l7policy.RedirectPoolID)

@@ -112,6 +112,9 @@ func resourceKubernetesv2NodeGroupCreate(d *schema.ResourceData, meta interface{
 	params["volumeType"] = d.Get("volume_type").(string)
 	params["volumeSize"] = d.Get("volume_size").(int)
 	params["billingMode"] = d.Get("billing_mode").(string)
+	params["maxPodPerNode"] = d.Get("max_pods").(int)
+	params["currentNode"] = d.Get("init_current_node").(int)
+	params["nodeMetadatas"] = d.Get("node_metadatas").([]interface{})
 
 	if d.Get("enable_autoscale").(bool) {
 		// kiem tra xem cluster co enable auto scale ko, neu ko enable => ko support
@@ -180,6 +183,18 @@ func resourceKubernetesv2NodeGroupRead(d *schema.ResourceData, meta interface{})
 			setInt(d, "min_node", provider.Config.MinNode)
 			setInt(d, "max_node", provider.Config.MaxNode)
 			// setInt(d, "max_pods", provider.Config.MaxPods)
+			// setInt(d, "current_node", provider.Config.CurrentNode)
+			// nodeMetadatas := make([]map[string]interface{}, 0, len(provider.Config.NodeMetadatas))
+			// for _, meta := range provider.Config.NodeMetadatas {
+			// 	m := map[string]interface{}{
+			// 		"key":    meta.Key,
+			// 		"value":  meta.Value,
+			// 		"type":   meta.Type,
+			// 		"effect": meta.Effect,
+			// 	}
+			// 	nodeMetadatas = append(nodeMetadatas, m)
+			// }
+			// _ = d.Set("node_metadatas", nodeMetadatas)
 			// setInt(d, "cpu_threshold_percent", provider.Config.MetaDataAutoScale.PercentCPU)
 			// setInt(d, "memory_threshold_percent", provider.Config.MetaDataAutoScale.PercentMemory)
 			// setInt(d, "disk_threshold_percent", provider.Config.MetaDataAutoScale.PercentDisk)

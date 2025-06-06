@@ -77,25 +77,53 @@ func kubernetesv2NodeGroupSchema() map[string]*schema.Schema {
 			Optional:     true,
 			ValidateFunc: validation.IntAtLeast(1),
 		},
-		// "max_pods": {
-		// 	Type:         schema.TypeInt,
-		// 	Optional:     true,
-		// 	ValidateFunc: validation.IntAtLeast(1),
-		// },
-		// "cpu_threshold_percent": {
-		// 	Type:         schema.TypeInt,
-		// 	Optional:     true,
-		// 	ValidateFunc: validation.IntAtLeast(10),
-		// },
-		// "memory_threshold_percent": {
-		// 	Type:         schema.TypeInt,
-		// 	Optional:     true,
-		// 	ValidateFunc: validation.IntAtLeast(10),
-		// },
-		// "disk_threshold_percent": {
-		// 	Type:         schema.TypeInt,
-		// 	Optional:     true,
-		// 	ValidateFunc: validation.IntAtLeast(10),
+		"max_pods": {
+			Type:         schema.TypeInt,
+			Optional:     true,
+			Default:      110,
+			ForceNew:     true,
+			ValidateFunc: validation.IntBetween(0, 256),
+		},
+		"init_current_node": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			ForceNew:    true,
+			Description: "Node count for initing node group",
+		},
+		"node_metadatas": {
+			Type:     schema.TypeList,
+			ForceNew: true,
+			Optional: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"key": {
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+					"value": {
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+					"effect": {
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+					"type": {
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+				},
+			},
+			Description: "Array of node metadata objects. Each object must have key, value, type, and optionally effect.",
+		},
+		// "node_metadatas": {
+		// 	Type:     schema.TypeList,
+		// 	Optional: true,
+		// 	Description: "List of metadata objects for nodes. Each object can have arbitrary key-value pairs, e.g. [{\"key\": \"group\", \"value\": \"cmccloud\", \"type\": \"label\"}, {\"key\": \"thotd\", \"value\": \"thotd123\", \"effect\": \"NoSchedule\", \"type\": \"taint\"}]",
+		// 	Elem: &schema.Schema{
+		// 		Type: schema.TypeMap,
+		// 		Elem: &schema.Schema{Type: schema.TypeString},
+		// 	},
 		// },
 		"image_gpu_tag": { // sshKeyName
 			Type:     schema.TypeString,
