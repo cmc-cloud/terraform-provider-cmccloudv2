@@ -113,6 +113,7 @@ func Provider() terraform.ResourceProvider {
 			"cmccloudv2_redis_configuration":       datasourceRedisConfiguration(),
 			"cmccloudv2_security_group":            datasourceSecurityGroup(),
 			"cmccloudv2_keymanagement_container":   datasourceKeyManagementContainer(),
+			"cmccloudv2_certificate":               datasourceCertificate(),
 
 			"cmccloudv2_devops_project":          datasourceDevopsProject(),
 			"cmccloudv2_container_registry_repo": datasourceContainerRegistryRepository(),

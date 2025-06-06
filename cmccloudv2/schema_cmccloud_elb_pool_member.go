@@ -56,7 +56,8 @@ func elbPoolMemberSchema() map[string]*schema.Schema {
 		},
 		"backup": {
 			Type:        schema.TypeBool,
-			Optional:    false,
+			Optional:    true,
+			Default:     false,
 			Description: "Is the member a backup? Backup members only receive traffic when all non-backup members are down.",
 		},
 		"created_at": {

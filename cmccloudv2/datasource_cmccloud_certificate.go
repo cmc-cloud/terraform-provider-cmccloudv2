@@ -13,6 +13,7 @@ func datasourceCertificateSchema() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "Id of the certificate",
+			ForceNew:    true,
 		},
 		"name": {
 			Type:        schema.TypeString,
@@ -21,6 +22,10 @@ func datasourceCertificateSchema() map[string]*schema.Schema {
 			ForceNew:    true,
 		},
 		"created_at": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"secret_ref": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
@@ -77,9 +82,10 @@ func dataSourceCertificateRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func dataSourceComputeCertificateAttributes(d *schema.ResourceData, certificate gocmcapiv2.Certificate) error {
-	d.SetId(certificate.Name)
+	d.SetId(certificate.ID)
 	d.Set("name", certificate.Name)
-	d.Set("certificate_id", certificate.Name)
+	d.Set("certificate_id", certificate.ID)
 	d.Set("created_at", certificate.Created)
+	d.Set("secret_ref", certificate.SecretRef)
 	return nil
 }
