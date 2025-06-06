@@ -112,9 +112,16 @@ func resourceKubernetesv2NodeGroupCreate(d *schema.ResourceData, meta interface{
 	params["volumeType"] = d.Get("volume_type").(string)
 	params["volumeSize"] = d.Get("volume_size").(int)
 	params["billingMode"] = d.Get("billing_mode").(string)
-	params["maxPodPerNode"] = d.Get("max_pods").(int)
-	params["currentNode"] = d.Get("init_current_node").(int)
-	params["nodeMetadatas"] = d.Get("node_metadatas").([]interface{})
+	// kiểm tra max_pods được khai báo không
+	if v, ok := d.GetOk("max_pods"); ok {
+		params["maxPodPerNode"] = v.(int)
+	}
+	if v, ok := d.GetOk("init_current_node"); ok {
+		params["currentNode"] = v.(int)
+	}
+	if _, ok := d.GetOk("node_metadatas"); ok {
+		params["nodeMetadatas"] = d.Get("node_metadatas").([]interface{})
+	}
 
 	if d.Get("enable_autoscale").(bool) {
 		// kiem tra xem cluster co enable auto scale ko, neu ko enable => ko support
