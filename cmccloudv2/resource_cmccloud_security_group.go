@@ -61,14 +61,14 @@ func resourceSecurityGroupCreate(d *schema.ResourceData, meta interface{}) error
 	for i, rawRule := range rawRules {
 		rawRuleMap := rawRule.(map[string]interface{})
 		_, err := client.SecurityGroup.CreateRule(group.ID, map[string]interface{}{
-			"ether_type":            rawRuleMap["ether_type"].(string),
-			"direction":             rawRuleMap["direction"].(string),
-			"protocol":              rawRuleMap["protocol"].(string),
-			"port_range_min":        rawRuleMap["port_range_min"].(int),
-			"port_range_max":        rawRuleMap["port_range_max"].(int),
-			"cidr":                  rawRuleMap["cidr"].(string),
-			"dest_securitygroup_id": rawRuleMap["dest_securitygroup_id"].(string),
-			"description":           rawRuleMap["description"].(string),
+			"ether_type":      rawRuleMap["ether_type"].(string),
+			"direction":       rawRuleMap["direction"].(string),
+			"protocol":        rawRuleMap["protocol"].(string),
+			"port_range_min":  rawRuleMap["port_range_min"].(int),
+			"port_range_max":  rawRuleMap["port_range_max"].(int),
+			"cidr":            rawRuleMap["cidr"].(string),
+			"remote_group_id": rawRuleMap["remote_group_id"].(string),
+			"description":     rawRuleMap["description"].(string),
 		})
 		if err != nil {
 			return fmt.Errorf("Error creating Security Group Rule index %d rule: %s", (i + 1), err)
@@ -129,14 +129,14 @@ func resourceSecurityGroupUpdate(d *schema.ResourceData, meta interface{}) error
 		for _, rawRule := range rulesToAdd.List() {
 			rawRuleMap := rawRule.(map[string]interface{})
 			_, err := client.SecurityGroup.CreateRule(d.Id(), map[string]interface{}{
-				"ether_type":            rawRuleMap["ether_type"].(string),
-				"direction":             rawRuleMap["direction"].(string),
-				"protocol":              rawRuleMap["protocol"].(string),
-				"port_range_min":        rawRuleMap["port_range_min"].(int),
-				"port_range_max":        rawRuleMap["port_range_max"].(int),
-				"cidr":                  rawRuleMap["cidr"].(string),
-				"dest_securitygroup_id": rawRuleMap["dest_securitygroup_id"].(string),
-				"description":           rawRuleMap["description"].(string),
+				"ether_type":      rawRuleMap["ether_type"].(string),
+				"direction":       rawRuleMap["direction"].(string),
+				"protocol":        rawRuleMap["protocol"].(string),
+				"port_range_min":  rawRuleMap["port_range_min"].(int),
+				"port_range_max":  rawRuleMap["port_range_max"].(int),
+				"cidr":            rawRuleMap["cidr"].(string),
+				"remote_group_id": rawRuleMap["remote_group_id"].(string),
+				"description":     rawRuleMap["description"].(string),
 			})
 			if err != nil {
 				return fmt.Errorf("Error creating Security Group Rule %v: %v", rawRule, err)
@@ -172,14 +172,14 @@ func convertSecurityGroupRules(rules []gocmcapiv2.SecurityGroupRule) []map[strin
 		// 	ports += "-" + strconv.Itoa(rule.PortRangeMax)
 		// }
 		result[i] = map[string]interface{}{
-			"id":                    rule.ID,
-			"protocol":              rule.Protocol,
-			"direction":             rule.Direction,
-			"cidr":                  rule.CIDR,
-			"dest_securitygroup_id": rule.DestSecuritygroupID,
-			"ether_type":            rule.EtherType,
-			"port_range_max":        rule.PortRangeMax,
-			"port_range_min":        rule.PortRangeMin,
+			"id":              rule.ID,
+			"protocol":        rule.Protocol,
+			"direction":       rule.Direction,
+			"cidr":            rule.CIDR,
+			"remote_group_id": rule.DestSecuritygroupID,
+			"ether_type":      rule.EtherType,
+			"port_range_max":  rule.PortRangeMax,
+			"port_range_min":  rule.PortRangeMin,
 			// "ports":                 ports,
 		}
 	}
@@ -194,10 +194,10 @@ func checkRuleErrors(d *schema.ResourceData, field string) error {
 
 		// only one of cidr, from_group_id, or self can be set
 		cidr := rawRuleMap["cidr"].(string)
-		groupID := rawRuleMap["dest_securitygroup_id"].(string)
+		groupID := rawRuleMap["remote_group_id"].(string)
 		port_range_min := rawRuleMap["port_range_min"].(int)
 		port_range_max := rawRuleMap["port_range_max"].(int)
-		errorMessage := fmt.Errorf("rule.%d: only one of cidr or dest_securitygroup_id can be set", index)
+		errorMessage := fmt.Errorf("rule.%d: only one of cidr or remote_group_id can be set", index)
 
 		// if cidr is set, from_group_id and self cannot be set
 		if cidr != "" {

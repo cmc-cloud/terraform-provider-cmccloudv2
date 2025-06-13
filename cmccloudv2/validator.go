@@ -119,6 +119,12 @@ func validateName(v interface{}, k string) (warnings []string, errors []error) {
 	re := `^[a-zA-Z]+[a-zA-Z0-9\-_]*[a-zA-Z0-9]+$`
 	return validateRegexp(re)(v, k)
 }
+
+func validateUserName(v interface{}, k string) (warnings []string, errors []error) {
+	re := `^[a-zA-Z]+[a-zA-Z0-9]*[a-zA-Z0-9]*$`
+	return validateRegexp(re)(v, k)
+}
+
 func validateNameK8s(v interface{}, k string) (warnings []string, errors []error) {
 	re := `^[a-zA-Z]+[a-zA-Z0-9\-]*[a-zA-Z0-9]+$`
 	return validateRegexp(re)(v, k)
@@ -240,4 +246,18 @@ func validateAny(error_message string, validators ...schema.SchemaValidateFunc) 
 		errs = append(errs, fmt.Errorf("%q "+error_message, key))
 		return nil, errs
 	}
+}
+func validateEmail(val interface{}, key string) (warns []string, errs []error) {
+	v, ok := val.(string)
+	if !ok || v == "" {
+		errs = append(errs, fmt.Errorf("%q must be a non-empty string", key))
+		return
+	}
+	// Simple email regex pattern
+	emailRegex := `^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`
+	match, _ := regexp.MatchString(emailRegex, v)
+	if !match {
+		errs = append(errs, fmt.Errorf("%q must be a valid email address", key))
+	}
+	return
 }

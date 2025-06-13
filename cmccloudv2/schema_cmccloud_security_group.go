@@ -62,7 +62,7 @@ func securityGroupRuleSchema() map[string]*schema.Schema {
 			Default:     "",
 			Description: "The CIDR that is matched by this security group rule.",
 		},
-		"dest_securitygroup_id": {
+		"remote_group_id": {
 			Type:     schema.TypeString,
 			Optional: true,
 			Default:  "",
@@ -71,7 +71,7 @@ func securityGroupRuleSchema() map[string]*schema.Schema {
 				validateEmpty,
 				validateUUID,
 			),
-			Description: "The securitygroup ID to associate with this securitygroup rule. You can specify either the dest_securitygroup_id or cidr attribute in the request ",
+			Description: "The securitygroup ID to associate with this securitygroup rule. You can specify either the remote_group_id or cidr attribute in the request ",
 		},
 		"description": {
 			Type:     schema.TypeString,
@@ -122,7 +122,7 @@ func computeSecGroupV2RuleHash(v interface{}) int {
 	buf.WriteString(fmt.Sprintf("%d-", m["port_range_min"].(int)))
 	buf.WriteString(fmt.Sprintf("%d-", m["port_range_max"].(int)))
 	buf.WriteString(fmt.Sprintf("%s-", m["cidr"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["dest_securitygroup_id"].(string)))
+	buf.WriteString(fmt.Sprintf("%s-", m["remote_group_id"].(string)))
 	buf.WriteString(fmt.Sprintf("%s-", m["ether_type"].(string)))
 
 	// gocmcapiv2.Logs("hash = " + buf.String())
