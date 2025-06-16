@@ -30,7 +30,7 @@ func resourceIamUserCreate(d *schema.ResourceData, meta interface{}) error {
 	params := map[string]interface{}{
 		"username":   d.Get("username").(string),
 		"first_name": d.Get("first_name").(string),
-		"last_name":  strconv.Itoa(d.Get("last_name").(int)),
+		"last_name":  d.Get("last_name").(string),
 		"password":   d.Get("password").(string),
 		"email":      d.Get("email").(string),
 	}

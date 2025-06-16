@@ -25,6 +25,15 @@ func resourceSecurityGroup() *schema.Resource {
 		},
 		SchemaVersion: 1,
 		Schema:        securityGroupSchema(),
+		// CustomizeDiff: func(d *schema.ResourceDiff, meta interface{}) error {
+		// 	rules := d.Get("rule").(*schema.Set).List()
+		// 	for _, rule := range rules {
+		// 		ruleMap := rule.(map[string]interface{})
+		// 		// bỏ qua diff nếu chỉ là khác id
+		// 		delete(ruleMap, "id")
+		// 	}
+		// 	return nil
+		// },
 	}
 }
 
@@ -176,7 +185,7 @@ func convertSecurityGroupRules(rules []gocmcapiv2.SecurityGroupRule) []map[strin
 			"protocol":        rule.Protocol,
 			"direction":       rule.Direction,
 			"cidr":            rule.CIDR,
-			"remote_group_id": rule.DestSecuritygroupID,
+			"remote_group_id": rule.RemoteGroupID,
 			"ether_type":      rule.EtherType,
 			"port_range_max":  rule.PortRangeMax,
 			"port_range_min":  rule.PortRangeMin,

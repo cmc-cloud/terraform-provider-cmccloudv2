@@ -81,6 +81,9 @@ func securityGroupRuleSchema() map[string]*schema.Schema {
 		"id": {
 			Type:     schema.TypeString,
 			Computed: true,
+			// DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+			// 	return true // luôn suppress diff
+			// },
 		},
 	}
 }
@@ -112,11 +115,10 @@ func securityGroupSchema() map[string]*schema.Schema {
 		},
 	}
 }
-
 func computeSecGroupV2RuleHash(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
-	// buf.WriteString(fmt.Sprintf("%s-", m["id"].(string)))
+
 	buf.WriteString(fmt.Sprintf("%s-", m["direction"].(string)))
 	buf.WriteString(fmt.Sprintf("%s-", m["protocol"].(string)))
 	buf.WriteString(fmt.Sprintf("%d-", m["port_range_min"].(int)))
@@ -125,6 +127,26 @@ func computeSecGroupV2RuleHash(v interface{}) int {
 	buf.WriteString(fmt.Sprintf("%s-", m["remote_group_id"].(string)))
 	buf.WriteString(fmt.Sprintf("%s-", m["ether_type"].(string)))
 
-	// gocmcapiv2.Logs("hash = " + buf.String())
-	return hashcode.String(buf.String())
+	hash := hashcode.String(buf.String())
+
+	// In ra log hoặc console (nếu bạn có logger tốt hơn thì thay thế)
+	// gocmcapiv2.Logs(fmt.Sprintf("[DEBUG] Rule Hash Input: %s -> Hash: %d", buf.String(), hash))
+
+	return hash
 }
+
+// func computeSecGroupV2RuleHash(v interface{}) int {
+// 	var buf bytes.Buffer
+// 	m := v.(map[string]interface{})
+// 	// buf.WriteString(fmt.Sprintf("%s-", m["id"].(string)))
+// 	buf.WriteString(fmt.Sprintf("%s-", m["direction"].(string)))
+// 	buf.WriteString(fmt.Sprintf("%s-", m["protocol"].(string)))
+// 	buf.WriteString(fmt.Sprintf("%d-", m["port_range_min"].(int)))
+// 	buf.WriteString(fmt.Sprintf("%d-", m["port_range_max"].(int)))
+// 	buf.WriteString(fmt.Sprintf("%s-", m["cidr"].(string)))
+// 	buf.WriteString(fmt.Sprintf("%s-", m["remote_group_id"].(string)))
+// 	buf.WriteString(fmt.Sprintf("%s-", m["ether_type"].(string)))
+
+// 	// gocmcapiv2.Logs(fmt.Sprintf("interface %#v hash = %s", v, buf.String()))
+// 	return hashcode.String(buf.String())
+// }
