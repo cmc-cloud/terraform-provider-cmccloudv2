@@ -6,7 +6,7 @@ import (
 
 func iamUserSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"username": {
+		"short_name": {
 			Type:         schema.TypeString,
 			Required:     true,
 			ValidateFunc: validateUserName,
@@ -39,6 +39,10 @@ func iamUserSchema() map[string]*schema.Schema {
 			Type:     schema.TypeBool,
 			Optional: true,
 			Default:  false,
+		},
+		"username": {
+			Type:     schema.TypeString,
+			Computed: true,
 		},
 		"created_at": {
 			Type:     schema.TypeString,

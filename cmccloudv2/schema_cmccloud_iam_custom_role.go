@@ -10,7 +10,6 @@ func iamCustomRoleSchema() map[string]*schema.Schema {
 		"name": {
 			Type:         schema.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: validateName,
 			Description:  "The name of the custom role",
 		},
