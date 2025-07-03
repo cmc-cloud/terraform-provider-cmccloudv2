@@ -172,7 +172,7 @@ func getClient(meta interface{}) *gocmcapiv2.Client {
 func _checkDeletedRefreshFunc(d *schema.ResourceData, meta interface{}, getResourceFunc func(id string) (interface{}, error)) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resource, err := getResourceFunc(d.Id())
-		if errors.Is(err, gocmcapiv2.ErrNotFound) || strings.Contains(err.Error(), "not found") {
+		if err != nil && (errors.Is(err, gocmcapiv2.ErrNotFound) || strings.Contains(err.Error(), "not found")) {
 			return resource, "true", nil
 		}
 		return resource, "false", err
