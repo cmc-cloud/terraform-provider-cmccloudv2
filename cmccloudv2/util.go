@@ -220,7 +220,7 @@ func _checkStatusRefreshFunc(id string, d *schema.ResourceData, meta interface{}
 		newStatus := getStatusFunc(resource)
 		for _, v := range errorStatus {
 			if v == newStatus {
-				return resource, newStatus, fmt.Errorf("got the status " + newStatus)
+				return resource, newStatus, fmt.Errorf("got the status %s", newStatus)
 			}
 		}
 		return resource, newStatus, nil
