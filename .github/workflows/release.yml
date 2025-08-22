@@ -26,7 +26,7 @@ jobs:
           go-version: 1.22
         
       - name: Import GPG key 
-        uses: crazy-max/ghaction-import-gpg@v3   
+        uses: crazy-max/ghaction-import-gpg@v3
         id: import_gpg
         with:
           git-user-signingkey: true
