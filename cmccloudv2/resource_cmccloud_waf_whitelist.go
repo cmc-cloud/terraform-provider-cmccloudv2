@@ -135,7 +135,6 @@ func resourceWafWhitelistUpdate(d *schema.ResourceData, meta interface{}) error 
 	if err != nil {
 		return fmt.Errorf("error when update waf whitelist [%s]: %v", id, err)
 	}
-
 	return resourceVPCRead(d, meta)
 }
 func resourceWafWhitelistDelete(d *schema.ResourceData, meta interface{}) error {
