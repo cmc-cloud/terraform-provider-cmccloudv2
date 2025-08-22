@@ -1,6 +1,6 @@
 module github.com/cmc-cloud/terraform-provider-cmccloudv2
 
-go 1.23
+go 1.22
 
 require (
 	// run: go get -d github.com/cmc-cloud/gocmcapiv2@7c5f385 to get correct lastest version, eb9c186 = hash github commit
@@ -106,4 +106,4 @@ require (
 )
 
 // uncomment this line when build from code
-replace github.com/cmc-cloud/gocmcapiv2 => D:\code\CMC\openstack\terraform\gocmcapiv2
+// replace github.com/cmc-cloud/gocmcapiv2 => D:\code\CMC\openstack\terraform\gocmcapiv2
