@@ -42,7 +42,7 @@ func resourceSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		"cidr":             d.Get("cidr").(string),
 	})
 	if err != nil {
-		return fmt.Errorf("Error creating Subnet: %s", err)
+		return fmt.Errorf("error creating Subnet: %s", err)
 	}
 	d.SetId(subnet.ID)
 	return resourceSubnetRead(d, meta)
@@ -52,7 +52,7 @@ func resourceSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	subnet, err := client.Subnet.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving Subnet %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving Subnet %s: %v", d.Id(), err)
 	}
 
 	_ = d.Set("id", subnet.ID)
@@ -74,7 +74,7 @@ func resourceSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 	id := d.Id()
 
 	if d.HasChange("cidr") || d.HasChange("vpc_id") || d.HasChange("ip_version") {
-		return errors.New("These fields 'cidr, vpc_id, ip_version' cannot be changed after creation")
+		return errors.New("these fields 'cidr, vpc_id, ip_version' cannot be changed after creation")
 	}
 	if d.HasChange("name") || d.HasChange("enable_dhcp") || d.HasChange("gateway_ip") || d.HasChange("allocation_pools") || d.HasChange("host_routes") || d.HasChange("dns_nameservers") || d.HasChange("tags") {
 		_, err := client.Subnet.Update(id, map[string]interface{}{
@@ -88,7 +88,7 @@ func resourceSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 			"cidr":             d.Get("cidr").(string),
 		})
 		if err != nil {
-			return fmt.Errorf("Error when rename Subnet [%s]: %v", id, err)
+			return fmt.Errorf("error when rename Subnet [%s]: %v", id, err)
 		}
 	}
 	return resourceSubnetRead(d, meta)
@@ -99,11 +99,11 @@ func resourceSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := client.Subnet.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete subnet: %v", err)
+		return fmt.Errorf("error delete subnet: %v", err)
 	}
 	_, err = waitUntilSubnetDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete subnet: %v", err)
+		return fmt.Errorf("error delete subnet: %v", err)
 	}
 	return nil
 }

@@ -29,14 +29,14 @@ func resourceEIPPortCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	_, err := client.EIP.AttachPort(d.Get("eip_id").(string), d.Get("port_id").(string), d.Get("fix_ip_address").(string))
 	if err != nil {
-		return fmt.Errorf("Error when attach eip %s to port %s: %s", d.Get("eip_id").(string), d.Get("port_id").(string), err)
+		return fmt.Errorf("error when attach eip %s to port %s: %s", d.Get("eip_id").(string), d.Get("port_id").(string), err)
 	}
 
 	d.SetId(d.Get("eip_id").(string))
 	// wait cho den khi attached
 	_, err = waitUntilEIPPortAttachedStateChanged(d, meta, []string{"Attached"}, []string{})
 	if err != nil {
-		return fmt.Errorf("Error when attach eip %s to port %s: %s", d.Get("eip_id").(string), d.Get("port_id").(string), err)
+		return fmt.Errorf("error when attach eip %s to port %s: %s", d.Get("eip_id").(string), d.Get("port_id").(string), err)
 	}
 	return resourceEIPPortRead(d, meta)
 }
@@ -45,7 +45,7 @@ func resourceEIPPortRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	eip, err := client.EIP.Get(d.Get("eip_id").(string))
 	if err != nil {
-		return fmt.Errorf("Error retrieving eip detail %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving eip detail %s: %v", d.Id(), err)
 	}
 	_ = d.Set("eip_id", eip.ID)
 	_ = d.Set("port_id", eip.PortID)

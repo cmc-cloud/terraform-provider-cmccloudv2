@@ -48,7 +48,7 @@ func dataSourceRedisConfigurationRead(d *schema.ResourceData, meta interface{}) 
 		if err != nil {
 			if errors.Is(err, gocmcapiv2.ErrNotFound) {
 				d.SetId("")
-				return fmt.Errorf("Unable to retrieve redis configuration [%s]: %s", configuration_id, err)
+				return fmt.Errorf("unable to retrieve redis configuration [%s]: %s", configuration_id, err)
 			}
 		}
 		allRedisConfigurations = append(allRedisConfigurations, configuration)
@@ -62,7 +62,7 @@ func dataSourceRedisConfigurationRead(d *schema.ResourceData, meta interface{}) 
 		}
 		configurations, err := client.RedisConfiguration.List(params)
 		if err != nil {
-			return fmt.Errorf("Error when get redis configuration %v", err)
+			return fmt.Errorf("error when get redis configuration %v", err)
 		}
 		allRedisConfigurations = append(allRedisConfigurations, configurations...)
 	}
@@ -84,12 +84,12 @@ func dataSourceRedisConfigurationRead(d *schema.ResourceData, meta interface{}) 
 		allRedisConfigurations = filteredRedisConfigurations
 	}
 	if len(allRedisConfigurations) < 1 {
-		return fmt.Errorf("Your query returned no results. Please change your search criteria and try again")
+		return fmt.Errorf("your query returned no results. Please change your search criteria and try again")
 	}
 
 	if len(allRedisConfigurations) > 1 {
 		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allRedisConfigurations)
-		return fmt.Errorf("Your query returned more than one result. Please try a more specific search criteria")
+		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 
 	return dataSourceComputeRedisConfigurationAttributes(d, allRedisConfigurations[0])
@@ -97,14 +97,14 @@ func dataSourceRedisConfigurationRead(d *schema.ResourceData, meta interface{}) 
 
 func dataSourceComputeRedisConfigurationAttributes(d *schema.ResourceData, configuration gocmcapiv2.RedisConfiguration) error {
 	log.Printf("[DEBUG] Retrieved configuration %s: %#v", configuration.ID, configuration)
-	d.Set("name", configuration.Name)
-	d.Set("database_mode", configuration.DatastoreMode)
+	_ = d.Set("name", configuration.Name)
+	_ = d.Set("database_mode", configuration.DatastoreMode)
 	if configuration.ID2 != "" {
-		d.Set("configuration_id", configuration.ID2)
+		_ = d.Set("configuration_id", configuration.ID2)
 		d.SetId(configuration.ID2)
 	} else {
 		d.SetId(configuration.ID)
-		d.Set("configuration_id", configuration.ID)
+		_ = d.Set("configuration_id", configuration.ID)
 	}
 	return nil
 }

@@ -59,7 +59,7 @@ func dataSourceVPCRead(d *schema.ResourceData, meta interface{}) error {
 		if err != nil {
 			if errors.Is(err, gocmcapiv2.ErrNotFound) {
 				d.SetId("")
-				return fmt.Errorf("Unable to retrieve vpc [%s]: %s", vpc_id, err)
+				return fmt.Errorf("unable to retrieve vpc [%s]: %s", vpc_id, err)
 			}
 		}
 		allVPCs = append(allVPCs, vpc)
@@ -69,7 +69,7 @@ func dataSourceVPCRead(d *schema.ResourceData, meta interface{}) error {
 		}
 		vpcs, err := client.VPC.List(params)
 		if err != nil {
-			return fmt.Errorf("Error when get vpcs %v", err)
+			return fmt.Errorf("error when get vpcs %v", err)
 		}
 		allVPCs = append(allVPCs, vpcs...)
 	}
@@ -91,12 +91,12 @@ func dataSourceVPCRead(d *schema.ResourceData, meta interface{}) error {
 		allVPCs = filteredVPCs
 	}
 	if len(allVPCs) < 1 {
-		return fmt.Errorf("Your query returned no results. Please change your search criteria and try again")
+		return fmt.Errorf("your query returned no results. Please change your search criteria and try again")
 	}
 
 	if len(allVPCs) > 1 {
 		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allVPCs)
-		return fmt.Errorf("Your query returned more than one result. Please try a more specific search criteria")
+		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 
 	return dataSourceComputeVPCAttributes(d, allVPCs[0])
@@ -105,9 +105,9 @@ func dataSourceVPCRead(d *schema.ResourceData, meta interface{}) error {
 func dataSourceComputeVPCAttributes(d *schema.ResourceData, vpc gocmcapiv2.VPC) error {
 	log.Printf("[DEBUG] Retrieved vpc %s: %#v", vpc.ID, vpc)
 	d.SetId(vpc.ID)
-	d.Set("cidr", vpc.Cidr)
-	d.Set("name", vpc.Name)
-	d.Set("description", vpc.Description)
-	d.Set("created_at", vpc.CreatedAt)
+	_ = d.Set("cidr", vpc.Cidr)
+	_ = d.Set("name", vpc.Name)
+	_ = d.Set("description", vpc.Description)
+	_ = d.Set("created_at", vpc.CreatedAt)
 	return nil
 }

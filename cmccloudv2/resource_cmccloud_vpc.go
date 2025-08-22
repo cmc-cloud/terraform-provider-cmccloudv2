@@ -36,7 +36,7 @@ func resourceVPCCreate(d *schema.ResourceData, meta interface{}) error {
 		"tags":         d.Get("tags").(*schema.Set).List(),
 	})
 	if err != nil {
-		return fmt.Errorf("Error creating VPC: %s", err)
+		return fmt.Errorf("error creating VPC: %s", err)
 	}
 	d.SetId(vpc.ID)
 	return resourceVPCRead(d, meta)
@@ -46,7 +46,7 @@ func resourceVPCRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	vpc, err := client.VPC.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving VPC %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving VPC %s: %v", d.Id(), err)
 	}
 
 	_ = d.Set("id", vpc.ID)
@@ -70,18 +70,18 @@ func resourceVPCUpdate(d *schema.ResourceData, meta interface{}) error {
 			"tags":        d.Get("tags").(*schema.Set).List(),
 		})
 		if err != nil {
-			return fmt.Errorf("Error when update VPC [%s]: %v", id, err)
+			return fmt.Errorf("error when update VPC [%s]: %v", id, err)
 		}
 	}
 
 	if d.HasChange("cidr") {
-		return errors.New("The 'cidr' field cannot be changed after creation")
+		return errors.New("the 'cidr' field cannot be changed after creation")
 	}
 
 	if d.HasChange("billing_mode") {
 		_, err := client.BillingMode.SetVPCBilingMode(id, d.Get("billing_mode").(string))
 		if err != nil {
-			return fmt.Errorf("Error when update billing mode of VPC [%s]: %v", id, err)
+			return fmt.Errorf("error when update billing mode of VPC [%s]: %v", id, err)
 		}
 	}
 	return resourceVPCRead(d, meta)
@@ -92,11 +92,11 @@ func resourceVPCDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := client.VPC.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete vpc: %v", err)
+		return fmt.Errorf("error delete vpc: %v", err)
 	}
 	_, err = waitUntilVPCDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete vpc: %v", err)
+		return fmt.Errorf("error delete vpc: %v", err)
 	}
 	return nil
 }

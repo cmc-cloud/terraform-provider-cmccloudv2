@@ -41,7 +41,7 @@ func resourceSecurityGroupCreate(d *schema.ResourceData, meta interface{}) error
 	client := meta.(*CombinedConfig).goCMCClient()
 	// Before creating the security group, make sure all rules are valid.
 	if err := checkRuleErrors(d, "rule"); err != nil {
-		return fmt.Errorf("Invalid rule: %s", err)
+		return fmt.Errorf("invalid rule: %s", err)
 	}
 	// If all rules are valid, proceed with creating the security group.
 	group, err := client.SecurityGroup.Create(map[string]interface{}{
@@ -52,17 +52,20 @@ func resourceSecurityGroupCreate(d *schema.ResourceData, meta interface{}) error
 		// "tags":        d.Get("tags").(*schema.Set).List(),
 	})
 	if err != nil {
-		return fmt.Errorf("Error creating Security Group: %s", err)
+		return fmt.Errorf("error creating Security Group: %s", err)
 	}
 	d.SetId(group.ID)
 
 	// get security group and delete all default rules
 	sg, err := client.SecurityGroup.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error receiving Security Group %s: %v", d.Id(), err)
+		return fmt.Errorf("error receiving Security Group %s: %v", d.Id(), err)
 	}
 	for _, rule := range sg.Rules {
-		client.SecurityGroup.DeleteRule(rule.ID)
+		_, err := client.SecurityGroup.DeleteRule(rule.ID)
+		if err != nil {
+			return fmt.Errorf("error deleting default rule %s from Security Group %s: %v", rule.ID, d.Id(), err)
+		}
 	}
 
 	// Now that the security group has been created, iterate through each rule and create it
@@ -80,7 +83,7 @@ func resourceSecurityGroupCreate(d *schema.ResourceData, meta interface{}) error
 			"description":     rawRuleMap["description"].(string),
 		})
 		if err != nil {
-			return fmt.Errorf("Error creating Security Group Rule index %d rule: %s", (i + 1), err)
+			return fmt.Errorf("error creating Security Group Rule index %d rule: %s", (i + 1), err)
 		}
 	}
 
@@ -92,7 +95,7 @@ func resourceSecurityGroupRead(d *schema.ResourceData, meta interface{}) error {
 	id := d.Id()
 	sg, err := client.SecurityGroup.Get(id)
 	if err != nil {
-		return fmt.Errorf("Error receiving Security Group %s: %v", d.Id(), err)
+		return fmt.Errorf("error receiving Security Group %s: %v", d.Id(), err)
 	}
 	_ = d.Set("name", sg.Name)
 	_ = d.Set("description", sg.Description)
@@ -113,7 +116,7 @@ func resourceSecurityGroupUpdate(d *schema.ResourceData, meta interface{}) error
 			"stateful":    d.Get("stateful").(bool),
 		})
 		if err != nil {
-			return fmt.Errorf("Error updating Security Group: %s", err)
+			return fmt.Errorf("error updating Security Group: %s", err)
 		}
 	}
 
@@ -132,7 +135,7 @@ func resourceSecurityGroupUpdate(d *schema.ResourceData, meta interface{}) error
 					continue
 				}
 
-				return fmt.Errorf("Error removing rule %s from security group %s: %s", rule_id, d.Id(), err)
+				return fmt.Errorf("error removing rule %s from security group %s: %s", rule_id, d.Id(), err)
 			}
 		}
 		for _, rawRule := range rulesToAdd.List() {
@@ -148,7 +151,7 @@ func resourceSecurityGroupUpdate(d *schema.ResourceData, meta interface{}) error
 				"description":     rawRuleMap["description"].(string),
 			})
 			if err != nil {
-				return fmt.Errorf("Error creating Security Group Rule %v: %v", rawRule, err)
+				return fmt.Errorf("error creating Security Group Rule %v: %v", rawRule, err)
 			}
 		}
 	}
@@ -159,11 +162,11 @@ func resourceSecurityGroupDelete(d *schema.ResourceData, meta interface{}) error
 	client := meta.(*CombinedConfig).goCMCClient()
 	_, err := client.SecurityGroup.Delete(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error delete security group [%s]: %v", d.Id(), err)
+		return fmt.Errorf("error delete security group [%s]: %v", d.Id(), err)
 	}
 	_, err = waitUntilSecurityGroupDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete security group [%s]: %v", d.Id(), err)
+		return fmt.Errorf("error delete security group [%s]: %v", d.Id(), err)
 	}
 	return nil
 }

@@ -49,21 +49,21 @@ func dataSourceIamRoleRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	alls, err := client.IamRole.List(params)
 	if err != nil {
-		return fmt.Errorf("Error when get iam roles %v", err)
+		return fmt.Errorf("error when get iam roles %v", err)
 	}
 
 	if len(alls) < 1 {
-		return fmt.Errorf("Your query returned no results. Please change your search criteria and try again")
+		return fmt.Errorf("your query returned no results. Please change your search criteria and try again")
 	}
 
 	if len(alls) > 1 {
 		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", alls)
-		return fmt.Errorf("Your query returned more than one result. Please try a more specific search criteria")
+		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 
 	role := alls[0]
 	d.SetId(role.ID)
-	d.Set("name", role.Name)
-	d.Set("title", role.Title)
+	_ = d.Set("name", role.Name)
+	_ = d.Set("title", role.Title)
 	return nil
 }

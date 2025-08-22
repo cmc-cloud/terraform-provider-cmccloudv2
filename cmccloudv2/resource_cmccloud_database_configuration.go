@@ -38,13 +38,13 @@ func resourceDatabaseConfigurationCreate(d *schema.ResourceData, meta interface{
 		"datastore_version": d.Get("datastore_version").(string),
 	})
 	if err != nil {
-		return fmt.Errorf("Error creating Database Configuration: %s", err)
+		return fmt.Errorf("error creating Database Configuration: %s", err)
 	}
 	d.SetId(configuration.ID)
 	parameters := convertParametersJsonString(d.Get("parameters").(*schema.Set))
 	_, err = client.DatabaseConfiguration.UpdateParameters(d.Id(), map[string]interface{}{"parameters": parameters})
 	if err != nil {
-		return fmt.Errorf("Error when update parameters of Database Configuration [%s]: %v", configuration.ID, err)
+		return fmt.Errorf("error when update parameters of Database Configuration [%s]: %v", configuration.ID, err)
 	}
 
 	return resourceDatabaseConfigurationRead(d, meta)
@@ -82,7 +82,7 @@ func resourceDatabaseConfigurationRead(d *schema.ResourceData, meta interface{})
 	client := meta.(*CombinedConfig).goCMCClient()
 	configuration, err := client.DatabaseConfiguration.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving Database Configuration %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving Database Configuration %s: %v", d.Id(), err)
 	}
 
 	_ = d.Set("id", configuration.ID)
@@ -103,14 +103,14 @@ func resourceDatabaseConfigurationUpdate(d *schema.ResourceData, meta interface{
 			"description": d.Get("description").(string),
 		})
 		if err != nil {
-			return fmt.Errorf("Error when update info of Database Configuration [%s]: %v", id, err)
+			return fmt.Errorf("error when update info of Database Configuration [%s]: %v", id, err)
 		}
 	}
 	if d.HasChange("parameters") {
 		parameters := convertParametersJsonString(d.Get("parameters").(*schema.Set))
 		_, err := client.DatabaseConfiguration.UpdateParameters(id, map[string]interface{}{"parameters": parameters})
 		if err != nil {
-			return fmt.Errorf("Error when update parameters of Database Configuration [%s]: %v", id, err)
+			return fmt.Errorf("error when update parameters of Database Configuration [%s]: %v", id, err)
 		}
 	}
 	return resourceDatabaseConfigurationRead(d, meta)
@@ -137,7 +137,7 @@ func convertParametersJsonString(params *schema.Set) string {
 	// return results
 	jsonData, err := json.Marshal(results)
 	if err != nil {
-		fmt.Errorf("Error converting map to JSON: %s", err)
+		_ = fmt.Errorf("error converting map to JSON: %s", err)
 	}
 	return string(jsonData)
 }
@@ -146,11 +146,11 @@ func resourceDatabaseConfigurationDelete(d *schema.ResourceData, meta interface{
 	_, err := client.DatabaseConfiguration.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete database configuration: %v", err)
+		return fmt.Errorf("error delete database configuration: %v", err)
 	}
 	_, err = waitUntilDatabaseConfigurationDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete database configuration: %v", err)
+		return fmt.Errorf("error delete database configuration: %v", err)
 	}
 	return nil
 }

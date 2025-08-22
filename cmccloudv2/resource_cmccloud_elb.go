@@ -62,7 +62,7 @@ func resourceELBUpdate(d *schema.ResourceData, meta interface{}) error {
 			"tags":        d.Get("tags").(*schema.Set).List(),
 		})
 		if err != nil {
-			return fmt.Errorf("Error when update ELB [%s]: %v", id, err)
+			return fmt.Errorf("error when update ELB [%s]: %v", id, err)
 		}
 	}
 
@@ -71,11 +71,11 @@ func resourceELBUpdate(d *schema.ResourceData, meta interface{}) error {
 			"flavor_id": d.Get("flavor_id").(string),
 		})
 		if err != nil {
-			return fmt.Errorf("Error when change flavor of ELB [%s]: %v", id, err)
+			return fmt.Errorf("error when change flavor of ELB [%s]: %v", id, err)
 		}
 		_, err = waitUntilELBStatusChangedState(d, meta, []string{"ONLINE", "ACTIVE", "OFFLINE", "NO_MONITOR"}, []string{"ERROR", "DELETED", "DEGRADED"}, d.Timeout(schema.TimeoutCreate))
 		if err != nil {
-			return fmt.Errorf("Error when change flavor of ELB [%s]: %v", id, err)
+			return fmt.Errorf("error when change flavor of ELB [%s]: %v", id, err)
 		}
 	}
 	if d.HasChange("bandwidth_mbps") {
@@ -83,18 +83,18 @@ func resourceELBUpdate(d *schema.ResourceData, meta interface{}) error {
 			"bandwidth_mbps": d.Get("bandwidth_mbps").(int),
 		})
 		if err != nil {
-			return fmt.Errorf("Error when change Internet bandwidth of ELB [%s]: %v", id, err)
+			return fmt.Errorf("error when change Internet bandwidth of ELB [%s]: %v", id, err)
 		}
 		_, err = waitUntilELBStatusChangedState(d, meta, []string{"ONLINE", "ACTIVE", "OFFLINE", "NO_MONITOR"}, []string{"ERROR", "DELETED", "DEGRADED"}, d.Timeout(schema.TimeoutCreate))
 		if err != nil {
-			return fmt.Errorf("Error when change bandwidth_mbps of ELB [%s]: %v", id, err)
+			return fmt.Errorf("error when change bandwidth_mbps of ELB [%s]: %v", id, err)
 		}
 	}
 
 	if d.HasChange("billing_mode") {
 		_, err := client.BillingMode.SetLoadBalancerBilingMode(id, d.Get("billing_mode").(string))
 		if err != nil {
-			return fmt.Errorf("Error when update billing mode of LoadBalancer [%s]: %v", id, err)
+			return fmt.Errorf("error when update billing mode of LoadBalancer [%s]: %v", id, err)
 		}
 	}
 	return resourceELBRead(d, meta)
@@ -122,12 +122,12 @@ func resourceELBCreate(d *schema.ResourceData, meta interface{}) error {
 		"bandwidth_mbps": d.Get("bandwidth_mbps").(int),
 	})
 	if err != nil {
-		return fmt.Errorf("Error creating ELB: %s", err)
+		return fmt.Errorf("error creating ELB: %s", err)
 	}
 	d.SetId(elb.ID)
 	_, err = waitUntilELBStatusChangedState(d, meta, []string{"ONLINE", "ACTIVE", "OFFLINE", "NO_MONITOR"}, []string{"ERROR", "DELETED", "DEGRADED"}, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return fmt.Errorf("Error creating ELB: %s", err)
+		return fmt.Errorf("error creating ELB: %s", err)
 	}
 	return resourceELBRead(d, meta)
 }
@@ -136,7 +136,7 @@ func resourceELBRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	elb, err := client.ELB.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving ELB %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving ELB %s: %v", d.Id(), err)
 	}
 
 	network_type := "private"
@@ -166,11 +166,11 @@ func resourceELBDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := client.ELB.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete ELB: %v", err)
+		return fmt.Errorf("error delete ELB: %v", err)
 	}
 	_, err = waitUntilELBDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete ELB: %v", err)
+		return fmt.Errorf("error delete ELB: %v", err)
 	}
 	return nil
 }

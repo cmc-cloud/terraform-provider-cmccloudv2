@@ -38,7 +38,7 @@ func resourceAutoScalingScaleInPolicyCreate(d *schema.ResourceData, meta interfa
 	res, err := client.AutoScalingPolicy.CreateScalePolicy(params)
 
 	if err != nil {
-		return fmt.Errorf("Error creating scale in policy: %v", err.Error())
+		return fmt.Errorf("error creating scale in policy: %v", err.Error())
 	}
 	d.SetId(res.ID)
 	return resourceAutoScalingScaleInPolicyRead(d, meta)
@@ -48,7 +48,7 @@ func resourceAutoScalingScaleInPolicyRead(d *schema.ResourceData, meta interface
 	client := meta.(*CombinedConfig).goCMCClient()
 	policy, err := client.AutoScalingPolicy.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving scale in policy %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving scale in policy %s: %v", d.Id(), err)
 	}
 	_ = d.Set("name", policy.Name)
 	_ = d.Set("scale_number", policy.Spec.Properties.Adjustment.Number)
@@ -65,7 +65,7 @@ func resourceAutoScalingScaleInPolicyUpdate(d *schema.ResourceData, meta interfa
 		}
 		_, err := client.AutoScalingPolicy.UpdateScalePolicy(d.Id(), params) //Update(id, map[string]interface{}{"name": d.Get("name").(string)})
 		if err != nil {
-			return fmt.Errorf("Error when update scale in policy [%s]: %v", d.Id(), err)
+			return fmt.Errorf("error when update scale in policy [%s]: %v", d.Id(), err)
 		}
 	}
 	return resourceAutoScalingScaleInPolicyRead(d, meta)
@@ -76,11 +76,11 @@ func resourceAutoScalingScaleInPolicyDelete(d *schema.ResourceData, meta interfa
 	_, err := client.AutoScalingPolicy.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete scale in policy: %v", err)
+		return fmt.Errorf("error delete scale in policy: %v", err)
 	}
 	_, err = waitUntilAutoScalingPolicyDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete scale in policy: %v", err)
+		return fmt.Errorf("error delete scale in policy: %v", err)
 	}
 	return nil
 }

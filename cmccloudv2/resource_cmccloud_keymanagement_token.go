@@ -68,7 +68,7 @@ func resourceKeyManagementTokenUpdate(d *schema.ResourceData, meta interface{}) 
 	if d.HasChange("expiration") {
 		_, err := getClient(meta).KeyManagement.RenewToken(d.Id(), d.Get("expiration").(string))
 		if err != nil {
-			return fmt.Errorf("Error renewing KeyManagement Token %s: %v", d.Id(), err)
+			return fmt.Errorf("error renewing KeyManagement Token %s: %v", d.Id(), err)
 		}
 	}
 	return resourceKeyManagementTokenRead(d, meta)
@@ -93,7 +93,7 @@ func resourceKeyManagementTokenCreate(d *schema.ResourceData, meta interface{}) 
 	}
 	token, err := getClient(meta).KeyManagement.CreateToken(params)
 	if err != nil {
-		return fmt.Errorf("Error creating KeyManagement Token: %s", err)
+		return fmt.Errorf("error creating KeyManagement Token: %s", err)
 	}
 	d.SetId(token.Data.ID)
 	return resourceKeyManagementTokenRead(d, meta)
@@ -102,7 +102,7 @@ func resourceKeyManagementTokenCreate(d *schema.ResourceData, meta interface{}) 
 func resourceKeyManagementTokenRead(d *schema.ResourceData, meta interface{}) error {
 	token, err := getClient(meta).KeyManagement.GetToken(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving KeyManagement Token %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving KeyManagement Token %s: %v", d.Id(), err)
 	}
 
 	_ = d.Set("token", token.Token)
@@ -116,7 +116,7 @@ func resourceKeyManagementTokenRead(d *schema.ResourceData, meta interface{}) er
 func resourceKeyManagementTokenDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := getClient(meta).KeyManagement.DeleteToken(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error delete KeyManagement Token: %v", err)
+		return fmt.Errorf("error delete KeyManagement Token: %v", err)
 	}
 	return nil
 }
@@ -126,11 +126,11 @@ func resourceKeyManagementTokenImport(d *schema.ResourceData, meta interface{}) 
 	return []*schema.ResourceData{d}, err
 }
 
-func waitUntilKeyManagementTokenDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
-	return waitUntilResourceDeleted(d, meta, WaitConf{
-		Delay:      10 * time.Second,
-		MinTimeout: 20 * time.Second,
-	}, func(id string) (any, error) {
-		return getClient(meta).KeyManagement.GetToken(id)
-	})
-}
+// func waitUntilKeyManagementTokenDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+// 	return waitUntilResourceDeleted(d, meta, WaitConf{
+// 		Delay:      10 * time.Second,
+// 		MinTimeout: 20 * time.Second,
+// 	}, func(id string) (any, error) {
+// 		return getClient(meta).KeyManagement.GetToken(id)
+// 	})
+// }

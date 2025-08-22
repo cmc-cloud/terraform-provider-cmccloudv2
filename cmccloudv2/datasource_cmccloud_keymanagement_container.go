@@ -52,7 +52,7 @@ func dataSourceKeyManagementContainerRead(d *schema.ResourceData, meta interface
 		if err != nil {
 			if errors.Is(err, gocmcapiv2.ErrNotFound) {
 				d.SetId("")
-				return fmt.Errorf("Unable to retrieve container [%s]: %s", container_id, err)
+				return fmt.Errorf("unable to retrieve container [%s]: %s", container_id, err)
 			}
 		}
 		allKeyManagementContainers = append(allKeyManagementContainers, container)
@@ -63,7 +63,7 @@ func dataSourceKeyManagementContainerRead(d *schema.ResourceData, meta interface
 		}
 		containers, err := client.KeyManagement.List(params)
 		if err != nil {
-			return fmt.Errorf("Error when get containeres %v", err)
+			return fmt.Errorf("error when get containeres %v", err)
 		}
 		allKeyManagementContainers = append(allKeyManagementContainers, containers...)
 	}
@@ -71,12 +71,12 @@ func dataSourceKeyManagementContainerRead(d *schema.ResourceData, meta interface
 		var filteredKeyManagementContainers []gocmcapiv2.KeyManagementContainer
 		for _, container := range allKeyManagementContainers {
 			if v := d.Get("name").(string); v != "" {
-				if strings.ToLower(container.Name) != strings.ToLower(v) {
+				if !strings.EqualFold(container.Name, v) {
 					continue
 				}
 			}
 			if v := d.Get("type").(string); v != "" {
-				if strings.ToLower(container.Type) != strings.ToLower(v) {
+				if !strings.EqualFold(container.Name, v) {
 					continue
 				}
 			}
@@ -85,12 +85,12 @@ func dataSourceKeyManagementContainerRead(d *schema.ResourceData, meta interface
 		allKeyManagementContainers = filteredKeyManagementContainers
 	}
 	if len(allKeyManagementContainers) < 1 {
-		return fmt.Errorf("Your query returned no results. Please change your search criteria and try again")
+		return fmt.Errorf("your query returned no results. Please change your search criteria and try again")
 	}
 
 	if len(allKeyManagementContainers) > 1 {
 		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allKeyManagementContainers)
-		return fmt.Errorf("Your query returned more than one result. Please try a more specific search criteria")
+		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 
 	return dataSourceComputeKeyManagementContainerAttributes(d, allKeyManagementContainers[0])
@@ -99,8 +99,8 @@ func dataSourceKeyManagementContainerRead(d *schema.ResourceData, meta interface
 func dataSourceComputeKeyManagementContainerAttributes(d *schema.ResourceData, container gocmcapiv2.KeyManagementContainer) error {
 	log.Printf("[DEBUG] Retrieved container %s: %#v", container.ID, container)
 	d.SetId(container.ID)
-	d.Set("name", container.Name)
-	d.Set("type", container.Type)
-	d.Set("created_at", container.Created)
+	_ = d.Set("name", container.Name)
+	_ = d.Set("type", container.Type)
+	_ = d.Set("created_at", container.Created)
 	return nil
 }

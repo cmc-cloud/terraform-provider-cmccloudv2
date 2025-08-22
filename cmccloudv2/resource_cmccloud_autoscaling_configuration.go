@@ -59,7 +59,7 @@ func resourceAutoScalingConfigurationCreate(d *schema.ResourceData, meta interfa
 	res, err := client.AutoScalingConfiguration.Create(datas)
 
 	if err != nil {
-		return fmt.Errorf("Error creating configuration: %v", err.Error())
+		return fmt.Errorf("error creating configuration: %v", err.Error())
 	}
 	d.SetId(res.ID)
 	return resourceAutoScalingConfigurationRead(d, meta)
@@ -69,7 +69,7 @@ func resourceAutoScalingConfigurationRead(d *schema.ResourceData, meta interface
 	client := meta.(*CombinedConfig).goCMCClient()
 	configuration, err := client.AutoScalingConfiguration.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving configuration %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving configuration %s: %v", d.Id(), err)
 	}
 	_ = d.Set("name", configuration.Name)
 	_ = d.Set("flavor_id", configuration.Spec.Properties.FlavorID)
@@ -120,7 +120,7 @@ func resourceAutoScalingConfigurationUpdate(d *schema.ResourceData, meta interfa
 		old, new := d.GetChange("name")
 		_, err := client.AutoScalingConfiguration.Update(id, map[string]interface{}{"name": d.Get("name").(string)})
 		if err != nil {
-			return fmt.Errorf("Error when rename autoscale configuration [%s] from `%s` to `%s`: %v", id, old, new, err)
+			return fmt.Errorf("error when rename autoscale configuration [%s] from `%s` to `%s`: %v", id, old, new, err)
 		}
 	}
 	return resourceAutoScalingConfigurationRead(d, meta)
@@ -131,11 +131,11 @@ func resourceAutoScalingConfigurationDelete(d *schema.ResourceData, meta interfa
 	_, err := client.AutoScalingConfiguration.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete autoscale configuration: %v", err)
+		return fmt.Errorf("error delete autoscale configuration: %v", err)
 	}
 	_, err = waitUntilAutoScalingConfigurationDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete autoscale configuration: %v", err)
+		return fmt.Errorf("error delete autoscale configuration: %v", err)
 	}
 	return nil
 }

@@ -65,12 +65,12 @@ func resourceELBHealthMonitorCreate(d *schema.ResourceData, meta interface{}) er
 	// }
 	healthmonitor, err := getClient(meta).ELB.CreateHealthMonitor(params)
 	if err != nil {
-		return fmt.Errorf("Error creating ELB HealthMonitor: %s", err)
+		return fmt.Errorf("error creating ELB HealthMonitor: %s", err)
 	}
 	d.SetId(healthmonitor.ID)
 	_, err = waitUntilELBHealthMonitorStatusChangedState(d, meta, []string{"ONLINE", "ACTIVE", "OFFLINE", "NO_MONITOR"}, []string{"ERROR", "DELETED", "DEGRADED"}, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return fmt.Errorf("Error creating ELB HealthMonitor: %s", err)
+		return fmt.Errorf("error creating ELB HealthMonitor: %s", err)
 	}
 	return resourceELBHealthMonitorRead(d, meta)
 }
@@ -100,11 +100,11 @@ func resourceELBHealthMonitorUpdate(d *schema.ResourceData, meta interface{}) er
 	_, err := getClient(meta).ELB.UpdateHealthMonitor(d.Id(), params)
 
 	if err != nil {
-		return fmt.Errorf("Error updating ELB HealthMonitor: %s", err)
+		return fmt.Errorf("error updating ELB HealthMonitor: %s", err)
 	}
 	_, err = waitUntilELBHealthMonitorStatusChangedState(d, meta, []string{"ONLINE", "ACTIVE", "OFFLINE", "NO_MONITOR"}, []string{"ERROR", "DELETED", "DEGRADED"}, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return fmt.Errorf("Error updating ELB HealthMonitor: %s", err)
+		return fmt.Errorf("error updating ELB HealthMonitor: %s", err)
 	}
 	return resourceELBHealthMonitorRead(d, meta)
 }
@@ -112,7 +112,7 @@ func resourceELBHealthMonitorUpdate(d *schema.ResourceData, meta interface{}) er
 func resourceELBHealthMonitorRead(d *schema.ResourceData, meta interface{}) error {
 	healthmonitor, err := getClient(meta).ELB.GetHealthMonitor(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving ELBHealthMonitor %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving ELBHealthMonitor %s: %v", d.Id(), err)
 	}
 	if len(healthmonitor.Pools) > 0 {
 		_ = d.Set("pool_id", healthmonitor.Pools[0].ID)
@@ -138,11 +138,11 @@ func resourceELBHealthMonitorDelete(d *schema.ResourceData, meta interface{}) er
 	_, err := getClient(meta).ELB.DeleteHealthMonitor(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete ELB HealthMonitor: %v", err)
+		return fmt.Errorf("error delete ELB HealthMonitor: %v", err)
 	}
 	_, err = waitUntilELBHealthMonitorDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete ELB HealthMonitor: %v", err)
+		return fmt.Errorf("error delete ELB HealthMonitor: %v", err)
 	}
 	return nil
 }

@@ -51,13 +51,13 @@ func resourceAutoScalingV2GroupCreate(d *schema.ResourceData, meta interface{}) 
 	res, err := client.AutoScalingV2Group.Create(datas)
 
 	if err != nil {
-		return fmt.Errorf("Error creating autoscalingv2 group: %v", err.Error())
+		return fmt.Errorf("error creating autoscalingv2 group: %v", err.Error())
 	}
 	d.SetId(res.ID)
 
 	_, err = waitUntilAutoScalingV2GroupStatusChangedState(d, meta, []string{"CREATE_COMPLETE", "UPDATE_COMPLETE", "COMPLETE"}, []string{"CREATE_FAILED", "UPDATE_FAILED", "FAILED"}, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return fmt.Errorf("Error creating autoscalingv2 group: %v", err.Error())
+		return fmt.Errorf("error creating autoscalingv2 group: %v", err.Error())
 	}
 	return resourceAutoScalingV2GroupRead(d, meta)
 }
@@ -67,7 +67,7 @@ func resourceAutoScalingV2GroupRead(d *schema.ResourceData, meta interface{}) er
 	group, err := client.AutoScalingV2Group.Get(d.Id())
 	parameters := group.Parameters
 	if err != nil {
-		return fmt.Errorf("Error retrieving autoscaling group %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving autoscaling group %s: %v", d.Id(), err)
 	}
 	_ = d.Set("name", group.Name)
 	_ = d.Set("zone", group.Parameters.AvailabilityZone)
@@ -122,11 +122,11 @@ func resourceAutoScalingV2GroupUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 	_, err := client.AutoScalingV2Group.Update(id, datas)
 	if err != nil {
-		return fmt.Errorf("Error when update asv2 group: %v", err)
+		return fmt.Errorf("error when update asv2 group: %v", err)
 	}
 	_, err = waitUntilAutoScalingV2GroupStatusChangedState(d, meta, []string{"CREATE_COMPLETE", "UPDATE_COMPLETE", "COMPLETE"}, []string{"CREATE_FAILED", "UPDATE_FAILED", "FAILED"}, d.Timeout(schema.TimeoutUpdate))
 	if err != nil {
-		return fmt.Errorf("Error when update asv2 group: %v", err)
+		return fmt.Errorf("error when update asv2 group: %v", err)
 	}
 	return resourceAutoScalingV2GroupRead(d, meta)
 }
@@ -137,11 +137,11 @@ func resourceAutoScalingV2GroupDelete(d *schema.ResourceData, meta interface{}) 
 	_, err := client.AutoScalingV2Group.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete autoscale asv2 group: %v", err)
+		return fmt.Errorf("error delete autoscale asv2 group: %v", err)
 	}
 	_, err = waitUntilAutoScalingV2GroupDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete autoscale asv2 group: %v", err)
+		return fmt.Errorf("error delete autoscale asv2 group: %v", err)
 	}
 	return nil
 }

@@ -37,7 +37,7 @@ func dataSourceIamGroupRead(d *schema.ResourceData, meta interface{}) error {
 	params := map[string]string{}
 	alls, err := client.IamGroup.List(params)
 	if err != nil {
-		return fmt.Errorf("Error when get iam groups %v", err)
+		return fmt.Errorf("error when get iam groups %v", err)
 	}
 	if len(alls) > 0 {
 		var filtered []gocmcapiv2.IamGroup
@@ -53,17 +53,17 @@ func dataSourceIamGroupRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if len(alls) < 1 {
-		return fmt.Errorf("Your query returned no results. Please change your search criteria and try again")
+		return fmt.Errorf("your query returned no results. Please change your search criteria and try again")
 	}
 
 	if len(alls) > 1 {
 		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", alls)
-		return fmt.Errorf("Your query returned more than one result. Please try a more specific search criteria")
+		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 
 	group := alls[0]
 	d.SetId(group.Name)
-	d.Set("name", group.Name)
-	d.Set("description", group.Description)
+	_ = d.Set("name", group.Name)
+	_ = d.Set("description", group.Description)
 	return nil
 }

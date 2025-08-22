@@ -33,7 +33,7 @@ func resourceIamGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	group, err := getClient(meta).IamGroup.Create(params)
 
 	if err != nil {
-		return fmt.Errorf("Error creating iam group: %s", err)
+		return fmt.Errorf("error creating iam group: %s", err)
 	}
 
 	// d.SetId(d.Get("name").(string))
@@ -44,7 +44,7 @@ func resourceIamGroupCreate(d *schema.ResourceData, meta interface{}) error {
 func resourceIamGroupRead(d *schema.ResourceData, meta interface{}) error {
 	iamgroup, err := getClient(meta).IamGroup.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving iam group %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving iam group %s: %v", d.Id(), err)
 	}
 	_ = d.Set("id", iamgroup.ID)
 	_ = d.Set("name", iamgroup.Name)
@@ -55,7 +55,7 @@ func resourceIamGroupRead(d *schema.ResourceData, meta interface{}) error {
 func resourceIamGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	_, err := getClient(meta).IamGroup.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving iam group %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving iam group %s: %v", d.Id(), err)
 	}
 
 	if d.HasChange("description") {
@@ -64,7 +64,7 @@ func resourceIamGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 		_, err := getClient(meta).IamGroup.Update(d.Get("name").(string), params)
 		if err != nil {
-			return fmt.Errorf("Error when update iam group info [%s]: %v", d.Id(), err)
+			return fmt.Errorf("error when update iam group info [%s]: %v", d.Id(), err)
 		}
 	}
 	return resourceIamGroupRead(d, meta)
@@ -74,11 +74,11 @@ func resourceIamGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := getClient(meta).IamGroup.Delete(d.Get("name").(string))
 
 	if err != nil {
-		return fmt.Errorf("Error delete iam group: %v", err)
+		return fmt.Errorf("error delete iam group: %v", err)
 	}
 	_, err = waitUntilIamGroupDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete iam group: %v", err)
+		return fmt.Errorf("error delete iam group: %v", err)
 	}
 	return nil
 }

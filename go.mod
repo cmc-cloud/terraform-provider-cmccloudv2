@@ -106,4 +106,4 @@ require (
 )
 
 // uncomment this line when build from code
-// replace github.com/cmc-cloud/gocmcapiv2 => D:\code\CMC\openstack\terraform\gocmcapiv2
+replace github.com/cmc-cloud/gocmcapiv2 => D:\code\CMC\openstack\terraform\gocmcapiv2

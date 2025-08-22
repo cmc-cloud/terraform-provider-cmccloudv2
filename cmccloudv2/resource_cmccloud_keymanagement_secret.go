@@ -44,7 +44,7 @@ func resourceKeyManagementSecretCreate(d *schema.ResourceData, meta interface{})
 		"secretDetails": []interface{}{params},
 	})
 	if err != nil {
-		return fmt.Errorf("Error creating KeyManagement Secret: %s", err)
+		return fmt.Errorf("error creating KeyManagement Secret: %s", err)
 	}
 	d.SetId(secret.Data.Secrets[0].ID)
 	return resourceKeyManagementSecretRead(d, meta)
@@ -53,7 +53,7 @@ func resourceKeyManagementSecretCreate(d *schema.ResourceData, meta interface{})
 func resourceKeyManagementSecretRead(d *schema.ResourceData, meta interface{}) error {
 	container, err := getClient(meta).KeyManagement.GetSecret(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving KeyManagement Secret %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving KeyManagement Secret %s: %v", d.Id(), err)
 	}
 
 	_ = d.Set("name", container.Name)
@@ -68,7 +68,7 @@ func resourceKeyManagementSecretRead(d *schema.ResourceData, meta interface{}) e
 func resourceKeyManagementSecretDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := getClient(meta).KeyManagement.DeleteSecret(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error delete KeyManagement Secret: %v", err)
+		return fmt.Errorf("error delete KeyManagement Secret: %v", err)
 	}
 	return nil
 }
@@ -78,11 +78,11 @@ func resourceKeyManagementSecretImport(d *schema.ResourceData, meta interface{})
 	return []*schema.ResourceData{d}, err
 }
 
-func waitUntilKeyManagementSecretDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
-	return waitUntilResourceDeleted(d, meta, WaitConf{
-		Delay:      10 * time.Second,
-		MinTimeout: 20 * time.Second,
-	}, func(id string) (any, error) {
-		return getClient(meta).KeyManagement.GetSecret(id)
-	})
-}
+// func waitUntilKeyManagementSecretDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+// 	return waitUntilResourceDeleted(d, meta, WaitConf{
+// 		Delay:      10 * time.Second,
+// 		MinTimeout: 20 * time.Second,
+// 	}, func(id string) (any, error) {
+// 		return getClient(meta).KeyManagement.GetSecret(id)
+// 	})
+// }

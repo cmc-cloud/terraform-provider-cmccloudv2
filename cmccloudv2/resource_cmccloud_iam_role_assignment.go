@@ -30,12 +30,12 @@ func resourceIamRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 	// group, err := getClient(meta).IamGroup.GetGroupOfProject(project_id, group_name)
 	// group_id := group.ID
 	// if err != nil {
-	// 	return fmt.Errorf("Not found group `%s` in project %s: %s", group_name, project_id, err)
+	// 	return fmt.Errorf("not found group `%s` in project %s: %s", group_name, project_id, err)
 	// }
 	_, err := getClient(meta).IamProject.AssignRoleFromGroupOnProject(project_id, group_id, d.Get("role_id").(string))
 
 	if err != nil {
-		return fmt.Errorf("Error creating iam role assignment: %s", err)
+		return fmt.Errorf("error creating iam role assignment: %s", err)
 	}
 
 	d.SetId(fmt.Sprintf("%s_%s_%s", d.Get("project_id").(string), group_id, d.Get("role_id").(string)))
@@ -66,14 +66,14 @@ func resourceIamRoleAssignmentRead(d *schema.ResourceData, meta interface{}) err
 		parts[0] = id[:splitIdx1]
 		parts[1] = id[splitIdx1+1 : splitIdx2]
 		parts[2] = id[splitIdx2+1:]
-		d.Set("project_id", parts[0])
-		d.Set("group_id", parts[1])
-		d.Set("role_id", parts[2])
+		_ = d.Set("project_id", parts[0])
+		_ = d.Set("group_id", parts[1])
+		_ = d.Set("role_id", parts[2])
 
 		// group_id := parts[1]
 		// groups, err := getClient(meta).IamGroup.List(map[string]string{"project_id": parts[0]})
 		// if err != nil {
-		// 	return fmt.Errorf("Not found group `%s` in project %s: %s", parts[1], parts[0], err)
+		// 	return fmt.Errorf("not found group `%s` in project %s: %s", parts[1], parts[0], err)
 		// }
 		// var foundGroup *gocmcapiv2.IamGroup
 		// for _, group := range groups {
@@ -97,12 +97,12 @@ func resourceIamRoleAssignmentDelete(d *schema.ResourceData, meta interface{}) e
 	// group, err := getClient(meta).IamGroup.GetGroupOfProject(project_id, group_name)
 	// group_id := group.ID
 	// if err != nil {
-	// 	return fmt.Errorf("Not found group `%s` in project %s: %s", group_name, project_id, err)
+	// 	return fmt.Errorf("not found group `%s` in project %s: %s", group_name, project_id, err)
 	// }
 	_, err := getClient(meta).IamProject.UnsignRoleFromGroupOnProject(project_id, group_id, d.Get("role_id").(string))
 
 	if err != nil {
-		return fmt.Errorf("Error delete iam role assignment: %v", err)
+		return fmt.Errorf("error delete iam role assignment: %v", err)
 	}
 	return nil
 }

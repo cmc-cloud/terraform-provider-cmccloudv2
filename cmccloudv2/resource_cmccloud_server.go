@@ -30,7 +30,7 @@ func resourceServer() *schema.Resource {
 		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
 			old, new := d.GetChange("volume_size")
 			if old.(int) > new.(int) {
-				return fmt.Errorf("Can't shrink volume_size, new `volume_size` must be > %d", old.(int))
+				return fmt.Errorf("can't shrink volume_size, new `volume_size` must be > %d", old.(int))
 			}
 			return nil
 		},
@@ -55,7 +55,7 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 		subnet, err := client.Subnet.Get(d.Get("subnet_id").(string))
 
 		if err != nil {
-			return fmt.Errorf("Error when getting subnet info: %v", err)
+			return fmt.Errorf("error when getting subnet info: %v", err)
 		}
 		_, err = isIpBelongToCidr(d.Get("ip_address").(string), subnet.Cidr)
 		if err != nil {
@@ -87,7 +87,7 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 	res, err := client.Server.Create(datas)
 
 	if err != nil {
-		return fmt.Errorf("Error creating server: %v", err.Error())
+		return fmt.Errorf("error creating server: %v", err.Error())
 	}
 	d.SetId(res.Server.ID)
 	_, err = waitUntilServerStatusChangedState(d, meta, []string{"active"}, []string{"error"})
@@ -101,7 +101,7 @@ func readOrImport(d *schema.ResourceData, meta interface{}, isImport bool) error
 	client := meta.(*CombinedConfig).goCMCClient()
 	server, err := client.Server.Get(d.Id(), true)
 	if err != nil {
-		return fmt.Errorf("Error retrieving server %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving server %s: %v", d.Id(), err)
 	}
 	_ = d.Set("name", server.Name)
 	_ = d.Set("zone", server.AvailabilityZone)
@@ -174,14 +174,14 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	if d.HasChange("name") {
 		_, err := client.Server.Rename(id, d.Get("name").(string))
 		if err != nil {
-			return fmt.Errorf("Error when rename server [%s]: %v", id, err)
+			return fmt.Errorf("error when rename server [%s]: %v", id, err)
 		}
 	}
 
 	if d.HasChange("tags") {
 		_, err := client.Server.SetTags(id, d.Get("tags").(*schema.Set).List())
 		if err != nil {
-			return fmt.Errorf("Error when set server tags [%s]: %v", id, err)
+			return fmt.Errorf("error when set server tags [%s]: %v", id, err)
 		}
 	}
 
@@ -191,14 +191,14 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 			// Logic xử lý phần tử bị xóa
 			_, err := client.Server.RemoveSecurityGroup(d.Id(), remove.(string))
 			if err != nil {
-				return fmt.Errorf("Remove security group [%s] from server [%s] error: %v", remove.(string), d.Id(), err)
+				return fmt.Errorf("remove security group [%s] from server [%s] error: %v", remove.(string), d.Id(), err)
 			}
 		}
 		for _, add := range added.List() {
 			// Logic xử lý phần tử add them
 			_, err := client.Server.AddSecurityGroup(d.Id(), add.(string))
 			if err != nil {
-				return fmt.Errorf("Add security group [%s] to server [%s] error: %v", add.(string), d.Id(), err)
+				return fmt.Errorf("add security group [%s] to server [%s] error: %v", add.(string), d.Id(), err)
 			}
 		}
 	}
@@ -208,21 +208,21 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 		volume_id := vol.VolumesAttached[0].ID
 		_, err := client.Volume.Resize(volume_id, d.Get("volume_size").(int))
 		if err != nil {
-			return fmt.Errorf("Error when resize volume of server (%s): %v", d.Id(), err)
+			return fmt.Errorf("error when resize volume of server (%s): %v", d.Id(), err)
 		}
 	}
 
 	if d.HasChange("password") {
 		_, err := client.Server.ChangePassword(id, d.Get("password").(string))
 		if err != nil {
-			return fmt.Errorf("Error when reseting password of server (%s): %v", d.Id(), err)
+			return fmt.Errorf("error when reseting password of server (%s): %v", d.Id(), err)
 		}
 	}
 
 	if d.HasChange("billing_mode") {
 		_, err := client.BillingMode.SetServerBilingMode(id, d.Get("billing_mode").(string))
 		if err != nil {
-			return fmt.Errorf("Error when update billing mode of Server [%s]: %v", id, err)
+			return fmt.Errorf("error when update billing mode of Server [%s]: %v", id, err)
 		}
 	}
 
@@ -230,51 +230,53 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 		// Resize server to new flavor
 		_, err := client.Server.Resize(id, d.Get("flavor_id").(string))
 		if err != nil {
-			return fmt.Errorf("Error when resize server [%s]: %v", id, err)
+			return fmt.Errorf("error when resize server [%s]: %v", id, err)
 		}
 		time.Sleep(5 * time.Second)
 		// _, err = waitUntilServerStatusChangedState(d, meta, []string{"resized"}, []string{"error"})
 		// if err != nil {
-		// 	return fmt.Errorf("Resize server failed: %v", err)
+		// 	return fmt.Errorf("resize server failed: %v", err)
 		// }
 
 		// _, err = client.Server.ConfirmResize(id)
 		// if err != nil {
-		// 	return fmt.Errorf("Error when resize server [%s]: %v", id, err)
+		// 	return fmt.Errorf("error when resize server [%s]: %v", id, err)
 		// }
 		_, err = waitUntilServerStatusChangedState(d, meta, []string{"stopped", "active"}, []string{"error"})
 		if err != nil {
-			return fmt.Errorf("Resize server failed: %v", err)
+			return fmt.Errorf("resize server failed: %v", err)
 		}
 	}
 
 	if d.HasChange("vm_state") {
 		oldState, newState := d.GetChange("vm_state")
 		if oldState.(string) == "error" {
-			return fmt.Errorf("You cannot change server state because old server state is %s", oldState.(string))
+			return fmt.Errorf("you cannot change server state because old server state is %s", oldState.(string))
 		}
-		if newState.(string) == "active" {
+
+		switch newState.(string) {
+		case "active":
 			_, err := client.Server.Start(d.Id())
 			if err != nil {
-				return fmt.Errorf("Error when start server: %v", err)
+				return fmt.Errorf("error when start server: %v", err)
 			}
-			// waitUntilServerChangeState(d, meta, d.Id(), []string{"building", "stopped"}, []string{"active"})
 			_, err = waitUntilServerStatusChangedState(d, meta, []string{"active"}, []string{"error"})
 			if err != nil {
-				return fmt.Errorf("Start server failed: %v", err)
+				return fmt.Errorf("start server failed: %v", err)
 			}
-		} else if newState.(string) == "stopped" {
+
+		case "stopped":
 			_, err := client.Server.Stop(d.Id())
 			if err != nil {
-				return fmt.Errorf("Error when stop server: %v", err)
+				return fmt.Errorf("error when stop server: %v", err)
 			}
-			// waitUntilServerChangeState(d, meta, d.Id(), []string{"building", "active"}, []string{"stopped"})
 			_, err = waitUntilServerStatusChangedState(d, meta, []string{"stopped"}, []string{"error"})
 			if err != nil {
-				return fmt.Errorf("Stop server failed: %v", err)
+				return fmt.Errorf("stop server failed: %v", err)
 			}
-		} else {
-			return fmt.Errorf("New state of server must be 'active' or 'stopped'")
+
+		default:
+			return fmt.Errorf("new state of server must be 'active' or 'stopped'")
 		}
 	}
 
@@ -286,11 +288,11 @@ func resourceServerDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := client.Server.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete server: %v", err)
+		return fmt.Errorf("error delete server: %v", err)
 	}
 	_, err = waitUntilServerDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete server: %v", err)
+		return fmt.Errorf("error delete server: %v", err)
 	}
 	return nil
 }
@@ -311,19 +313,19 @@ func convertVolumeAttachs(vols []gocmcapiv2.VolumeAttach) []map[string]interface
 	return result
 }
 
-func convertNics(nics []gocmcapiv2.Nic) []map[string]interface{} {
-	result := make([]map[string]interface{}, len(nics))
-	for i, nic := range nics {
-		result[i] = map[string]interface{}{
-			// "id":                 nic.Id,
-			"subnet_id":  nic.FixedIps[0].SubnetID,
-			"ip_address": nic.FixedIps[0].IPAddress,
-			// "security_group_ids": nic.SecurityGroups,
-			// "mac_address": nic.MacAddress,
-		}
-	}
-	return result
-}
+// func convertNics(nics []gocmcapiv2.Nic) []map[string]interface{} {
+// 	result := make([]map[string]interface{}, len(nics))
+// 	for i, nic := range nics {
+// 		result[i] = map[string]interface{}{
+// 			// "id":                 nic.Id,
+// 			"subnet_id":  nic.FixedIps[0].SubnetID,
+// 			"ip_address": nic.FixedIps[0].IPAddress,
+// 			// "security_group_ids": nic.SecurityGroups,
+// 			// "mac_address": nic.MacAddress,
+// 		}
+// 	}
+// 	return result
+// }
 
 func waitUntilServerDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
 	return waitUntilResourceDeleted(d, meta, WaitConf{

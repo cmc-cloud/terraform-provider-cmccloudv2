@@ -34,7 +34,7 @@ func resourceIamCustomRoleCreate(d *schema.ResourceData, meta interface{}) error
 	customrole, err := getClient(meta).IamCustomRole.Create(params)
 
 	if err != nil {
-		return fmt.Errorf("Error creating iam custom role: %s", err)
+		return fmt.Errorf("error creating iam custom role: %s", err)
 	}
 
 	d.SetId(customrole.ID)
@@ -44,7 +44,7 @@ func resourceIamCustomRoleCreate(d *schema.ResourceData, meta interface{}) error
 func resourceIamCustomRoleRead(d *schema.ResourceData, meta interface{}) error {
 	customrole, err := getClient(meta).IamCustomRole.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving custom role %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving custom role %s: %v", d.Id(), err)
 	}
 	_ = d.Set("id", customrole.ID)
 	_ = d.Set("name", customrole.Name)
@@ -57,7 +57,7 @@ func resourceIamCustomRoleRead(d *schema.ResourceData, meta interface{}) error {
 func resourceIamCustomRoleUpdate(d *schema.ResourceData, meta interface{}) error {
 	_, err := getClient(meta).IamCustomRole.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving custom role %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving custom role %s: %v", d.Id(), err)
 	}
 
 	if d.HasChange("name") || d.HasChange("description") || d.HasChange("content") {
@@ -68,7 +68,7 @@ func resourceIamCustomRoleUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 		_, err := getClient(meta).IamCustomRole.Update(d.Id(), params)
 		if err != nil {
-			return fmt.Errorf("Error when update custom role [%s]: %v", d.Id(), err)
+			return fmt.Errorf("error when update custom role [%s]: %v", d.Id(), err)
 		}
 	}
 	return resourceIamCustomRoleRead(d, meta)
@@ -78,11 +78,11 @@ func resourceIamCustomRoleDelete(d *schema.ResourceData, meta interface{}) error
 	_, err := getClient(meta).IamCustomRole.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete custom role: %v", err)
+		return fmt.Errorf("error delete custom role: %v", err)
 	}
 	_, err = waitUntilIamCustomRoleDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete custom role: %v", err)
+		return fmt.Errorf("error delete custom role: %v", err)
 	}
 	return nil
 }

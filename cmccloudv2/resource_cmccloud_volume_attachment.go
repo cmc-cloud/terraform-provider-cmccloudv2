@@ -2,6 +2,7 @@ package cmccloudv2
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -33,7 +34,7 @@ func resourceVolumeAttachmentCreate(d *schema.ResourceData, meta interface{}) er
 		"delete_on_termination": d.Get("delete_on_termination").(bool),
 	})
 	if err != nil {
-		return fmt.Errorf("Error when attach Volume %s to Server %s: %s", d.Get("volume_id").(string), server_id, err)
+		return fmt.Errorf("error when attach Volume %s to Server %s: %s", d.Get("volume_id").(string), server_id, err)
 	}
 
 	d.SetId(d.Get("volume_id").(string))
@@ -50,7 +51,7 @@ func resourceVolumeAttachmentRead(d *schema.ResourceData, meta interface{}) erro
 	volumeID := d.Id()
 	vol, err := client.Server.GetVolumeAttachmentDetail(d.Get("server_id").(string), volumeID)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Volume Attachment %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving Volume Attachment %s: %v", d.Id(), err)
 	}
 	_ = d.Set("server_id", vol.ServerID)
 	_ = d.Set("volume_id", volumeID)
@@ -97,7 +98,7 @@ func volumeAttachedStateRefreshfunc(d *schema.ResourceData, meta interface{}, se
 		client := meta.(*CombinedConfig).goCMCClient()
 		volume, err := client.Volume.Get(d.Id())
 		if err != nil {
-			fmt.Errorf("Error retrieving volume %s: %v", d.Id(), err)
+			log.Printf("Error retrieving volume %s: %v", d.Id(), err)
 			return nil, "", err
 		}
 		for _, attachment := range volume.Attachments {

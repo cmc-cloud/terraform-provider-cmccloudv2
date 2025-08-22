@@ -31,7 +31,7 @@ func resourceDatabaseAutoBackupCreate(d *schema.ResourceData, meta interface{}) 
 	schedule_time := d.Get("schedule_time").(string)
 	parts := strings.Split(schedule_time, ":")
 	if len(parts) != 2 {
-		return fmt.Errorf("Invalid schedule time [%s], correct format is HH:mm (24-h format), eg: 19:05", schedule_time)
+		return fmt.Errorf("invalid schedule time [%s], correct format is HH:mm (24-h format), eg: 19:05", schedule_time)
 	}
 	hour := parts[0]
 	minute := parts[1]
@@ -46,7 +46,7 @@ func resourceDatabaseAutoBackupCreate(d *schema.ResourceData, meta interface{}) 
 		"is_full_backup": !d.Get("incremental").(bool),
 	})
 	if err != nil {
-		return fmt.Errorf("Error creating Database AutoBackup: %s", err)
+		return fmt.Errorf("error creating Database AutoBackup: %s", err)
 	}
 	d.SetId(vol.ID)
 
@@ -57,7 +57,7 @@ func resourceDatabaseAutoBackupRead(d *schema.ResourceData, meta interface{}) er
 	client := meta.(*CombinedConfig).goCMCClient()
 	autobackup, err := client.DatabaseAutoBackup.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving Database AutoBackup %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving Database AutoBackup %s: %v", d.Id(), err)
 	}
 
 	_ = d.Set("name", autobackup.Name)
@@ -77,7 +77,7 @@ func resourceDatabaseAutoBackupUpdate(d *schema.ResourceData, meta interface{}) 
 	schedule_time := d.Get("schedule_time").(string)
 	parts := strings.Split(schedule_time, ":")
 	if len(parts) != 2 {
-		return fmt.Errorf("Invalid schedule time [%s], correct format is HH:mm (24-h format), eg: 19:05", schedule_time)
+		return fmt.Errorf("invalid schedule time [%s], correct format is HH:mm (24-h format), eg: 19:05", schedule_time)
 	}
 	hour := parts[0]
 	minute := parts[1]
@@ -92,7 +92,7 @@ func resourceDatabaseAutoBackupUpdate(d *schema.ResourceData, meta interface{}) 
 			"is_full_backup": !d.Get("incremental").(bool),
 		})
 		if err != nil {
-			return fmt.Errorf("Error when update Database AutoBackup [%s]: %v", id, err)
+			return fmt.Errorf("error when update Database AutoBackup [%s]: %v", id, err)
 		}
 	}
 	return resourceDatabaseAutoBackupRead(d, meta)
@@ -103,11 +103,11 @@ func resourceDatabaseAutoBackupDelete(d *schema.ResourceData, meta interface{}) 
 	_, err := client.DatabaseAutoBackup.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete database autobackup: %v", err)
+		return fmt.Errorf("error delete database autobackup: %v", err)
 	}
 	_, err = waitUntilDatabaseAutoBackupDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete database autobackup: %v", err)
+		return fmt.Errorf("error delete database autobackup: %v", err)
 	}
 	return nil
 }

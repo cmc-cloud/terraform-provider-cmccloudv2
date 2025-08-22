@@ -29,7 +29,7 @@ func resourceDnsCreate(d *schema.ResourceData, meta interface{}) error {
 	client := getClient(meta)
 	account, err := client.Account.Get()
 	if err != nil {
-		return fmt.Errorf("Error getting account info: %s", err)
+		return fmt.Errorf("error getting account info: %s", err)
 	}
 	params := map[string]interface{}{
 		"zone": d.Get("domain").(string),
@@ -39,7 +39,7 @@ func resourceDnsCreate(d *schema.ResourceData, meta interface{}) error {
 	zone, err := getClient(meta).Dns.Create(params)
 
 	if err != nil {
-		return fmt.Errorf("Error creating zone: %s", err)
+		return fmt.Errorf("error creating zone: %s", err)
 	}
 	d.SetId(zone.ID)
 
@@ -49,7 +49,7 @@ func resourceDnsCreate(d *schema.ResourceData, meta interface{}) error {
 func resourceDnsRead(d *schema.ResourceData, meta interface{}) error {
 	zone, err := getClient(meta).Dns.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving Dns %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving Dns %s: %v", d.Id(), err)
 	}
 
 	_ = d.Set("id", zone.ID)
@@ -65,11 +65,11 @@ func resourceDnsDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := getClient(meta).Dns.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete zone: %v", err)
+		return fmt.Errorf("error delete zone: %v", err)
 	}
 	_, err = waitUntilDnsDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete zone: %v", err)
+		return fmt.Errorf("error delete zone: %v", err)
 	}
 	return nil
 }

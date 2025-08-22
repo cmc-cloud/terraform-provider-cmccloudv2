@@ -37,7 +37,7 @@ func resourceContainerRegistryRepositoryCreate(d *schema.ResourceData, meta inte
 		"name": d.Get("name").(string),
 	})
 	if err != nil {
-		return fmt.Errorf("Error creating Repository: %s", err)
+		return fmt.Errorf("error creating Repository: %s", err)
 	}
 	d.SetId(strconv.Itoa(registry.ID))
 	return resourceContainerRegistryRepositoryRead(d, meta)
@@ -47,7 +47,7 @@ func resourceContainerRegistryRepositoryRead(d *schema.ResourceData, meta interf
 	devops_project_id := d.Get("devops_project_id").(string)
 	registry, err := getClient(meta).ContainerRegistry.Get(devops_project_id, d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving Repository %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving Repository %s: %v", d.Id(), err)
 	}
 
 	_ = d.Set("name", registry.Name)
@@ -61,7 +61,7 @@ func resourceContainerRegistryRepositoryDelete(d *schema.ResourceData, meta inte
 	devops_project_id := d.Get("devops_project_id").(string)
 	_, err := getClient(meta).ContainerRegistry.Delete(devops_project_id, d.Id())
 	if err != nil {
-		return fmt.Errorf("Error delete Repository: %v", err)
+		return fmt.Errorf("error delete Repository: %v", err)
 	}
 	return nil
 }
@@ -71,12 +71,12 @@ func resourceContainerRegistryRepositoryImport(d *schema.ResourceData, meta inte
 	return []*schema.ResourceData{d}, err
 }
 
-func waitUntilContainerRegistryRepositoryDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
-	devops_project_id := d.Get("devops_project_id").(string)
-	return waitUntilResourceDeleted(d, meta, WaitConf{
-		Delay:      10 * time.Second,
-		MinTimeout: 20 * time.Second,
-	}, func(id string) (any, error) {
-		return getClient(meta).ContainerRegistry.Get(devops_project_id, id)
-	})
-}
+// func waitUntilContainerRegistryRepositoryDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+// 	devops_project_id := d.Get("devops_project_id").(string)
+// 	return waitUntilResourceDeleted(d, meta, WaitConf{
+// 		Delay:      10 * time.Second,
+// 		MinTimeout: 20 * time.Second,
+// 	}, func(id string) (any, error) {
+// 		return getClient(meta).ContainerRegistry.Get(devops_project_id, id)
+// 	})
+// }

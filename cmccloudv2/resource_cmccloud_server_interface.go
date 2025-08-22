@@ -33,7 +33,7 @@ func resourceServerInterfaceCreate(d *schema.ResourceData, meta interface{}) err
 		subnet, err := client.Subnet.Get(d.Get("subnet_id").(string))
 
 		if err != nil {
-			return fmt.Errorf("Error when getting subnet info: %v", err)
+			return fmt.Errorf("error when getting subnet info: %v", err)
 		}
 		_, err = isIpBelongToCidr(d.Get("ip_address").(string), subnet.Cidr)
 		if err != nil {
@@ -44,7 +44,7 @@ func resourceServerInterfaceCreate(d *schema.ResourceData, meta interface{}) err
 	inter, err := client.NetworkInterface.Create(d.Get("server_id").(string), params)
 
 	if err != nil {
-		return fmt.Errorf("Error when create Interface of Server %s: %s", d.Get("server_id").(string), err)
+		return fmt.Errorf("error when create Interface of Server %s: %s", d.Get("server_id").(string), err)
 	}
 
 	d.SetId(inter.ID)
@@ -55,7 +55,7 @@ func resourceServerInterfaceRead(d *schema.ResourceData, meta interface{}) error
 	client := meta.(*CombinedConfig).goCMCClient()
 	inter, err := client.NetworkInterface.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving Interface %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving Interface %s: %v", d.Id(), err)
 	}
 	// _ = d.Set("server_id", inter.ServerID)
 	_ = d.Set("subnet_id", inter.FixedIps[0].SubnetID)

@@ -75,7 +75,7 @@ func dataSourceVolumeBackupRead(d *schema.ResourceData, meta interface{}) error 
 		if err != nil {
 			if errors.Is(err, gocmcapiv2.ErrNotFound) {
 				d.SetId("")
-				return fmt.Errorf("Unable to retrieve volume [%s]: %s", backup_id, err)
+				return fmt.Errorf("unable to retrieve volume [%s]: %s", backup_id, err)
 			}
 		}
 		allBackups = append(allBackups, volume)
@@ -87,7 +87,7 @@ func dataSourceVolumeBackupRead(d *schema.ResourceData, meta interface{}) error 
 		}
 		backups, err := client.Backup.List(params)
 		if err != nil {
-			return fmt.Errorf("Error when get backups %v", err)
+			return fmt.Errorf("error when get backups %v", err)
 		}
 		allBackups = append(allBackups, backups...)
 	}
@@ -105,30 +105,47 @@ func dataSourceVolumeBackupRead(d *schema.ResourceData, meta interface{}) error 
 					continue
 				}
 			}
-			if v, ok := d.GetOkExists("is_incremental"); ok {
+			if v, ok := d.GetOk("is_incremental"); ok {
+				// user explicitly set trong .tf (true hoặc false)
 				if backup.IsIncremental != v.(bool) {
 					continue
 				}
-			}
+			} //else {
+			// user không set, đang dùng default
+			//}
+
+			// if v, ok := d.GetOkExists("is_incremental"); ok {
+			// 	if backup.IsIncremental != v.(bool) {
+			// 		continue
+			// 	}
+			// }
 			filteredBackups = append(filteredBackups, backup)
 		}
 		allBackups = filteredBackups
 	}
 	if len(allBackups) < 1 {
-		return fmt.Errorf("Your query returned no results. Please change your search criteria and try again")
+		return fmt.Errorf("your query returned no results. Please change your search criteria and try again")
 	}
 
 	if len(allBackups) > 1 {
 		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allBackups)
 
-		if v, ok := d.GetOkExists("is_latest"); ok {
+		// if v, ok := d.GetOkExists("is_latest"); ok {
+		// 	if v.(bool) {
+		// 		// lay ban backup dau tien vi backup duoc list theo thu tu tao gan nhat truoc
+		// 		return dataSourceComputeVolumeBackupAttributes(d, allBackups[0])
+		// 	}
+		// }
+		if v, ok := d.GetOk("is_latest"); ok {
+			// user explicitly set trong .tf (true hoặc false)
 			if v.(bool) {
-				// lay ban backup dau tien vi backup duoc list theo thu tu tao gan nhat truoc
 				return dataSourceComputeVolumeBackupAttributes(d, allBackups[0])
 			}
-		}
+		} //else {
+		// user không set, đang dùng default
+		//}
 
-		return fmt.Errorf("Your query returned more than one result. Please try a more specific search criteria")
+		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 
 	return dataSourceComputeVolumeBackupAttributes(d, allBackups[0])
@@ -137,11 +154,11 @@ func dataSourceVolumeBackupRead(d *schema.ResourceData, meta interface{}) error 
 func dataSourceComputeVolumeBackupAttributes(d *schema.ResourceData, backup gocmcapiv2.Backup) error {
 	log.Printf("[DEBUG] Retrieved volume %s: %#v", backup.ID, backup)
 	d.SetId(backup.ID)
-	d.Set("name", backup.Name)
-	d.Set("status", backup.Status)
-	d.Set("is_incremental", backup.IsIncremental)
-	d.Set("volume_id", backup.VolumeID)
-	d.Set("real_size_gb", backup.RealSizeGB)
-	d.Set("created_at", backup.CreatedAt)
+	_ = d.Set("name", backup.Name)
+	_ = d.Set("status", backup.Status)
+	_ = d.Set("is_incremental", backup.IsIncremental)
+	_ = d.Set("volume_id", backup.VolumeID)
+	_ = d.Set("real_size_gb", backup.RealSizeGB)
+	_ = d.Set("created_at", backup.CreatedAt)
 	return nil
 }

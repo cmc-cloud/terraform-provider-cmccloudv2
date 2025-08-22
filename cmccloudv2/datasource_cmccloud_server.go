@@ -88,7 +88,7 @@ func dataSourceServerRead(d *schema.ResourceData, meta interface{}) error {
 		if err != nil {
 			if errors.Is(err, gocmcapiv2.ErrNotFound) {
 				d.SetId("")
-				return fmt.Errorf("Unable to retrieve server [%s]: %s", server_id, err)
+				return fmt.Errorf("unable to retrieve server [%s]: %s", server_id, err)
 			}
 		}
 		allServers = append(allServers, server)
@@ -101,7 +101,7 @@ func dataSourceServerRead(d *schema.ResourceData, meta interface{}) error {
 		}
 		servers, err := client.Server.List(params)
 		if err != nil {
-			return fmt.Errorf("Error when get servers %v", err)
+			return fmt.Errorf("error when get servers %v", err)
 		}
 		allServers = append(allServers, servers...)
 	}
@@ -109,7 +109,7 @@ func dataSourceServerRead(d *schema.ResourceData, meta interface{}) error {
 		var filteredServers []gocmcapiv2.Server
 		for _, server := range allServers {
 			if v := d.Get("name").(string); v != "" {
-				if strings.ToLower(server.Name) != strings.ToLower(v) {
+				if !strings.EqualFold(server.Name, v) {
 					continue
 				}
 			}
@@ -152,12 +152,12 @@ func dataSourceServerRead(d *schema.ResourceData, meta interface{}) error {
 		allServers = filteredServers
 	}
 	if len(allServers) < 1 {
-		return fmt.Errorf("Your query returned no results. Please change your search criteria and try again")
+		return fmt.Errorf("your query returned no results. Please change your search criteria and try again")
 	}
 
 	if len(allServers) > 1 {
 		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allServers)
-		return fmt.Errorf("Your query returned more than one result. Please try a more specific search criteria")
+		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 
 	return dataSourceComputeServerAttributes(d, allServers[0])
@@ -166,14 +166,14 @@ func dataSourceServerRead(d *schema.ResourceData, meta interface{}) error {
 func dataSourceComputeServerAttributes(d *schema.ResourceData, server gocmcapiv2.Server) error {
 	log.Printf("[DEBUG] Retrieved server %s: %#v", server.ID, server)
 	d.SetId(server.ID)
-	d.Set("name", server.Name)
-	d.Set("status", server.Status)
-	d.Set("vm_state", strings.ToLower(server.VMState))
-	d.Set("status", strings.ToLower(server.Status))
-	d.Set("description", server.Description)
-	d.Set("cpu", server.Flavor.CPU)
-	d.Set("ram", server.Flavor.RAM/1024)
-	d.Set("flavor_name", server.Flavor.OriginalName)
-	d.Set("created_at", server.Created)
+	_ = d.Set("name", server.Name)
+	_ = d.Set("status", server.Status)
+	_ = d.Set("vm_state", strings.ToLower(server.VMState))
+	_ = d.Set("status", strings.ToLower(server.Status))
+	_ = d.Set("description", server.Description)
+	_ = d.Set("cpu", server.Flavor.CPU)
+	_ = d.Set("ram", server.Flavor.RAM/1024)
+	_ = d.Set("flavor_name", server.Flavor.OriginalName)
+	_ = d.Set("created_at", server.Created)
 	return nil
 }

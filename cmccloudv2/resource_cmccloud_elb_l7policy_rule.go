@@ -61,12 +61,12 @@ func resourceELBL7policyRuleCreate(d *schema.ResourceData, meta interface{}) err
 	}
 	rule, err := client.ELB.CreateL7PolicyRule(d.Get("l7policy_id").(string), datas)
 	if err != nil {
-		return fmt.Errorf("Error creating L7Policy Rule: %s", err)
+		return fmt.Errorf("error creating L7Policy Rule: %s", err)
 	}
 
 	_, err = waitUntilELBL7PolicyRuleStatusChangedState(rule.ID, d, meta, []string{"ACTIVE"}, []string{"ERROR", "DELETED"}, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return fmt.Errorf("Error creating ELB L7 Policy Rule: %s", err)
+		return fmt.Errorf("error creating ELB L7 Policy Rule: %s", err)
 	}
 	d.SetId(rule.ID)
 	return resourceELBL7policyRuleRead(d, meta)
@@ -80,17 +80,17 @@ func resourceELBL7policyRuleRead(d *schema.ResourceData, meta interface{}) error
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading L7Policy Rule: %s", err)
+		return fmt.Errorf("error reading L7Policy Rule: %s", err)
 	}
 
-	d.Set("type", rule.Type)
-	d.Set("compare_type", rule.CompareType)
-	d.Set("value", rule.Value)
-	d.Set("key", rule.Key)
-	d.Set("invert", rule.Invert)
-	d.Set("provisioning_status", rule.ProvisioningStatus)
-	d.Set("operating_status", rule.OperatingStatus)
-	d.Set("created", rule.CreatedAt)
+	_ = d.Set("type", rule.Type)
+	_ = d.Set("compare_type", rule.CompareType)
+	_ = d.Set("value", rule.Value)
+	_ = d.Set("key", rule.Key)
+	_ = d.Set("invert", rule.Invert)
+	_ = d.Set("provisioning_status", rule.ProvisioningStatus)
+	_ = d.Set("operating_status", rule.OperatingStatus)
+	_ = d.Set("created", rule.CreatedAt)
 
 	return nil
 }
@@ -106,11 +106,11 @@ func resourceELBL7policyRuleUpdate(d *schema.ResourceData, meta interface{}) err
 	}
 	_, err := client.ELB.UpdateL7PolicyRule(d.Get("l7policy_id").(string), d.Id(), datas)
 	if err != nil {
-		return fmt.Errorf("Error updating L7Policy Rule: %s", err)
+		return fmt.Errorf("error updating L7Policy Rule: %s", err)
 	}
 	_, err = waitUntilELBL7PolicyRuleStatusChangedState(d.Id(), d, meta, []string{"ACTIVE"}, []string{"ERROR", "DELETED"}, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return fmt.Errorf("Error updating ELB L7 Policy Rule: %s", err)
+		return fmt.Errorf("error updating ELB L7 Policy Rule: %s", err)
 	}
 	return resourceELBL7policyRuleUpdate(d, meta)
 }
@@ -120,11 +120,11 @@ func resourceELBL7policyRuleDelete(d *schema.ResourceData, meta interface{}) err
 	_, err := client.ELB.DeleteL7PolicyRule(d.Get("l7policy_id").(string), d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete L7 Policy Rule: %v", err)
+		return fmt.Errorf("error delete L7 Policy Rule: %v", err)
 	}
 	_, err = waitUntilEELBL7PolicyRuleDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete L7 Policy Rule: %v", err)
+		return fmt.Errorf("error delete L7 Policy Rule: %v", err)
 	}
 	d.SetId("")
 	return nil

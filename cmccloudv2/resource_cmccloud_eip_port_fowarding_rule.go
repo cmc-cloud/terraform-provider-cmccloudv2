@@ -39,7 +39,7 @@ func resourceEIPPortForwardingRuleCreate(d *schema.ResourceData, meta interface{
 		"description":         d.Get("description").(string),
 	})
 	if err != nil {
-		return fmt.Errorf("Error creating EIP PortForwarding rule: %s", err)
+		return fmt.Errorf("error creating EIP PortForwarding rule: %s", err)
 	}
 	d.SetId(rule.ID)
 
@@ -50,7 +50,7 @@ func resourceEIPPortForwardingRuleRead(d *schema.ResourceData, meta interface{})
 	client := meta.(*CombinedConfig).goCMCClient()
 	rule, err := client.EIP.GetPortForwardingRule(d.Get("eip_id").(string), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving EIP Port Forwarding Rule %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving EIP Port Forwarding Rule %s: %v", d.Id(), err)
 	}
 	_ = d.Set("protocol", rule.Protocol)
 	_ = d.Set("internal_ip_address", rule.InternalIPAddress)
@@ -81,7 +81,7 @@ func resourceEIPPortForwardingRuleUpdate(d *schema.ResourceData, meta interface{
 	_, err := client.EIP.UpdatePortForwardingRule(d.Get("eip_id").(string), d.Id(), params)
 
 	if err != nil {
-		return fmt.Errorf("Error when update EIP Port Forwarding Rule [%s]: %v", id, err)
+		return fmt.Errorf("error when update EIP Port Forwarding Rule [%s]: %v", id, err)
 	}
 
 	return resourceEIPPortForwardingRuleRead(d, meta)
@@ -92,11 +92,11 @@ func resourceEIPPortForwardingRuleDelete(d *schema.ResourceData, meta interface{
 	_, err := client.EIP.DeletePortForwardingRule(d.Get("eip_id").(string), d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete EIP Port Forwarding Rule: %v", err)
+		return fmt.Errorf("error delete EIP Port Forwarding Rule: %v", err)
 	}
 	_, err = waitUntilEIPPortForwardingRuleDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete EIP Port Forwarding Rule [%s]: %v", d.Id(), err)
+		return fmt.Errorf("error delete EIP Port Forwarding Rule [%s]: %v", d.Id(), err)
 	}
 	return nil
 }

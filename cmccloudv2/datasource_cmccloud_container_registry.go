@@ -3,7 +3,6 @@ package cmccloudv2
 import (
 	"errors"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
@@ -53,7 +52,7 @@ func dataSourceContainerRegistryRepositoryRead(d *schema.ResourceData, meta inte
 		if err != nil {
 			if errors.Is(err, gocmcapiv2.ErrNotFound) {
 				d.SetId("")
-				return fmt.Errorf("Unable to retrieve container registry [%s]: %s", registry_id, err)
+				return fmt.Errorf("ynable to retrieve container registry [%s]: %s", registry_id, err)
 			}
 		}
 		allContainerRegistryRepositorys = append(allContainerRegistryRepositorys, registry)
@@ -65,7 +64,7 @@ func dataSourceContainerRegistryRepositoryRead(d *schema.ResourceData, meta inte
 		}
 		registrys, err := client.ContainerRegistry.List(project_id, params)
 		if err != nil {
-			return fmt.Errorf("Error when get container registry %v", err)
+			return fmt.Errorf("error when get container registry %v", err)
 		}
 		allContainerRegistryRepositorys = append(allContainerRegistryRepositorys, registrys...)
 	}
@@ -73,7 +72,7 @@ func dataSourceContainerRegistryRepositoryRead(d *schema.ResourceData, meta inte
 		var filteredContainerRegistryRepositorys []gocmcapiv2.ContainerRegistryRepository
 		for _, registry := range allContainerRegistryRepositorys {
 			if v := d.Get("name").(string); v != "" {
-				if strings.ToLower(registry.Name) != strings.ToLower(v) {
+				if !strings.EqualFold(registry.Name, v) {
 					continue
 				}
 			}
@@ -82,23 +81,22 @@ func dataSourceContainerRegistryRepositoryRead(d *schema.ResourceData, meta inte
 		allContainerRegistryRepositorys = filteredContainerRegistryRepositorys
 	}
 	if len(allContainerRegistryRepositorys) < 1 {
-		return fmt.Errorf("Your query returned no results. Please change your search criteria and try again")
+		return fmt.Errorf("your query returned no results. Please change your search criteria and try again")
 	}
 
 	if len(allContainerRegistryRepositorys) > 1 {
 		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allContainerRegistryRepositorys)
-		return fmt.Errorf("Your query returned more than one result. Please try a more specific search criteria")
+		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 
 	return dataSourceComputeContainerRegistryRepositoryAttributes(d, allContainerRegistryRepositorys[0])
 }
 
 func dataSourceComputeContainerRegistryRepositoryAttributes(d *schema.ResourceData, registry gocmcapiv2.ContainerRegistryRepository) error {
-	log.Printf("[DEBUG] Retrieved container registry %s: %#v", registry.ID, registry)
 	d.SetId(strconv.Itoa(registry.ID))
-	d.Set("name", registry.Name)
-	d.Set("uri", registry.URI)
-	d.Set("project_id", registry.ProjectId)
-	d.Set("created_at", registry.CreatedAt)
+	_ = d.Set("name", registry.Name)
+	_ = d.Set("uri", registry.URI)
+	_ = d.Set("project_id", registry.ProjectId)
+	_ = d.Set("created_at", registry.CreatedAt)
 	return nil
 }

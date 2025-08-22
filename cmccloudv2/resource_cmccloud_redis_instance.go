@@ -34,11 +34,11 @@ func resourceRedisInstance() *schema.Resource {
 			// _, replicasSet := diff.GetOk("replicas")
 			// if sourceType == "new" {
 			// 	if sourceIDSet {
-			// 		return fmt.Errorf("When source_type is 'new', 'backup_id' must not be set")
+			// 		return fmt.Errorf("when source_type is 'new', 'backup_id' must not be set")
 			// 	}
 			// } else if sourceType == "backup" {
 			// 	if !sourceIDSet {
-			// 		return fmt.Errorf("When source_type is 'backup', 'backup_id' must be set")
+			// 		return fmt.Errorf("when source_type is 'backup', 'backup_id' must be set")
 			// 	}
 			// }
 
@@ -51,7 +51,7 @@ func resourceRedisInstanceCreate(d *schema.ResourceData, meta interface{}) error
 	client := meta.(*CombinedConfig).goCMCClient()
 	subnet, err := client.Subnet.Get(d.Get("subnet_id").(string))
 	if err != nil {
-		return fmt.Errorf("Subnet id is not valid %v", err)
+		return fmt.Errorf("subnet id is not valid %v", err)
 	}
 
 	datastores, err := client.RedisInstance.ListDatastore(map[string]string{})
@@ -69,13 +69,13 @@ func resourceRedisInstanceCreate(d *schema.ResourceData, meta interface{}) error
 	datastoreVersionId := ""
 	datastoreModeId := ""
 	for _, datastore := range datastores {
-		gocmcapiv2.Logo("datastore", datastore)
-		if strings.ToLower(database_engine) == strings.ToLower(datastore.Name) {
-			gocmcapiv2.Logs("found datastore " + database_engine + " & " + datastore.Name)
+		// gocmcapiv2.Logo("datastore", datastore)
+		if strings.EqualFold(database_engine, datastore.Name) {
+			// gocmcapiv2.Logs("found datastore " + database_engine + " & " + datastore.Name)
 			datastoreCode = datastore.Code
 			datastoreId = datastore.ID
 			for _, version := range datastore.VersionInfos {
-				if strings.ToLower(database_version) == strings.ToLower(version.VersionName) {
+				if strings.EqualFold(database_version, version.VersionName) {
 					datastoreVersionId = version.ID
 					for _, mode := range version.ModeInfo {
 						if caseInsensitiveContains(mode.Name, database_mode) {
@@ -86,27 +86,27 @@ func resourceRedisInstanceCreate(d *schema.ResourceData, meta interface{}) error
 				}
 			}
 			if datastoreVersionId == "" {
-				return fmt.Errorf("Not found database_version %s", database_version)
+				return fmt.Errorf("not found database_version %s", database_version)
 			}
 
 			if datastoreModeId == "" {
-				return fmt.Errorf("Not found database_mode %s", database_mode)
+				return fmt.Errorf("not found database_mode %s", database_mode)
 			}
 		}
 	}
 
 	if datastoreCode == "" {
-		return fmt.Errorf("Not found database_engine %s", database_engine)
+		return fmt.Errorf("not found database_engine %s", database_engine)
 	}
 
 	_, replicasSet := d.GetOk("replicas")
 	if redisMode == "cluster" {
 		if !replicasSet {
-			return fmt.Errorf("When `mode` is 'cluster', 'replicas' must be set")
+			return fmt.Errorf("when `mode` is 'cluster', 'replicas' must be set")
 		}
 	} else {
 		if replicasSet {
-			return fmt.Errorf("When `mode` is not 'cluster', 'replicas' must not be set")
+			return fmt.Errorf("when `mode` is not 'cluster', 'replicas' must not be set")
 		}
 	}
 
@@ -117,7 +117,7 @@ func resourceRedisInstanceCreate(d *schema.ResourceData, meta interface{}) error
 	// if d.Get("redis_configuration_id").(string) != "" {
 	// 	configuration, err := client.RedisConfiguration.Get(d.Get("redis_configuration_id").(string))
 	// 	if err != nil {
-	// 		return fmt.Errorf("Error getting RedisDatabase configuration %s: %s", d.Get("redis_configuration_id").(string), err)
+	// 		return fmt.Errorf("error getting RedisDatabase configuration %s: %s", d.Get("redis_configuration_id").(string), err)
 	// 	}
 
 	// 	if configuration.DatastoreMode != database_mode {
@@ -153,36 +153,44 @@ func resourceRedisInstanceCreate(d *schema.ResourceData, meta interface{}) error
 		"password": d.Get("password").(string),
 	}
 	zones := getStringArrayFromTypeSet(d.Get("zones").(*schema.Set))
-	// params["zones"] = zones
-	if redisMode == "standalone" {
+
+	switch redisMode {
+	case "standalone":
 		zone := getStringArrayFromTypeSet(d.Get("zones").(*schema.Set))[0]
 		requestMetadata["zone"] = zone
-	} else if redisMode == "master_slave" {
+
+	case "master_slave":
 		requestMetadata["zones"] = zones
 		requestMetadata["numOfSlaves"] = 2
 		params["zones"] = zones
-	} else if redisMode == "cluster" {
+
+	case "cluster":
 		zones := getStringArrayFromTypeSet(d.Get("zones").(*schema.Set))
 		requestMetadata["zones"] = zones
 		requestMetadata["numOfMasterServer"] = 3
 		requestMetadata["replicas"] = d.Get("replicas").(int)
+
+	default:
+		// nếu redisMode không khớp case nào
+		// có thể log cảnh báo hoặc bỏ qua
 	}
+
 	// params["zone"] = requestMetadata["zone"]
 
 	jsonData, err := json.Marshal(requestMetadata)
 	if err != nil {
-		return fmt.Errorf("Error creating RedisDatabase Instance: %s", err)
+		return fmt.Errorf("error creating RedisDatabase Instance: %s", err)
 	}
 	params["requestMetadata"] = string(jsonData)
 
 	instance, err := client.RedisInstance.Create(params)
 	if err != nil {
-		return fmt.Errorf("Error creating RedisDatabase Instance: %s", err)
+		return fmt.Errorf("error creating RedisDatabase Instance: %s", err)
 	}
 	d.SetId(instance.Data.InstanceID)
 	_, err = waitUntilRedisInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return fmt.Errorf("Error creating RedisDatabase Instance: %s", err)
+		return fmt.Errorf("error creating RedisDatabase Instance: %s", err)
 	}
 	return resourceRedisInstanceRead(d, meta)
 }
@@ -200,7 +208,7 @@ func checkSecurityGroupConflict(d *schema.ResourceData, meta interface{}) error 
 				firstValue = fmt.Sprintf("%t", group.Stateful)
 			}
 			if firstValue != fmt.Sprintf("%t", group.Stateful) {
-				return fmt.Errorf("Invalid security_group_ids, all security groups must have the same stateful")
+				return fmt.Errorf("invalid security_group_ids, all security groups must have the same stateful")
 			}
 		}
 	}
@@ -211,10 +219,10 @@ func resourceRedisInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	instance, err := client.RedisInstance.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving RedisDatabase Instance %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving RedisDatabase Instance %s: %v", d.Id(), err)
 	}
 
-	billing_mode, err := client.BillingMode.GetBilingMode(d.Id(), "RDS")
+	billing_mode, _ := client.BillingMode.GetBilingMode(d.Id(), "RDS")
 	if billing_mode != "" {
 		_ = d.Set("billing_mode", billing_mode)
 	}
@@ -228,7 +236,7 @@ func resourceRedisInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	var security_group_ids []string
 	err = json.Unmarshal([]byte(instance.SecurityClientIds), &security_group_ids)
 	if err != nil {
-		fmt.Errorf("Error when get info of Redis Database Instance [%s]: %v", d.Id(), err)
+		return fmt.Errorf("error when get info of Redis Database Instance [%s]: %v", d.Id(), err)
 	}
 
 	_ = d.Set("security_group_ids", security_group_ids)
@@ -258,23 +266,23 @@ func resourceRedisInstanceUpdate(d *schema.ResourceData, meta interface{}) error
 	if d.HasChange("name") {
 		_, err := client.RedisInstance.Update(id, map[string]interface{}{"name": d.Get("name").(string)})
 		if err != nil {
-			return fmt.Errorf("Error when update info of Redis Database Instance [%s]: %v", id, err)
+			return fmt.Errorf("error when update info of Redis Database Instance [%s]: %v", id, err)
 		}
 	}
 	if d.HasChange("billing_mode") {
 		_, err := client.BillingMode.SetRedisInstanceBilingMode(d.Id(), d.Get("billing_mode").(string))
 		if err != nil {
-			return fmt.Errorf("Error when billing mode of Redis Database Instance [%s]: %v", id, err)
+			return fmt.Errorf("error when billing mode of Redis Database Instance [%s]: %v", id, err)
 		}
 	}
 	if d.HasChange("password") {
 		_, err := client.RedisInstance.SetPassword(id, d.Get("password").(string))
 		if err != nil {
-			return fmt.Errorf("Error when update password of Redis Database Instance [%s]: %v", id, err)
+			return fmt.Errorf("error when update password of Redis Database Instance [%s]: %v", id, err)
 		}
 		_, err = waitUntilRedisInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
-			return fmt.Errorf("Error when update password of Redis Database Instance [%s]: %v", id, err)
+			return fmt.Errorf("error when update password of Redis Database Instance [%s]: %v", id, err)
 		}
 	}
 	if d.HasChange("redis_configuration_id") {
@@ -287,7 +295,7 @@ func resourceRedisInstanceUpdate(d *schema.ResourceData, meta interface{}) error
 				"getDefault":    "true",
 			})
 			if err != nil {
-				return fmt.Errorf("Error when getting default redis configuration templates: %v", err)
+				return fmt.Errorf("error when getting default redis configuration templates: %v", err)
 			}
 			database_engine := d.Get("database_engine").(string)
 			database_version := d.Get("database_version").(string)
@@ -304,11 +312,11 @@ func resourceRedisInstanceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 		_, err := client.RedisInstance.SetConfigurationGroupId(id, defaultTemplateId)
 		if err != nil {
-			return fmt.Errorf("Error when set configuration group to %s of redis database instance %s: %v", d.Get("redis_configuration_id").(string), id, err)
+			return fmt.Errorf("error when set configuration group to %s of redis database instance %s: %v", d.Get("redis_configuration_id").(string), id, err)
 		}
 		_, err = waitUntilRedisInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
-			return fmt.Errorf("Error when set configuration group to %s of redis database instance %s: %v", d.Get("redis_configuration_id").(string), id, err)
+			return fmt.Errorf("error when set configuration group to %s of redis database instance %s: %v", d.Get("redis_configuration_id").(string), id, err)
 		}
 	}
 	if d.HasChange("security_group_ids") {
@@ -322,16 +330,22 @@ func resourceRedisInstanceUpdate(d *schema.ResourceData, meta interface{}) error
 		for _, security_group_id := range removes.List() {
 			_, err := client.RedisInstance.DetachSecurityGroupId(d.Id(), security_group_id.(string))
 			if err != nil {
-				return fmt.Errorf("Error detach security group %s from %s: %v", security_group_id, d.Id(), err)
+				return fmt.Errorf("error detach security group %s from %s: %v", security_group_id, d.Id(), err)
 			}
-			waitUntilRedisInstanceDetachFinished(d, meta, security_group_id.(string))
+			_, err = waitUntilRedisInstanceDetachFinished(d, meta, security_group_id.(string))
+			if err != nil {
+				return fmt.Errorf("error detach security group %s from %s: %v", security_group_id, d.Id(), err)
+			}
 		}
 		for _, security_group_id := range adds.List() {
 			_, err := client.RedisInstance.AttachSecurityGroupId(d.Id(), security_group_id.(string))
 			if err != nil {
-				return fmt.Errorf("Error attach security group %s from %s: %v", security_group_id, d.Id(), err)
+				return fmt.Errorf("error attach security group %s from %s: %v", security_group_id, d.Id(), err)
 			}
-			waitUntilRedisInstanceAttachFinished(d, meta, security_group_id.(string))
+			_, err = waitUntilRedisInstanceAttachFinished(d, meta, security_group_id.(string))
+			if err != nil {
+				return fmt.Errorf("error attach security group %s from %s: %v", security_group_id, d.Id(), err)
+			}
 		}
 	}
 
@@ -343,11 +357,11 @@ func resourceRedisInstanceDelete(d *schema.ResourceData, meta interface{}) error
 	_, err := client.RedisInstance.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete redis database instance: %v", err)
+		return fmt.Errorf("error delete redis database instance: %v", err)
 	}
 	_, err = waitUntilRedisInstanceDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete redis database instance: %v", err)
+		return fmt.Errorf("error delete redis database instance: %v", err)
 	}
 	return nil
 }

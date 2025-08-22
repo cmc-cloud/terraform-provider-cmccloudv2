@@ -67,7 +67,7 @@ func dataSourceVolumeTypeRead(d *schema.ResourceData, meta interface{}, for_data
 		if err != nil {
 			if errors.Is(err, gocmcapiv2.ErrNotFound) {
 				d.SetId("")
-				return fmt.Errorf("Unable to retrieve volume type [%s]: %s", volume_type_id, err)
+				return fmt.Errorf("unable to retrieve volume type [%s]: %s", volume_type_id, err)
 			}
 		}
 		allVolumeTypes = append(allVolumeTypes, volumetype)
@@ -75,7 +75,7 @@ func dataSourceVolumeTypeRead(d *schema.ResourceData, meta interface{}, for_data
 		params := map[string]string{}
 		volumetypes, err := client.VolumeType.List(params)
 		if err != nil {
-			return fmt.Errorf("Error when get volume types %v", err)
+			return fmt.Errorf("error when get volume types %v", err)
 		}
 		allVolumeTypes = append(allVolumeTypes, volumetypes...)
 	}
@@ -83,7 +83,7 @@ func dataSourceVolumeTypeRead(d *schema.ResourceData, meta interface{}, for_data
 		var filteredVolumeTypes []gocmcapiv2.VolumeType
 		for _, volumetype := range allVolumeTypes {
 			if v := d.Get("description").(string); v != "" {
-				if strings.ToLower(volumetype.Description) != strings.ToLower(v) {
+				if !strings.EqualFold(volumetype.Name, v) {
 					continue
 				}
 			}
@@ -109,12 +109,12 @@ func dataSourceVolumeTypeRead(d *schema.ResourceData, meta interface{}, for_data
 		allVolumeTypes = filteredVolumeTypes
 	}
 	if len(allVolumeTypes) < 1 {
-		return fmt.Errorf("Your query returned no results. Please change your search criteria and try again")
+		return fmt.Errorf("your query returned no results. Please change your search criteria and try again")
 	}
 
 	if len(allVolumeTypes) > 1 {
 		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allVolumeTypes)
-		return fmt.Errorf("Your query returned more than one result. Please try a more specific search criteria")
+		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 
 	return dataSourceComputeVolumeTypeAttributes(d, allVolumeTypes[0])
@@ -123,7 +123,7 @@ func dataSourceVolumeTypeRead(d *schema.ResourceData, meta interface{}, for_data
 func dataSourceComputeVolumeTypeAttributes(d *schema.ResourceData, volumetype gocmcapiv2.VolumeType) error {
 	log.Printf("[DEBUG] Retrieved volumetype %s: %#v", volumetype.ID, volumetype)
 	d.SetId(volumetype.ID)
-	d.Set("name", volumetype.Name)
-	d.Set("description", volumetype.Description)
+	_ = d.Set("name", volumetype.Name)
+	_ = d.Set("description", volumetype.Description)
 	return nil
 }

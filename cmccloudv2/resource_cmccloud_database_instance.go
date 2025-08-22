@@ -29,11 +29,11 @@ func resourceDatabaseInstance() *schema.Resource {
 			_, sourceIDSet := diff.GetOk("source_id")
 			if sourceType == "new" {
 				if sourceIDSet {
-					return fmt.Errorf("When source_type is 'new', 'source_id' must not be set")
+					return fmt.Errorf("when source_type is 'new', 'source_id' must not be set")
 				}
 			} else {
 				if !sourceIDSet {
-					return fmt.Errorf("When source_type is not 'new', 'source_id' must be set")
+					return fmt.Errorf("when source_type is not 'new', 'source_id' must be set")
 				}
 			}
 			return nil
@@ -64,12 +64,12 @@ func resourceDatabaseInstanceCreate(d *schema.ResourceData, meta interface{}) er
 		"subnets":           d.Get("subnets").([]interface{}),
 	})
 	if err != nil {
-		return fmt.Errorf("Error creating Database Instance: %s", err)
+		return fmt.Errorf("error creating Database Instance: %s", err)
 	}
 	d.SetId(configuration.ID)
 	_, err = waitUntilDatabaseInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return fmt.Errorf("Error creating Database Instance: %s", err)
+		return fmt.Errorf("error creating Database Instance: %s", err)
 	}
 	return resourceDatabaseInstanceRead(d, meta)
 }
@@ -78,7 +78,7 @@ func resourceDatabaseInstanceRead(d *schema.ResourceData, meta interface{}) erro
 	client := meta.(*CombinedConfig).goCMCClient()
 	instance, err := client.DatabaseInstance.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving Database Instance %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving Database Instance %s: %v", d.Id(), err)
 	}
 
 	_ = d.Set("id", instance.ID)
@@ -107,7 +107,7 @@ func resourceDatabaseInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 	if d.HasChange("name") || d.HasChange("description") {
 		_, err := client.DatabaseInstance.Update(id, d.Get("parameters").(map[string]interface{}))
 		if err != nil {
-			return fmt.Errorf("Error when update info of Database Instance [%s]: %v", id, err)
+			return fmt.Errorf("error when update info of Database Instance [%s]: %v", id, err)
 		}
 	}
 	if d.HasChange("is_public") || d.HasChange("allowed_cidrs") {
@@ -116,49 +116,49 @@ func resourceDatabaseInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 			"allowed_cidrs": d.Get("allowed_cidrs").([]interface{}),
 		})
 		if err != nil {
-			return fmt.Errorf("Error when update accessibility of Database Instance [%s]: %v", id, err)
+			return fmt.Errorf("error when update accessibility of Database Instance [%s]: %v", id, err)
 		}
 		_, err = waitUntilDatabaseInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
-			return fmt.Errorf("Error when update accessibility of Database Instance [%s]: %v", id, err)
+			return fmt.Errorf("error when update accessibility of Database Instance [%s]: %v", id, err)
 		}
 	}
 	if d.HasChange("flavor_id") {
 		_, err := client.DatabaseInstance.Resize(id, d.Get("flavor_id").(string))
 		if err != nil {
-			return fmt.Errorf("Error when resize Database Instance [%s] to flavor [%s]: %v", id, d.Get("flavor_id").(string), err)
+			return fmt.Errorf("error when resize Database Instance [%s] to flavor [%s]: %v", id, d.Get("flavor_id").(string), err)
 		}
 		_, err = waitUntilDatabaseInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
-			return fmt.Errorf("Error when resize Database Instance [%s] to flavor [%s]: %v", id, d.Get("flavor_id").(string), err)
+			return fmt.Errorf("error when resize Database Instance [%s] to flavor [%s]: %v", id, d.Get("flavor_id").(string), err)
 		}
 	}
 	if d.HasChange("volume_size") {
 		_, err := client.DatabaseInstance.ResizeVolume(id, d.Get("volume_size").(int))
 		if err != nil {
-			return fmt.Errorf("Error when resize volume Database Instance [%s] to new size: %v", id, err)
+			return fmt.Errorf("error when resize volume Database Instance [%s] to new size: %v", id, err)
 		}
 		_, err = waitUntilDatabaseInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
-			return fmt.Errorf("Error when resize volume Database Instance [%s] to new size: %v", id, err)
+			return fmt.Errorf("error when resize volume Database Instance [%s] to new size: %v", id, err)
 		}
 	}
 
 	if d.HasChange("datastore_version") {
 		_, err := client.DatabaseInstance.UpgradeDatastoreVersion(id, d.Get("datastore_version").(string))
 		if err != nil {
-			return fmt.Errorf("Error when upgrade datastore version of Database Instance [%s]: %v", id, err)
+			return fmt.Errorf("error when upgrade datastore version of Database Instance [%s]: %v", id, err)
 		}
 		_, err = waitUntilDatabaseInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
-			return fmt.Errorf("Error when upgrade datastore version of Database Instance [%s]: %v", id, err)
+			return fmt.Errorf("error when upgrade datastore version of Database Instance [%s]: %v", id, err)
 		}
 	}
 
 	if d.HasChange("billing_mode") {
 		_, err := client.BillingMode.SetDatabaseInstanceBilingMode(id, d.Get("billing_mode").(string))
 		if err != nil {
-			return fmt.Errorf("Error when update billing mode of Database Instance [%s]: %v", id, err)
+			return fmt.Errorf("error when update billing mode of Database Instance [%s]: %v", id, err)
 		}
 	}
 	return resourceDatabaseInstanceRead(d, meta)
@@ -169,11 +169,11 @@ func resourceDatabaseInstanceDelete(d *schema.ResourceData, meta interface{}) er
 	_, err := client.DatabaseInstance.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete database instance: %v", err)
+		return fmt.Errorf("error delete database instance: %v", err)
 	}
 	_, err = waitUntilDatabaseInstanceDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete database instance: %v", err)
+		return fmt.Errorf("error delete database instance: %v", err)
 	}
 	return nil
 }

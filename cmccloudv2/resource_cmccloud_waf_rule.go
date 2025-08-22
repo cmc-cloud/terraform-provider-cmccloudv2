@@ -82,7 +82,7 @@ func resourceWafRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	rule, err := getClient(meta).WafRule.Create(params)
 
 	if err != nil {
-		return fmt.Errorf("Error creating waf rule: %s", err)
+		return fmt.Errorf("error creating waf rule: %s", err)
 	}
 	d.SetId(rule.ID)
 	return resourceWafRuleRead(d, meta)
@@ -91,7 +91,7 @@ func resourceWafRuleCreate(d *schema.ResourceData, meta interface{}) error {
 func resourceWafRuleRead(d *schema.ResourceData, meta interface{}) error {
 	rule, err := getClient(meta).WafRule.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving waf rule %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving waf rule %s: %v", d.Id(), err)
 	}
 
 	_ = d.Set("id", rule.ID)
@@ -121,7 +121,7 @@ func resourceWafRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	id := d.Id()
 	rule, err := getClient(meta).WafRule.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving waf rule %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving waf rule %s: %v", d.Id(), err)
 	}
 
 	params := map[string]interface{}{
@@ -141,7 +141,7 @@ func resourceWafRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 	_, err = client.WafRule.Update(id, params)
 	if err != nil {
-		return fmt.Errorf("Error when update waf rule [%s]: %v", id, err)
+		return fmt.Errorf("error when update waf rule [%s]: %v", id, err)
 	}
 
 	return resourceWafRuleRead(d, meta)
@@ -150,11 +150,11 @@ func resourceWafRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := getClient(meta).WafRule.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete waf rule: %v", err)
+		return fmt.Errorf("error delete waf rule: %v", err)
 	}
 	_, err = waitUntilWafRuleDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete waf rule: %v", err)
+		return fmt.Errorf("error delete waf rule: %v", err)
 	}
 	return nil
 }

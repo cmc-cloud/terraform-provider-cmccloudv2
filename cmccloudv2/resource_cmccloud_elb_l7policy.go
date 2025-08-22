@@ -47,12 +47,12 @@ func resourceELBL7policyCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 	l7policy, err := client.ELB.CreateL7Policy(datas)
 	if err != nil {
-		return fmt.Errorf("Error creating L7Policy: %s", err)
+		return fmt.Errorf("error creating L7Policy: %s", err)
 	}
 
 	_, err = waitUntilELBL7PolicyStatusChangedState(l7policy.ID, d, meta, []string{"ACTIVE"}, []string{"ERROR", "DELETED"}, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return fmt.Errorf("Error creating ELB L7 Policy: %s", err)
+		return fmt.Errorf("error creating ELB L7 Policy: %s", err)
 	}
 	d.SetId(l7policy.ID)
 	return resourceELBL7policyRead(d, meta)
@@ -67,29 +67,29 @@ func resourceELBL7policyRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading L7Policy: %s", err)
+		return fmt.Errorf("error reading L7Policy: %s", err)
 	}
 
-	d.Set("name", l7policy.Name)
-	d.Set("action", l7policy.Action)
-	d.Set("listener_id", l7policy.ListenerID)
+	_ = d.Set("name", l7policy.Name)
+	_ = d.Set("action", l7policy.Action)
+	_ = d.Set("listener_id", l7policy.ListenerID)
 	setInt(d, "position", l7policy.Position)
 	// d.Set("position", l7policy.Position)
 
 	if l7policy.Action == "REDIRECT_TO_POOL" {
-		d.Set("redirect_pool_id", l7policy.RedirectPoolID)
+		_ = d.Set("redirect_pool_id", l7policy.RedirectPoolID)
 	}
 
 	if l7policy.Action == "REDIRECT_PREFIX" {
-		d.Set("redirect_prefix", l7policy.RedirectPrefix)
+		_ = d.Set("redirect_prefix", l7policy.RedirectPrefix)
 	}
 
 	if l7policy.Action == "REDIRECT_TO_URL" || l7policy.Action == "REDIRECT_PREFIX" {
-		d.Set("redirect_url", l7policy.RedirectURL)
+		_ = d.Set("redirect_url", l7policy.RedirectURL)
 	}
 
 	if l7policy.Action == "REDIRECT_TO_URL" || l7policy.Action == "REDIRECT_PREFIX" {
-		d.Set("redirect_http_code", l7policy.RedirectHTTPCode)
+		_ = d.Set("redirect_http_code", l7policy.RedirectHTTPCode)
 	}
 
 	return nil
@@ -112,11 +112,11 @@ func resourceELBL7policyUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 	_, err := client.ELB.UpdateL7Policy(d.Id(), datas)
 	if err != nil {
-		return fmt.Errorf("Error updating L7Policy: %s", err)
+		return fmt.Errorf("error updating L7Policy: %s", err)
 	}
 	_, err = waitUntilELBL7PolicyStatusChangedState(d.Id(), d, meta, []string{"ONLINE", "ACTIVE", "OFFLINE", "NO_MONITOR"}, []string{"ERROR", "DELETED", "DEGRADED"}, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return fmt.Errorf("Error when change flavor of ELB [%s]: %v", d.Id(), err)
+		return fmt.Errorf("error when change flavor of ELB [%s]: %v", d.Id(), err)
 	}
 	return resourceELBL7policyRead(d, meta)
 }
@@ -126,11 +126,11 @@ func resourceELBL7policyDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := client.ELB.DeleteL7Policy(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete L7 Policy: %v", err)
+		return fmt.Errorf("error delete L7 Policy: %v", err)
 	}
 	_, err = waitUntilEELBL7PolicyDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete L7 Policy: %v", err)
+		return fmt.Errorf("error delete L7 Policy: %v", err)
 	}
 	d.SetId("")
 	return nil

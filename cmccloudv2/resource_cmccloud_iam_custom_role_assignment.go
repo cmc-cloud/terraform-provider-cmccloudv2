@@ -27,7 +27,7 @@ func resourceIamCustomRoleAssignmentCreate(d *schema.ResourceData, meta interfac
 	_, err := getClient(meta).IamCustomRole.AssignCustomRoleFromGroupOnProject(d.Get("project_id").(string), d.Get("group_id").(string), d.Get("custom_role_id").(string))
 
 	if err != nil {
-		return fmt.Errorf("Error creating iam custom role assignment: %s", err)
+		return fmt.Errorf("error creating iam custom role assignment: %s", err)
 	}
 
 	d.SetId(fmt.Sprintf("%s_%s_%s", d.Get("project_id").(string), d.Get("group_id").(string), d.Get("custom_role_id").(string)))
@@ -58,9 +58,9 @@ func resourceIamCustomRoleAssignmentRead(d *schema.ResourceData, meta interface{
 		parts[0] = id[:splitIdx1]
 		parts[1] = id[splitIdx1+1 : splitIdx2]
 		parts[2] = id[splitIdx2+1:]
-		d.Set("project_id", parts[0])
-		d.Set("group_id", parts[1])
-		d.Set("custom_role_id", parts[2])
+		_ = d.Set("project_id", parts[0])
+		_ = d.Set("group_id", parts[1])
+		_ = d.Set("custom_role_id", parts[2])
 	}
 	return nil
 }
@@ -69,7 +69,7 @@ func resourceIamCustomRoleAssignmentDelete(d *schema.ResourceData, meta interfac
 	_, err := getClient(meta).IamCustomRole.UnsignCustomRoleFromGroupOnProject(d.Get("project_id").(string), d.Get("group_id").(string), d.Get("custom_role_id").(string))
 
 	if err != nil {
-		return fmt.Errorf("Error delete iam custom role assignment: %v", err)
+		return fmt.Errorf("error delete iam custom role assignment: %v", err)
 	}
 	return nil
 }

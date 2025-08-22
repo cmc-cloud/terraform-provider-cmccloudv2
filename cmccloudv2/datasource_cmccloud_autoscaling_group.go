@@ -66,7 +66,7 @@ func dataSourceAutoScalingGroupRead(d *schema.ResourceData, meta interface{}) er
 		if err != nil {
 			if errors.Is(err, gocmcapiv2.ErrNotFound) {
 				d.SetId("")
-				return fmt.Errorf("Unable to retrieve autoscaling group [%s]: %s", autoscalinggroup_id, err)
+				return fmt.Errorf("unable to retrieve autoscaling group [%s]: %s", autoscalinggroup_id, err)
 			}
 		}
 		allAutoScalingGroups = append(allAutoScalingGroups, autoscalinggroup)
@@ -76,7 +76,7 @@ func dataSourceAutoScalingGroupRead(d *schema.ResourceData, meta interface{}) er
 		}
 		autoscalinggroups, err := client.AutoScalingGroup.List(params)
 		if err != nil {
-			return fmt.Errorf("Error when get autoscaling group %v", err)
+			return fmt.Errorf("error when get autoscaling group %v", err)
 		}
 		allAutoScalingGroups = append(allAutoScalingGroups, autoscalinggroups...)
 	}
@@ -84,22 +84,22 @@ func dataSourceAutoScalingGroupRead(d *schema.ResourceData, meta interface{}) er
 		var filteredAutoScalingGroups []gocmcapiv2.AutoScalingGroup
 		for _, autoscalinggroup := range allAutoScalingGroups {
 			if v := d.Get("name").(string); v != "" {
-				if strings.ToLower(autoscalinggroup.Name) != strings.ToLower(v) {
+				if !strings.EqualFold(autoscalinggroup.Name, v) {
 					continue
 				}
 			}
 			if v := d.Get("configuration_id").(string); v != "" {
-				if strings.ToLower(autoscalinggroup.ProfileID) != strings.ToLower(v) {
+				if !strings.EqualFold(autoscalinggroup.ProfileID, v) {
 					continue
 				}
 			}
 			if v := d.Get("configuration_name").(string); v != "" {
-				if strings.ToLower(autoscalinggroup.ProfileName) != strings.ToLower(v) {
+				if !strings.EqualFold(autoscalinggroup.ProfileName, v) {
 					continue
 				}
 			}
 			if v := d.Get("status").(string); v != "" {
-				if strings.ToLower(autoscalinggroup.Status) != strings.ToLower(v) {
+				if !strings.EqualFold(autoscalinggroup.Status, v) {
 					continue
 				}
 			}
@@ -108,12 +108,12 @@ func dataSourceAutoScalingGroupRead(d *schema.ResourceData, meta interface{}) er
 		allAutoScalingGroups = filteredAutoScalingGroups
 	}
 	if len(allAutoScalingGroups) < 1 {
-		return fmt.Errorf("Your query returned no results. Please change your search criteria and try again")
+		return fmt.Errorf("your query returned no results. Please change your search criteria and try again")
 	}
 
 	if len(allAutoScalingGroups) > 1 {
 		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allAutoScalingGroups)
-		return fmt.Errorf("Your query returned more than one result. Please try a more specific search criteria")
+		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 
 	return dataSourceComputeAutoScalingGroupAttributes(d, allAutoScalingGroups[0])
@@ -122,7 +122,7 @@ func dataSourceAutoScalingGroupRead(d *schema.ResourceData, meta interface{}) er
 func dataSourceComputeAutoScalingGroupAttributes(d *schema.ResourceData, autoscalinggroup gocmcapiv2.AutoScalingGroup) error {
 	log.Printf("[DEBUG] Retrieved autoscaling group %s: %#v", autoscalinggroup.ID, autoscalinggroup)
 	d.SetId(autoscalinggroup.ID)
-	d.Set("name", autoscalinggroup.Name)
-	d.Set("created_at", autoscalinggroup.CreatedAt)
+	_ = d.Set("name", autoscalinggroup.Name)
+	_ = d.Set("created_at", autoscalinggroup.CreatedAt)
 	return nil
 }

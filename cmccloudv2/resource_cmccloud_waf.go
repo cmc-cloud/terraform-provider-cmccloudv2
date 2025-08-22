@@ -56,14 +56,14 @@ func resourceWafCreate(d *schema.ResourceData, meta interface{}) error {
 	client := getClient(meta)
 	account, err := client.Account.Get()
 	if err != nil {
-		return fmt.Errorf("Error getting account info: %s", err)
+		return fmt.Errorf("error getting account info: %s", err)
 	}
 	params := getParams(d)
 	params["user_id"] = account.ID
 	waf, err := getClient(meta).Waf.Create(params)
 
 	if err != nil {
-		return fmt.Errorf("Error creating waf: %s", err)
+		return fmt.Errorf("error creating waf: %s", err)
 	}
 	d.SetId(waf.ID)
 
@@ -76,7 +76,7 @@ func resourceWafCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 	_, err = getClient(meta).Waf.UpdateLoadBalance(d.Id(), params)
 	if err != nil {
-		return fmt.Errorf("Error creating waf: %s", err)
+		return fmt.Errorf("error creating waf: %s", err)
 	}
 
 	return resourceWafRead(d, meta)
@@ -85,10 +85,10 @@ func resourceWafCreate(d *schema.ResourceData, meta interface{}) error {
 func resourceWafRead(d *schema.ResourceData, meta interface{}) error {
 	waf, err := getClient(meta).Waf.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving Waf %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving Waf %s: %v", d.Id(), err)
 	}
 
-	port, err := strconv.Atoi(waf.Port)
+	port, _ := strconv.Atoi(waf.Port)
 
 	_ = d.Set("id", waf.ID)
 	_ = d.Set("domain", waf.Domain)
@@ -115,7 +115,7 @@ func resourceWafUpdate(d *schema.ResourceData, meta interface{}) error {
 		params := getParams(d)
 		_, err := client.Waf.Update(id, params)
 		if err != nil {
-			return fmt.Errorf("Error when update waf [%s]: %v", id, err)
+			return fmt.Errorf("error when update waf [%s]: %v", id, err)
 		}
 	}
 	if d.HasChanges("load_balance_enable", "load_balance_keepalive", "load_balance_method") {
@@ -127,7 +127,7 @@ func resourceWafUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 		_, err := getClient(meta).Waf.UpdateLoadBalance(d.Id(), params)
 		if err != nil {
-			return fmt.Errorf("Error updating waf load balance: %s", err)
+			return fmt.Errorf("error updating waf load balance: %s", err)
 		}
 	}
 	return resourceWafRead(d, meta)
@@ -136,11 +136,11 @@ func resourceWafDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := getClient(meta).Waf.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete waf: %v", err)
+		return fmt.Errorf("error delete waf: %v", err)
 	}
 	_, err = waitUntilWafDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete waf: %v", err)
+		return fmt.Errorf("error delete waf: %v", err)
 	}
 	return nil
 }

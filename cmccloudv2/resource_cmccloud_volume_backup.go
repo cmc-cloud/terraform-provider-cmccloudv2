@@ -34,12 +34,12 @@ func resourceVolumeBackupCreate(d *schema.ResourceData, meta interface{}) error 
 		"incremental": d.Get("incremental").(bool),
 	})
 	if err != nil {
-		return fmt.Errorf("Error creating backup of volume [%s]: %v", d.Get("volume_id").(string), err)
+		return fmt.Errorf("error creating backup of volume [%s]: %v", d.Get("volume_id").(string), err)
 	}
 	d.SetId(backup.ID)
 	_, err = waitUntilVolumeBackupStatusChangedState(d, meta, []string{"available"}, []string{"error"})
 	if err != nil {
-		return fmt.Errorf("Error creating backup of volume [%s]: %v", d.Get("volume_id").(string), err)
+		return fmt.Errorf("error creating backup of volume [%s]: %v", d.Get("volume_id").(string), err)
 	}
 	return resourceVolumeBackupRead(d, meta)
 }
@@ -48,7 +48,7 @@ func resourceVolumeBackupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	backup, err := client.Backup.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving backup %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving backup %s: %v", d.Id(), err)
 	}
 
 	// real_size := float64(backup.RealSize) / (1024 * 1024 * 1024)
@@ -73,7 +73,7 @@ func resourceVolumeBackupUpdate(d *schema.ResourceData, meta interface{}) error 
 	if d.HasChange("name") {
 		_, err := client.Backup.Rename(id, d.Get("name").(string))
 		if err != nil {
-			return fmt.Errorf("Error when rename Backup [%s]: %v", id, err)
+			return fmt.Errorf("error when rename Backup [%s]: %v", id, err)
 		}
 	}
 	return resourceVolumeBackupRead(d, meta)
@@ -84,11 +84,11 @@ func resourceVolumeBackupDelete(d *schema.ResourceData, meta interface{}) error 
 	_, err := client.Backup.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete volume backup [%s]: %v", d.Id(), err)
+		return fmt.Errorf("error delete volume backup [%s]: %v", d.Id(), err)
 	}
 	_, err = waitUntilVolumeBackupDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete volume backup: %v", err)
+		return fmt.Errorf("error delete volume backup: %v", err)
 	}
 	return nil
 }

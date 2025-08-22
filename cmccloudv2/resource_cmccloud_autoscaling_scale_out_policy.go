@@ -38,7 +38,7 @@ func resourceAutoScalingScaleOutPolicyCreate(d *schema.ResourceData, meta interf
 	res, err := client.AutoScalingPolicy.CreateScalePolicy(params)
 
 	if err != nil {
-		return fmt.Errorf("Error creating scale out policy: %v", err.Error())
+		return fmt.Errorf("error creating scale out policy: %v", err.Error())
 	}
 	d.SetId(res.ID)
 	return resourceAutoScalingScaleOutPolicyRead(d, meta)
@@ -48,7 +48,7 @@ func resourceAutoScalingScaleOutPolicyRead(d *schema.ResourceData, meta interfac
 	client := meta.(*CombinedConfig).goCMCClient()
 	policy, err := client.AutoScalingPolicy.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving scale out policy %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving scale out policy %s: %v", d.Id(), err)
 	}
 	_ = d.Set("name", policy.Name)
 	_ = d.Set("scale_number", policy.Spec.Properties.Adjustment.Number)
@@ -65,7 +65,7 @@ func resourceAutoScalingScaleOutPolicyUpdate(d *schema.ResourceData, meta interf
 		}
 		_, err := client.AutoScalingPolicy.UpdateScalePolicy(d.Id(), params)
 		if err != nil {
-			return fmt.Errorf("Error when update scale out policy [%s]: %v", d.Id(), err)
+			return fmt.Errorf("error when update scale out policy [%s]: %v", d.Id(), err)
 		}
 	}
 	return resourceAutoScalingScaleOutPolicyRead(d, meta)
@@ -76,11 +76,11 @@ func resourceAutoScalingScaleOutPolicyDelete(d *schema.ResourceData, meta interf
 	_, err := client.AutoScalingPolicy.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete scale out policy: %v", err)
+		return fmt.Errorf("error delete scale out policy: %v", err)
 	}
 	_, err = waitUntilAutoScalingPolicyDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete scale out policy: %v", err)
+		return fmt.Errorf("error delete scale out policy: %v", err)
 	}
 	return nil
 }

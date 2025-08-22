@@ -35,7 +35,7 @@ func resourceIamUserServerPermissionCreate(d *schema.ResourceData, meta interfac
 	})
 
 	if err != nil {
-		return fmt.Errorf("Error setting iam user server permission: %s", err)
+		return fmt.Errorf("error setting iam user server permission: %s", err)
 	}
 
 	d.SetId(fmt.Sprintf("%s+%s", d.Get("user_name").(string), d.Get("server_id").(string)))
@@ -53,7 +53,7 @@ func resourceIamUserServerPermissionUpdate(d *schema.ResourceData, meta interfac
 	})
 
 	if err != nil {
-		return fmt.Errorf("Error setting iam user server permission: %s", err)
+		return fmt.Errorf("error setting iam user server permission: %s", err)
 	}
 	return resourceIamUserServerPermissionRead(d, meta)
 }
@@ -70,21 +70,21 @@ func resourceIamUserServerPermissionRead(d *schema.ResourceData, meta interface{
 	if splitIdx != -1 {
 		parts[0] = id[:splitIdx]
 		parts[1] = id[splitIdx+1:]
-		d.Set("user_name", parts[0])
-		d.Set("server_id", parts[1])
+		_ = d.Set("user_name", parts[0])
+		_ = d.Set("server_id", parts[1])
 	}
 	permissions, err := getClient(meta).IamUser.GetServerPermission(d.Get("user_name").(string))
 	if err != nil {
-		return fmt.Errorf("Error read iam user permission: %v", err)
+		return fmt.Errorf("error read iam user permission: %v", err)
 	}
 	var found bool
 	for _, perm := range permissions {
 		if perm.ServerID == parts[1] {
-			d.Set("blocked", perm.Blocked)
-			d.Set("allow_view", perm.AllowView)
-			d.Set("allow_edit", perm.AllowEdit)
-			d.Set("allow_create", perm.AllowCreate)
-			d.Set("allow_delete", perm.AllowDelete)
+			_ = d.Set("blocked", perm.Blocked)
+			_ = d.Set("allow_view", perm.AllowView)
+			_ = d.Set("allow_edit", perm.AllowEdit)
+			_ = d.Set("allow_create", perm.AllowCreate)
+			_ = d.Set("allow_delete", perm.AllowDelete)
 			found = true
 			break
 		}
@@ -106,7 +106,7 @@ func resourceIamUserServerPermissionDelete(d *schema.ResourceData, meta interfac
 	})
 
 	if err != nil {
-		return fmt.Errorf("Error delete iam user permission: %v", err)
+		return fmt.Errorf("error delete iam user permission: %v", err)
 	}
 	return nil
 }

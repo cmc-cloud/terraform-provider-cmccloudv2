@@ -3,8 +3,8 @@ package cmccloudv2
 import (
 	"bytes"
 	"fmt"
+	"hash/crc32"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -127,7 +127,7 @@ func computeSecGroupV2RuleHash(v interface{}) int {
 	buf.WriteString(fmt.Sprintf("%s-", m["remote_group_id"].(string)))
 	buf.WriteString(fmt.Sprintf("%s-", m["ether_type"].(string)))
 
-	hash := hashcode.String(buf.String())
+	hash := int(crc32.ChecksumIEEE(buf.Bytes()))
 
 	// In ra log hoặc console (nếu bạn có logger tốt hơn thì thay thế)
 	// gocmcapiv2.Logs(fmt.Sprintf("[DEBUG] Rule Hash Input: %s -> Hash: %d", buf.String(), hash))

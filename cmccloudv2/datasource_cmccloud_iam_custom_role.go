@@ -43,7 +43,7 @@ func dataSourceIamCustomRoleRead(d *schema.ResourceData, meta interface{}) error
 	}
 	alls, err := client.IamCustomRole.List(params)
 	if err != nil {
-		return fmt.Errorf("Error when get iam custom role %v", err)
+		return fmt.Errorf("error when get iam custom role %v", err)
 	}
 	if len(alls) > 0 {
 		var filtered []gocmcapiv2.IamCustomRole
@@ -59,18 +59,18 @@ func dataSourceIamCustomRoleRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if len(alls) < 1 {
-		return fmt.Errorf("Your query returned no results. Please change your search criteria and try again")
+		return fmt.Errorf("your query returned no results. Please change your search criteria and try again")
 	}
 
 	if len(alls) > 1 {
 		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", alls)
-		return fmt.Errorf("Your query returned more than one result. Please try a more specific search criteria")
+		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 
 	role := alls[0]
 	d.SetId(role.ID)
-	d.Set("name", role.Name)
-	d.Set("description", role.Description)
-	d.Set("created", role.Created)
+	_ = d.Set("name", role.Name)
+	_ = d.Set("description", role.Description)
+	_ = d.Set("created", role.Created)
 	return nil
 }

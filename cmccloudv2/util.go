@@ -3,6 +3,7 @@ package cmccloudv2
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"strings"
 	"time"
@@ -19,38 +20,54 @@ type WaitConf struct {
 }
 
 func isSet(diff *schema.ResourceDiff, key string) bool {
+	// if v, ok := diff.GetOk(key); ok {
+	// 	// user explicitly set trong .tf (true hoặc false)
+	// 	switch val := v.(type) {
+	// 	case int:
+	// 		return val != 0
+	// 	case string:
+	// 		return val != ""
+	// 	case bool:
+	// 		return val
+	// 	default:
+	// 		return ok
+	// 	}
+	// } else {
+	// 	// user không set, đang dùng default
+	// 	return false
+	// }
 	v, ok := diff.GetOkExists(key)
 	if !ok {
 		// gocmcapiv2.Logo("isSet "+key+" not exists ", v)
 		return false
 	} else {
 		// gocmcapiv2.Logo("isSet "+key+" exists ", v)
-		switch v.(type) {
+		switch val := v.(type) {
 		case int:
-			if v.(int) == 0 {
-				return false
-			}
-			return true
+			return val != 0
 		case string:
-			if v.(string) == "" {
-				return false
-			}
-			return true
+			return val != ""
 		case bool:
-			if v.(bool) == false {
-				return false
-			}
-			return true
+			return val
 		default:
+			return ok
 		}
 	}
-	return ok
+	// return ok
 }
 func setBool(d *schema.ResourceData, key string, newval bool) {
-	v, exists := d.GetOkExists(key)
-	if exists && v.(bool) != newval {
-		_ = d.Set(key, newval)
-	}
+	// v, exists := d.GetOkExists(key)
+	// if exists && v.(bool) != newval {
+	// 	_ = d.Set(key, newval)
+	// }
+	if v, exists := d.GetOk(key); exists {
+		// user explicitly set trong .tf (true hoặc false)
+		if newval != v.(bool) {
+			_ = d.Set(key, newval)
+		}
+	} //else {
+	// user không set, đang dùng default
+	//}
 }
 func setInt(d *schema.ResourceData, key string, newval int) {
 	// kiem tra xem co khac voi gia tri hien tai ko, gia tri hien tai co the chi la gia tri default
@@ -140,28 +157,28 @@ func caseInsensitiveDiffSuppress(k, old, new string, d *schema.ResourceData) boo
 	return strings.EqualFold(old, new)
 }
 
-func arrayContains(slice []string, item string) bool {
-	for _, v := range slice {
-		if v == item {
-			return true
-		}
-	}
-	return false
-}
+// func arrayContains(slice []string, item string) bool {
+// 	for _, v := range slice {
+// 		if v == item {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
 
 func isIpBelongToCidr(ip_str, cidr_str string) (bool, error) {
 	ip := net.ParseIP(ip_str)
 	if ip == nil {
-		return false, fmt.Errorf("Invalid IP address %s", ip_str)
+		return false, fmt.Errorf("invalid IP address %s", ip_str)
 	}
 
 	_, cidr, err := net.ParseCIDR(cidr_str)
 	if err != nil {
-		return false, fmt.Errorf("Invalid IP CIDR %s %v", cidr_str, err)
+		return false, fmt.Errorf("invalid IP CIDR %s %v", cidr_str, err)
 	}
 
 	if !cidr.Contains(ip) {
-		return false, fmt.Errorf("IP address %s is not within the CIDR block %s", ip_str, cidr_str)
+		return false, fmt.Errorf("ip address %s is not within the CIDR block %s", ip_str, cidr_str)
 	}
 	return true, nil
 }
@@ -197,7 +214,7 @@ func _checkStatusRefreshFunc(id string, d *schema.ResourceData, meta interface{}
 	return func() (interface{}, string, error) {
 		resource, err := getResourceFunc(id)
 		if err != nil {
-			fmt.Errorf("Error retrieving resource %s: %v", id, err)
+			log.Printf("Error retrieving resource %s: %v", id, err)
 			return nil, "", err
 		}
 		newStatus := getStatusFunc(resource)
@@ -346,22 +363,22 @@ func IfThenElse(condition bool, a interface{}, b interface{}) interface{} {
 	return b
 }
 
-func stringArrayToSet(items []string) *schema.Set {
-	set := schema.NewSet(schema.HashString, []interface{}{})
-	for _, v := range items {
-		set.Add(v)
-	}
-	return set
-}
+// func stringArrayToSet(items []string) *schema.Set {
+// 	set := schema.NewSet(schema.HashString, []interface{}{})
+// 	for _, v := range items {
+// 		set.Add(v)
+// 	}
+// 	return set
+// }
 
-func setToStringArray(items *schema.Set) []string {
-	flatten := make([]string, items.Len())
+// func setToStringArray(items *schema.Set) []string {
+// 	flatten := make([]string, items.Len())
 
-	for i, v := range items.List() {
-		flatten[i] = v.(string)
-	}
-	return flatten
-}
+// 	for i, v := range items.List() {
+// 		flatten[i] = v.(string)
+// 	}
+// 	return flatten
+// }
 
 /*
 func interfaceToString(items []interface{}) []string {

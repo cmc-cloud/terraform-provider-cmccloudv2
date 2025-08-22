@@ -35,7 +35,7 @@ func resourceDnsAclCreate(d *schema.ResourceData, meta interface{}) error {
 	acl, err := getClient(meta).DnsAcl.Create(d.Get("zone_id").(string), params)
 
 	if err != nil {
-		return fmt.Errorf("Error creating acl: %s", err)
+		return fmt.Errorf("error creating acl: %s", err)
 	}
 	d.SetId(acl.ID)
 
@@ -53,7 +53,7 @@ func resourceDnsAclUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 	_, err := client.DnsAcl.Update(d.Get("zone_id").(string), id, params)
 	if err != nil {
-		return fmt.Errorf("Error when update dns acl [%s]: %v", id, err)
+		return fmt.Errorf("error when update dns acl [%s]: %v", id, err)
 	}
 
 	return resourceDnsAclRead(d, meta)
@@ -61,7 +61,7 @@ func resourceDnsAclUpdate(d *schema.ResourceData, meta interface{}) error {
 func resourceDnsAclRead(d *schema.ResourceData, meta interface{}) error {
 	acl, err := getClient(meta).DnsAcl.Get(d.Get("zone_id").(string), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving DnsAcl %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving DnsAcl %s: %v", d.Id(), err)
 	}
 
 	_ = d.Set("id", acl.ID)
@@ -79,11 +79,11 @@ func resourceDnsAclDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := getClient(meta).DnsAcl.Delete(d.Get("zone_id").(string), d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete acl: %v", err)
+		return fmt.Errorf("error delete acl: %v", err)
 	}
 	_, err = waitUntilDnsAclDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete acl: %v", err)
+		return fmt.Errorf("error delete acl: %v", err)
 	}
 	return nil
 }

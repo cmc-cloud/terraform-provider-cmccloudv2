@@ -39,7 +39,7 @@ func dataSourceIamProjectRead(d *schema.ResourceData, meta interface{}) error {
 	params := map[string]string{}
 	alls, err := client.IamProject.List(params)
 	if err != nil {
-		return fmt.Errorf("Error when get iam projects %v", err)
+		return fmt.Errorf("error when get iam projects %v", err)
 	}
 	if len(alls) > 0 {
 		var filtered []gocmcapiv2.IamProject
@@ -60,17 +60,17 @@ func dataSourceIamProjectRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if len(alls) < 1 {
-		return fmt.Errorf("Your query returned no results. Please change your search criteria and try again")
+		return fmt.Errorf("your query returned no results. Please change your search criteria and try again")
 	}
 
 	if len(alls) > 1 {
 		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", alls)
-		return fmt.Errorf("Your query returned more than one result. Please try a more specific search criteria")
+		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 
 	project := alls[0]
 	d.SetId(project.ID)
-	d.Set("name", project.Name)
+	_ = d.Set("name", project.Name)
 	// d.Set("region_id", project.RegionId)
 	return nil
 }

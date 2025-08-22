@@ -77,7 +77,7 @@ func dataSourceVolumeRead(d *schema.ResourceData, meta interface{}) error {
 		if err != nil {
 			if errors.Is(err, gocmcapiv2.ErrNotFound) {
 				d.SetId("")
-				return fmt.Errorf("Unable to retrieve volume [%s]: %s", volume_id, err)
+				return fmt.Errorf("unable to retrieve volume [%s]: %s", volume_id, err)
 			}
 		}
 		allVolumes = append(allVolumes, volume)
@@ -91,7 +91,7 @@ func dataSourceVolumeRead(d *schema.ResourceData, meta interface{}) error {
 		}
 		volumes, err := client.Volume.List(params)
 		if err != nil {
-			return fmt.Errorf("Error when get volumes %v", err)
+			return fmt.Errorf("error when get volumes %v", err)
 		}
 		allVolumes = append(allVolumes, volumes...)
 	}
@@ -119,24 +119,33 @@ func dataSourceVolumeRead(d *schema.ResourceData, meta interface{}) error {
 					continue
 				}
 			}
-			if v, ok := d.GetOkExists("bootable"); ok {
+			// if v, ok := d.GetOkExists("bootable"); ok {
+			// 	boot, _ := strconv.ParseBool(volume.Bootable)
+			// 	if boot != v.(bool) {
+			// 		continue
+			// 	}
+			// }
+			if v, ok := d.GetOk("bootable"); ok {
+				// user explicitly set trong .tf (true hoặc false)
 				boot, _ := strconv.ParseBool(volume.Bootable)
 				if boot != v.(bool) {
 					continue
 				}
-			}
+			} //else {
+			// user không set, đang dùng default
+			//}
 
 			filteredVolumes = append(filteredVolumes, volume)
 		}
 		allVolumes = filteredVolumes
 	}
 	if len(allVolumes) < 1 {
-		return fmt.Errorf("Your query returned no results. Please change your search criteria and try again")
+		return fmt.Errorf("your query returned no results. Please change your search criteria and try again")
 	}
 
 	if len(allVolumes) > 1 {
 		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allVolumes)
-		return fmt.Errorf("Your query returned more than one result. Please try a more specific search criteria")
+		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 
 	return dataSourceComputeVolumeAttributes(d, allVolumes[0])
@@ -145,16 +154,16 @@ func dataSourceVolumeRead(d *schema.ResourceData, meta interface{}) error {
 func dataSourceComputeVolumeAttributes(d *schema.ResourceData, volume gocmcapiv2.Volume) error {
 	log.Printf("[DEBUG] Retrieved volume %s: %#v", volume.ID, volume)
 	d.SetId(volume.ID)
-	d.Set("name", volume.Name)
-	d.Set("status", volume.Status)
-	d.Set("bootable", volume.Bootable)
-	d.Set("zone", volume.AvailabilityZone)
-	d.Set("description", volume.Description)
-	d.Set("created_at", volume.CreatedAt)
+	_ = d.Set("name", volume.Name)
+	_ = d.Set("status", volume.Status)
+	_ = d.Set("bootable", volume.Bootable)
+	_ = d.Set("zone", volume.AvailabilityZone)
+	_ = d.Set("description", volume.Description)
+	_ = d.Set("created_at", volume.CreatedAt)
 	server_id := ""
 	if len(volume.Attachments) > 0 {
 		server_id = volume.Attachments[0].ServerID
 	}
-	d.Set("server_id", server_id)
+	_ = d.Set("server_id", server_id)
 	return nil
 }

@@ -25,32 +25,33 @@ func resourceWafWhitelist() *schema.Resource {
 		Schema:        wafwhitelistSchema(),
 	}
 }
-func getWhitelistMz(d *schema.ResourceData) string {
-	var mz []string
-	if d.Get("match_request_body").(bool) {
-		mz = append(mz, "BODY")
-	}
-	if d.Get("match_get_arguments").(bool) {
-		mz = append(mz, "ARGS")
-	}
-	if d.Get("match_http_headers").(bool) {
-		mz = append(mz, "HEADERS")
-	}
-	if d.Get("match_filename").(bool) {
-		mz = append(mz, "FILE_EXT")
-	}
-	if d.Get("match_url").(bool) {
-		mz = append(mz, "URL")
-	}
-	if d.Get("match_name_check").(bool) {
-		mz = append(mz, "NAME")
-	}
 
-	if d.Get("match_header_var").(string) != "" {
-		mz = append(mz, d.Get("match_header_var").(string))
-	}
-	return strings.Join(mz, "|")
-}
+// func getWhitelistMz(d *schema.ResourceData) string {
+// 	var mz []string
+// 	if d.Get("match_request_body").(bool) {
+// 		mz = append(mz, "BODY")
+// 	}
+// 	if d.Get("match_get_arguments").(bool) {
+// 		mz = append(mz, "ARGS")
+// 	}
+// 	if d.Get("match_http_headers").(bool) {
+// 		mz = append(mz, "HEADERS")
+// 	}
+// 	if d.Get("match_filename").(bool) {
+// 		mz = append(mz, "FILE_EXT")
+// 	}
+// 	if d.Get("match_url").(bool) {
+// 		mz = append(mz, "URL")
+// 	}
+// 	if d.Get("match_name_check").(bool) {
+// 		mz = append(mz, "NAME")
+// 	}
+
+// 	if d.Get("match_header_var").(string) != "" {
+// 		mz = append(mz, d.Get("match_header_var").(string))
+// 	}
+// 	return strings.Join(mz, "|")
+// }
 
 func resourceWafWhitelistCreate(d *schema.ResourceData, meta interface{}) error {
 	params := map[string]interface{}{
@@ -69,7 +70,7 @@ func resourceWafWhitelistCreate(d *schema.ResourceData, meta interface{}) error 
 	whitelist, err := getClient(meta).WafWhitelist.Create(params)
 
 	if err != nil {
-		return fmt.Errorf("Error creating waf whitelist: %s", err)
+		return fmt.Errorf("error creating waf whitelist: %s", err)
 	}
 	d.SetId(whitelist.ID)
 	return resourceWafWhitelistRead(d, meta)
@@ -78,7 +79,7 @@ func resourceWafWhitelistCreate(d *schema.ResourceData, meta interface{}) error 
 func resourceWafWhitelistRead(d *schema.ResourceData, meta interface{}) error {
 	whitelist, err := getClient(meta).WafWhitelist.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving waf whitelist %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving waf whitelist %s: %v", d.Id(), err)
 	}
 
 	_ = d.Set("id", whitelist.ID)
@@ -93,7 +94,8 @@ func resourceWafWhitelistRead(d *schema.ResourceData, meta interface{}) error {
 	setBool(d, "match_url", strings.Contains(whitelist.Mz, "URL"))
 	setBool(d, "match_name_check", strings.Contains(whitelist.Mz, "NAME"))
 
-	if v, ok := d.GetOkExists("match_header_var"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("match_header_var"); ok && v.(string) != "" {
+		// if v, ok := d.GetOkExists("match_header_var"); ok && v.(string) != "" {
 		if strings.Contains(whitelist.Mz, "Cookie") {
 			_ = d.Set("match_header_var", "Cookie")
 		}
@@ -131,7 +133,7 @@ func resourceWafWhitelistUpdate(d *schema.ResourceData, meta interface{}) error 
 	}
 	_, err := client.WafWhitelist.Update(id, params)
 	if err != nil {
-		return fmt.Errorf("Error when update waf whitelist [%s]: %v", id, err)
+		return fmt.Errorf("error when update waf whitelist [%s]: %v", id, err)
 	}
 
 	return resourceVPCRead(d, meta)
@@ -140,11 +142,11 @@ func resourceWafWhitelistDelete(d *schema.ResourceData, meta interface{}) error 
 	_, err := getClient(meta).WafWhitelist.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete waf whitelist: %v", err)
+		return fmt.Errorf("error delete waf whitelist: %v", err)
 	}
 	_, err = waitUntilWafWhitelistDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete waf whitelist: %v", err)
+		return fmt.Errorf("error delete waf whitelist: %v", err)
 	}
 	return nil
 }

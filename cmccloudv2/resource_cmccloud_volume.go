@@ -43,12 +43,12 @@ func resourceVolumeCreate(d *schema.ResourceData, meta interface{}) error {
 		"tags":         d.Get("tags").(*schema.Set).List(),
 	})
 	if err != nil {
-		return fmt.Errorf("Error creating volume: %s", err)
+		return fmt.Errorf("error creating volume: %s", err)
 	}
 	d.SetId(vol.ID)
 	_, err = waitUntilVolumeStatusChangedState(d, meta, []string{"available"}, []string{"error"})
 	if err != nil {
-		return fmt.Errorf("Error creating volume: %s", err)
+		return fmt.Errorf("error creating volume: %s", err)
 	}
 	return resourceVolumeRead(d, meta)
 }
@@ -57,7 +57,7 @@ func resourceVolumeRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	volume, err := client.Volume.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving Volume %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving Volume %s: %v", d.Id(), err)
 	}
 
 	_ = d.Set("name", volume.Name)
@@ -83,21 +83,21 @@ func resourceVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
 			"tags":        d.Get("tags").(*schema.Set).List(),
 		})
 		if err != nil {
-			return fmt.Errorf("Error when update Volume [%s]: %v", id, err)
+			return fmt.Errorf("error when update Volume [%s]: %v", id, err)
 		}
 	}
 
 	if d.HasChange("size") {
 		_, err := client.Volume.Resize(id, d.Get("size").(int))
 		if err != nil {
-			return fmt.Errorf("Error when resize volume [%s]: %v", id, err)
+			return fmt.Errorf("error when resize volume [%s]: %v", id, err)
 		}
 	}
 
 	if d.HasChange("billing_mode") {
 		_, err := client.BillingMode.SetVolumeBilingMode(id, d.Get("billing_mode").(string))
 		if err != nil {
-			return fmt.Errorf("Error when update billing mode of volume [%s]: %v", id, err)
+			return fmt.Errorf("error when update billing mode of volume [%s]: %v", id, err)
 		}
 	}
 	return resourceVolumeRead(d, meta)
@@ -108,11 +108,11 @@ func resourceVolumeDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := client.Volume.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete volume: %v", err)
+		return fmt.Errorf("error delete volume: %v", err)
 	}
 	_, err = waitUntilVolumeDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete volume: %v", err)
+		return fmt.Errorf("error delete volume: %v", err)
 	}
 	return nil
 }

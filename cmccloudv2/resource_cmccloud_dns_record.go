@@ -37,7 +37,7 @@ func resourceDnsRecordCreate(d *schema.ResourceData, meta interface{}) error {
 	record, err := getClient(meta).DnsRecord.Create(d.Get("zone_id").(string), params)
 
 	if err != nil {
-		return fmt.Errorf("Error creating record: %s", err)
+		return fmt.Errorf("error creating record: %s", err)
 	}
 	d.SetId(record.ID)
 
@@ -56,7 +56,7 @@ func resourceDnsRecordUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 	_, err := client.WafRule.Update(id, params)
 	if err != nil {
-		return fmt.Errorf("Error when update dns record [%s]: %v", id, err)
+		return fmt.Errorf("error when update dns record [%s]: %v", id, err)
 	}
 
 	return resourceDnsRecordRead(d, meta)
@@ -64,7 +64,7 @@ func resourceDnsRecordUpdate(d *schema.ResourceData, meta interface{}) error {
 func resourceDnsRecordRead(d *schema.ResourceData, meta interface{}) error {
 	record, err := getClient(meta).DnsRecord.Get(d.Get("zone_id").(string), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving DnsRecord %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving DnsRecord %s: %v", d.Id(), err)
 	}
 
 	_ = d.Set("id", record.ID)
@@ -114,11 +114,11 @@ func resourceDnsRecordDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := getClient(meta).DnsRecord.Delete(d.Get("zone_id").(string), d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete record: %v", err)
+		return fmt.Errorf("error delete record: %v", err)
 	}
 	_, err = waitUntilDnsRecordDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete record: %v", err)
+		return fmt.Errorf("error delete record: %v", err)
 	}
 	return nil
 }

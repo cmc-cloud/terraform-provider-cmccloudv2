@@ -31,7 +31,7 @@ func resourceELBListener() *schema.Resource {
 				_, timeout_tcp_inspectSet := diff.GetOkExists("timeout_tcp_inspect")
 
 				if timeout_client_dataSet || timeout_tcp_inspectSet {
-					return fmt.Errorf("When protocol is 'UDP' or 'SCTP', 'timeout_client_data' & 'timeout_tcp_inspect' must not be set")
+					return fmt.Errorf("when protocol is 'UDP' or 'SCTP', 'timeout_client_data' & 'timeout_tcp_inspect' must not be set")
 				}
 			}
 			if protocol != "HTTP" && protocol != "TERMINATED_HTTPS" {
@@ -81,11 +81,11 @@ func resourceELBListenerUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	_, err = getClient(meta).ELB.UpdateListener(d.Id(), params)
 	if err != nil {
-		return fmt.Errorf("Error update ELB Listener: %s", err)
+		return fmt.Errorf("error update ELB Listener: %s", err)
 	}
 	_, err = waitUntilELBListenerStatusChangedState(d, meta, []string{"ONLINE", "ACTIVE", "OFFLINE", "NO_MONITOR"}, []string{"ERROR", "DELETED", "DEGRADED"}, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return fmt.Errorf("Error update ELB Listener: %s", err)
+		return fmt.Errorf("error update ELB Listener: %s", err)
 	}
 	return resourceELBListenerRead(d, meta)
 }
@@ -136,12 +136,12 @@ func resourceELBListenerCreate(d *schema.ResourceData, meta interface{}) error {
 		params["timeout_tcp_inspect"] = v.(int)
 	}
 	if err != nil {
-		return fmt.Errorf("Error creating ELB Listener: %s", err)
+		return fmt.Errorf("error creating ELB Listener: %s", err)
 	}
 	d.SetId(elblistener.ID)
 	_, err = waitUntilELBListenerStatusChangedState(d, meta, []string{"ONLINE", "ACTIVE", "OFFLINE", "NO_MONITOR"}, []string{"ERROR", "DELETED", "DEGRADED"}, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return fmt.Errorf("Error creating ELB Listener: %s", err)
+		return fmt.Errorf("error creating ELB Listener: %s", err)
 	}
 	return resourceELBListenerRead(d, meta)
 }
@@ -150,7 +150,7 @@ func resourceELBListenerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	elblistener, err := client.ELB.GetListener(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving ELB Listener %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving ELB Listener %s: %v", d.Id(), err)
 	}
 
 	if len(elblistener.Loadbalancers) > 0 {
@@ -196,11 +196,11 @@ func resourceELBListenerDelete(d *schema.ResourceData, meta interface{}) error {
 
 	_, err = getClient(meta).ELB.DeleteListener(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error delete ELB Listener: %v", err)
+		return fmt.Errorf("error delete ELB Listener: %v", err)
 	}
 	_, err = waitUntilELBListenerDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete ELB Listener: %v", err)
+		return fmt.Errorf("error delete ELB Listener: %v", err)
 	}
 	return nil
 }
@@ -235,7 +235,7 @@ func getElbIdFromPool(meta interface{}, pool_id string) (string, error) {
 	pool, err := getClient(meta).ELB.GetPool(pool_id)
 	elb_id := pool.Loadbalancers[0].ID
 	if err != nil {
-		return "", fmt.Errorf("Error receiving ELB detail: %v", err)
+		return "", fmt.Errorf("error receiving ELB detail: %v", err)
 	}
 	return elb_id, nil
 }

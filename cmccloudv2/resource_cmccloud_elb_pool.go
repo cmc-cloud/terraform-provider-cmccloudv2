@@ -52,11 +52,11 @@ func resourceELBPoolUpdate(d *schema.ResourceData, meta interface{}) error {
 		"tls_versions":        d.Get("tls_versions").([]interface{}),
 	})
 	if err != nil {
-		return fmt.Errorf("Error updating ELB Pool: %s", err)
+		return fmt.Errorf("error updating ELB Pool: %s", err)
 	}
 	_, err = waitUntilELBPoolStatusChangedState(d, meta, []string{"ONLINE", "ACTIVE", "OFFLINE", "NO_MONITOR"}, []string{"ERROR", "DELETED", "DEGRADED"}, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return fmt.Errorf("Error updating ELB Pool: %s", err)
+		return fmt.Errorf("error updating ELB Pool: %s", err)
 	}
 	return resourceELBPoolRead(d, meta)
 }
@@ -75,12 +75,12 @@ func resourceELBPoolCreate(d *schema.ResourceData, meta interface{}) error {
 		"tls_versions":        d.Get("tls_versions").([]interface{}),
 	})
 	if err != nil {
-		return fmt.Errorf("Error creating ELB Pool: %s", err)
+		return fmt.Errorf("error creating ELB Pool: %s", err)
 	}
 	d.SetId(elbpool.ID)
 	_, err = waitUntilELBPoolStatusChangedState(d, meta, []string{"ONLINE", "ACTIVE", "OFFLINE", "NO_MONITOR"}, []string{"ERROR", "DELETED", "DEGRADED"}, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return fmt.Errorf("Error creating ELB Pool: %s", err)
+		return fmt.Errorf("error creating ELB Pool: %s", err)
 	}
 	return resourceELBPoolRead(d, meta)
 }
@@ -89,7 +89,7 @@ func resourceELBPoolRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	elbpool, err := client.ELB.GetPool(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving ELBPool %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving ELBPool %s: %v", d.Id(), err)
 	}
 
 	if len(elbpool.Loadbalancers) > 0 {
@@ -118,11 +118,11 @@ func resourceELBPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := client.ELB.DeletePool(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete ELB Pool: %v", err)
+		return fmt.Errorf("error delete ELB Pool: %v", err)
 	}
 	_, err = waitUntilELBPoolDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete ELB Pool: %v", err)
+		return fmt.Errorf("error delete ELB Pool: %v", err)
 	}
 	return nil
 }

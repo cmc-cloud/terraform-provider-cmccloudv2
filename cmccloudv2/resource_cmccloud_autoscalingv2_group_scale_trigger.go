@@ -44,9 +44,9 @@ func resourceAutoScalingV2ScaleTriggerCreate(d *schema.ResourceData, meta interf
 	res, err := client.AutoScalingV2ScaleTrigger.Create(d.Get("group_id").(string), datas)
 
 	if err != nil {
-		return fmt.Errorf("Error creating autoscalingv2 group scale trigger: %v", err.Error())
+		return fmt.Errorf("error creating autoscalingv2 group scale trigger: %v", err.Error())
 	}
-	gocmcapiv2.Logo("************========= AutoScalingV2ScaleTrigger create = : ", res.ID)
+	gocmcapiv2.Logo("AutoScalingV2ScaleTrigger create = : ", res.ID)
 	d.SetId(res.ID)
 
 	return resourceAutoScalingV2ScaleTriggerRead(d, meta)
@@ -56,7 +56,7 @@ func resourceAutoScalingV2ScaleTriggerRead(d *schema.ResourceData, meta interfac
 	client := meta.(*CombinedConfig).goCMCClient()
 	trigger, err := client.AutoScalingV2ScaleTrigger.Get(d.Get("group_id").(string), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving autoscaling group scale trigger%s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving autoscaling group scale trigger%s: %v", d.Id(), err)
 	}
 	_ = d.Set("name", trigger.Name)
 	_ = d.Set("description", trigger.Description)
@@ -90,7 +90,7 @@ func resourceAutoScalingV2ScaleTriggerUpdate(d *schema.ResourceData, meta interf
 	}
 	_, err := client.AutoScalingV2ScaleTrigger.Update(d.Get("group_id").(string), id, datas)
 	if err != nil {
-		return fmt.Errorf("Error when update asv2 group scale trigger: %v", err)
+		return fmt.Errorf("error when update asv2 group scale trigger: %v", err)
 	}
 	return resourceAutoScalingV2ScaleTriggerRead(d, meta)
 }
@@ -101,11 +101,11 @@ func resourceAutoScalingV2ScaleTriggerDelete(d *schema.ResourceData, meta interf
 	_, err := client.AutoScalingV2ScaleTrigger.Delete(d.Get("group_id").(string), d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete autoscale asv2 group scale trigger: %v", err)
+		return fmt.Errorf("error delete autoscale asv2 group scale trigger: %v", err)
 	}
 	_, err = waitUntilAutoscalingV2GroupScaleTriggerDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete autoscale asv2 group scale trigger: %v", err)
+		return fmt.Errorf("error delete autoscale asv2 group scale trigger: %v", err)
 	}
 	return nil
 }

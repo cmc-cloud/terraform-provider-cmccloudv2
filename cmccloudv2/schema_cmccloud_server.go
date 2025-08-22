@@ -5,33 +5,33 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func createServerNicsElementSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		"subnet_id": {
-			Type:         schema.TypeString,
-			Required:     true,
-			ValidateFunc: validateUUID,
-			ForceNew:     true,
-		},
-		"ip_address": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
-		},
-		"id": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		// "security_group_ids": &schema.Schema{
-		// 	Type: schema.TypeList,
-		// 	Elem: &schema.Schema{
-		// 		Type:         schema.TypeString,
-		// 		ValidateFunc: validateUUID,
-		// 	},
-		// 	Optional: true,
-		// },
-	}
-}
+// func createServerNicsElementSchema() map[string]*schema.Schema {
+// 	return map[string]*schema.Schema{
+// 		"subnet_id": {
+// 			Type:         schema.TypeString,
+// 			Required:     true,
+// 			ValidateFunc: validateUUID,
+// 			ForceNew:     true,
+// 		},
+// 		"ip_address": {
+// 			Type:     schema.TypeString,
+// 			Optional: true,
+// 			ForceNew: true,
+// 		},
+// 		"id": {
+// 			Type:     schema.TypeString,
+// 			Computed: true,
+// 		},
+// 		// "security_group_ids": &schema.Schema{
+// 		// 	Type: schema.TypeList,
+// 		// 	Elem: &schema.Schema{
+// 		// 		Type:         schema.TypeString,
+// 		// 		ValidateFunc: validateUUID,
+// 		// 	},
+// 		// 	Optional: true,
+// 		// },
+// 	}
+// }
 
 func createServerVolumesElementSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{

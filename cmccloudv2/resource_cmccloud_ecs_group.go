@@ -50,7 +50,7 @@ func resourceEcsGroupCreate(d *schema.ResourceData, meta interface{}) error {
 		"policy": d.Get("policy").(string),
 	})
 	if err != nil {
-		return fmt.Errorf("Error creating EcsGroup: %s", err)
+		return fmt.Errorf("error creating EcsGroup: %s", err)
 	}
 	d.SetId(vpc.ID)
 	return resourceEcsGroupRead(d, meta)
@@ -60,7 +60,7 @@ func resourceEcsGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	vpc, err := client.EcsGroup.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving EcsGroup %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving EcsGroup %s: %v", d.Id(), err)
 	}
 
 	_ = d.Set("id", vpc.ID)
@@ -69,21 +69,21 @@ func resourceEcsGroupRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceEcsGroupUpdate(d *schema.ResourceData, meta interface{}) error {
-	return resourceEcsGroupRead(d, meta)
-}
+// func resourceEcsGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+// 	return resourceEcsGroupRead(d, meta)
+// }
 
 func resourceEcsGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	_, err := client.EcsGroup.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete vpc: %v", err)
+		return fmt.Errorf("error delete vpc: %v", err)
 	}
 
 	_, err = waitUntilEcsGroupDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete EIP: %v", err)
+		return fmt.Errorf("error delete EIP: %v", err)
 	}
 	return nil
 }

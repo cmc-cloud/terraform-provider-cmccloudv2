@@ -40,13 +40,13 @@ func resourceEIPCreate(d *schema.ResourceData, meta interface{}) error {
 		"inter_bandwidth":    d.Get("inter_bandwidth").(int),
 	})
 	if err != nil {
-		return fmt.Errorf("Error creating EIP: %s", err)
+		return fmt.Errorf("error creating EIP: %s", err)
 	}
 	d.SetId(eip.ID)
 
 	_, err = waitUntilEIPStatusChangedState(d, meta, []string{"ACTIVE", "DOWN"}, []string{"ERROR"})
 	if err != nil {
-		return fmt.Errorf("Error creating EIP: %s", err)
+		return fmt.Errorf("error creating EIP: %s", err)
 	}
 	return resourceEIPRead(d, meta)
 }
@@ -55,7 +55,7 @@ func resourceEIPRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	eip, err := client.EIP.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving EIP %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving EIP %s: %v", d.Id(), err)
 	}
 	_ = d.Set("description", eip.Description)
 	_ = d.Set("dns_domain", eip.DNSDomain)
@@ -83,23 +83,23 @@ func resourceEIPUpdate(d *schema.ResourceData, meta interface{}) error {
 			"tags":               d.Get("tags").(*schema.Set).List(),
 		})
 		if err != nil {
-			return fmt.Errorf("Error when update EIP [%s]: %v", id, err)
+			return fmt.Errorf("error when update EIP [%s]: %v", id, err)
 		}
 	}
 
 	if d.HasChange("billing_mode") {
 		_, err := client.BillingMode.SetEIPBilingMode(id, d.Get("billing_mode").(string))
 		if err != nil {
-			return fmt.Errorf("Error when update billing mode of EIP [%s]: %v", id, err)
+			return fmt.Errorf("error when update billing mode of EIP [%s]: %v", id, err)
 		}
 	}
 
 	if d.HasChange("dns_domain") {
-		return fmt.Errorf("You can't not change dns_domain after eip created")
+		return fmt.Errorf("you can't not change dns_domain after eip created")
 	}
 
 	if d.HasChange("dns_name") {
-		return fmt.Errorf("You can't not change dns_name after eip created")
+		return fmt.Errorf("you can't not change dns_name after eip created")
 	}
 
 	return resourceEIPRead(d, meta)
@@ -110,11 +110,11 @@ func resourceEIPDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := client.EIP.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete EIP: %v", err)
+		return fmt.Errorf("error delete EIP: %v", err)
 	}
 	_, err = waitUntilEIPDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete EIP: %v", err)
+		return fmt.Errorf("error delete EIP: %v", err)
 	}
 	return nil
 }

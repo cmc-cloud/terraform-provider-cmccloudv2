@@ -39,7 +39,7 @@ func resourceEFSCreate(d *schema.ResourceData, meta interface{}) error {
 	efs, err := getClient(meta).EFS.Create(params)
 
 	if err != nil {
-		return fmt.Errorf("Error creating EFS: %s", err)
+		return fmt.Errorf("error creating EFS: %s", err)
 	}
 	d.SetId(efs.ID)
 	return resourceEFSRead(d, meta)
@@ -48,7 +48,7 @@ func resourceEFSCreate(d *schema.ResourceData, meta interface{}) error {
 func resourceEFSRead(d *schema.ResourceData, meta interface{}) error {
 	efs, err := getClient(meta).EFS.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving EFS %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving EFS %s: %v", d.Id(), err)
 	}
 
 	_ = d.Set("id", efs.ID)
@@ -82,13 +82,13 @@ func resourceEFSUpdate(d *schema.ResourceData, meta interface{}) error {
 			"tags":        d.Get("tags").(*schema.Set).List(),
 		})
 		if err != nil {
-			return fmt.Errorf("Error when update EFS [%s]: %v", id, err)
+			return fmt.Errorf("error when update EFS [%s]: %v", id, err)
 		}
 	}
 	if d.HasChange("billing_mode") {
 		_, err := getClient(meta).BillingMode.SetEFSBilingMode(id, d.Get("billing_mode").(string))
 		if err != nil {
-			return fmt.Errorf("Error when change biling mode of EFS [%s]: %v", id, err)
+			return fmt.Errorf("error when change biling mode of EFS [%s]: %v", id, err)
 		}
 	}
 
@@ -99,11 +99,11 @@ func resourceEFSDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := getClient(meta).EFS.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete efs: %v", err)
+		return fmt.Errorf("error delete efs: %v", err)
 	}
 	_, err = waitUntilEFSDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete efs: %v", err)
+		return fmt.Errorf("error delete efs: %v", err)
 	}
 	return nil
 }

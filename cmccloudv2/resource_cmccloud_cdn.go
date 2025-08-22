@@ -38,11 +38,11 @@ func resourceCDNCreate(d *schema.ResourceData, meta interface{}) error {
 	cdn_id, err := getClient(meta).CDN.Create(params)
 
 	if err != nil {
-		return fmt.Errorf("Error creating cdn site: %s", err)
+		return fmt.Errorf("error creating cdn site: %s", err)
 	}
 
 	if cdn_id == "" {
-		return fmt.Errorf("Error creating cdn site")
+		return fmt.Errorf("error creating cdn site")
 	}
 	d.SetId(cdn_id)
 
@@ -52,7 +52,7 @@ func resourceCDNCreate(d *schema.ResourceData, meta interface{}) error {
 func resourceCDNRead(d *schema.ResourceData, meta interface{}) error {
 	cdn, err := getClient(meta).CDN.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving cdn site %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving cdn site %s: %v", d.Id(), err)
 	}
 
 	domain := strings.ReplaceAll(cdn.OriginServerURL, "https://www.", "")
@@ -79,7 +79,7 @@ func resourceCDNUpdate(d *schema.ResourceData, meta interface{}) error {
 	id := d.Id()
 	cdn, err := getClient(meta).CDN.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving cdn site %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving cdn site %s: %v", d.Id(), err)
 	}
 	cdn.Name = d.Get("name").(string)
 
@@ -92,7 +92,7 @@ func resourceCDNUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 	_, err = client.CDN.Update(id, params)
 	if err != nil {
-		return fmt.Errorf("Error when update cdn site [%s]: %v", id, err)
+		return fmt.Errorf("error when update cdn site [%s]: %v", id, err)
 	}
 
 	return resourceCDNRead(d, meta)
@@ -102,11 +102,11 @@ func resourceCDNDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := getClient(meta).CDN.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete cdn site: %v", err)
+		return fmt.Errorf("error delete cdn site: %v", err)
 	}
 	_, err = waitUntilCDNDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete cdn site: %v", err)
+		return fmt.Errorf("error delete cdn site: %v", err)
 	}
 	return nil
 }

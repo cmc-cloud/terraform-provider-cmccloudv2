@@ -56,12 +56,12 @@ func resourceELBPoolMemberCreate(d *schema.ResourceData, meta interface{}) error
 
 	member, err := client.ELB.CreatePoolMember(d.Get("pool_id").(string), params)
 	if err != nil {
-		return fmt.Errorf("Error creating ELB Pool Member: %s", err)
+		return fmt.Errorf("error creating ELB Pool Member: %s", err)
 	}
 	d.SetId(member.ID)
 	// _, err = waitUntilELBPoolMemberStatusChangedState(d, meta, []string{"ONLINE", "ACTIVE", "OFFLINE", "NO_MONITOR"}, []string{"ERROR", "DELETED", "DEGRADED"}, d.Timeout(schema.TimeoutCreate))
 	// if err != nil {
-	// 	return fmt.Errorf("Error creating ELB Pool Member: %s", err)
+	// 	return fmt.Errorf("error creating ELB Pool Member: %s", err)
 	// }
 	return resourceELBPoolMemberRead(d, meta)
 }
@@ -81,11 +81,11 @@ func resourceELBPoolMemberUpdate(d *schema.ResourceData, meta interface{}) error
 	}
 	_, err := client.ELB.UpdatePoolMember(d.Get("pool_id").(string), d.Id(), params)
 	if err != nil {
-		return fmt.Errorf("Error updating ELB Pool Member: %s", err)
+		return fmt.Errorf("error updating ELB Pool Member: %s", err)
 	}
 	_, err = waitUntilELBPoolMemberStatusChangedState(d, meta, []string{"ONLINE", "ACTIVE", "OFFLINE", "NO_MONITOR"}, []string{"ERROR", "DELETED", "DEGRADED"}, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return fmt.Errorf("Error updating ELB Pool Member: %s", err)
+		return fmt.Errorf("error updating ELB Pool Member: %s", err)
 	}
 	return resourceELBPoolMemberRead(d, meta)
 }
@@ -94,7 +94,7 @@ func resourceELBPoolMemberRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	member, err := client.ELB.GetPoolMember(d.Get("pool_id").(string), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving ELB Pool Member %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving ELB Pool Member %s: %v", d.Id(), err)
 	}
 
 	_ = d.Set("name", member.Name)
@@ -126,11 +126,11 @@ func resourceELBPoolMemberDelete(d *schema.ResourceData, meta interface{}) error
 	_, err = getClient(meta).ELB.DeletePoolMember(d.Get("pool_id").(string), d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete ELB Pool Member: %v", err)
+		return fmt.Errorf("error delete ELB Pool Member: %v", err)
 	}
 	_, err = waitUntilELBPoolMemberDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete ELB Pool Member: %v", err)
+		return fmt.Errorf("error delete ELB Pool Member: %v", err)
 	}
 	return nil
 }

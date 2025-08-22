@@ -40,7 +40,7 @@ func resourceVACreate(d *schema.ResourceData, meta interface{}) error {
 		layout := "2006-01-02 15:04:05"
 		t, err := time.Parse(layout, d.Get("schedule").(string))
 		if err != nil {
-			return fmt.Errorf("Error parsing schedule time:", err)
+			return fmt.Errorf("error parsing schedule time: %v", err)
 		}
 
 		// Chuyển đổi đối tượng time.Time thành Unix timestamp
@@ -53,7 +53,7 @@ func resourceVACreate(d *schema.ResourceData, meta interface{}) error {
 	va, err := getClient(meta).VA.Create(params)
 
 	if err != nil {
-		return fmt.Errorf("Error creating VA: %s", err)
+		return fmt.Errorf("error creating VA: %s", err)
 	}
 	d.SetId(va.ID)
 	return resourceVARead(d, meta)
@@ -62,7 +62,7 @@ func resourceVACreate(d *schema.ResourceData, meta interface{}) error {
 func resourceVARead(d *schema.ResourceData, meta interface{}) error {
 	va, err := getClient(meta).VA.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving VA %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving VA %s: %v", d.Id(), err)
 	}
 
 	_ = d.Set("id", va.ID)
@@ -81,11 +81,11 @@ func resourceVADelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := getClient(meta).VA.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete va: %v", err)
+		return fmt.Errorf("error delete va: %v", err)
 	}
 	_, err = waitUntilVADeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete va: %v", err)
+		return fmt.Errorf("error delete va: %v", err)
 	}
 	return nil
 }

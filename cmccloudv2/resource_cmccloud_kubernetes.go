@@ -104,13 +104,13 @@ func resourceKubernetesCreate(d *schema.ResourceData, meta interface{}) error {
 
 	kubernetes, err := client.Kubernetes.Create(params)
 	if err != nil {
-		return fmt.Errorf("Error creating Kubernetes: %s", err)
+		return fmt.Errorf("error creating Kubernetes: %s", err)
 	}
 	d.SetId(kubernetes.ID)
 
 	_, err = waitUntilKubernetesStatusChangedState(d, meta, []string{"CREATE_COMPLETE", "HEALTHY"}, []string{"CREATE_FAILED"}, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return fmt.Errorf("Error creating Kubernetes: %s", err)
+		return fmt.Errorf("error creating Kubernetes: %s", err)
 	}
 	return resourceKubernetesRead(d, meta)
 }
@@ -119,7 +119,7 @@ func resourceKubernetesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	kubernetes, err := client.Kubernetes.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving Kubernetes %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving Kubernetes %s: %v", d.Id(), err)
 	}
 
 	labels := make([]map[string]interface{}, 1)
@@ -152,7 +152,7 @@ func resourceKubernetesRead(d *schema.ResourceData, meta interface{}) error {
 		"flavor_id":    kubernetes.MasterFlavorID,
 		"billing_mode": kubernetes.MasterBillingMode,
 	}
-	d.Set("default_master", []interface{}{default_master})
+	_ = d.Set("default_master", []interface{}{default_master})
 
 	default_worker := map[string]interface{}{
 		"flavor_id":    kubernetes.NodeFlavorID,
@@ -180,8 +180,7 @@ func resourceKubernetesRead(d *schema.ResourceData, meta interface{}) error {
 	// 	}
 	// }
 
-	d.Set("default_worker", []interface{}{default_worker})
-
+	_ = d.Set("default_worker", []interface{}{default_worker})
 	_ = d.Set("created_at", kubernetes.CreatedAt)
 	_ = d.Set("labels", labels)
 
@@ -216,11 +215,11 @@ func resourceKubernetesUpdate(d *schema.ResourceData, meta interface{}) error {
 					if min_node_count_changed || max_node_count_changed {
 						_, err := client.Kubernetes.UpdateNodeGroup(id, nodegroup.ID, default_worker_block["min_node_count"].(int), default_worker_block["max_node_count"].(int))
 						if err != nil {
-							return fmt.Errorf("Error when update Kubernetes worker min/max node count [%s]: %v", id, err)
+							return fmt.Errorf("error when update Kubernetes worker min/max node count [%s]: %v", id, err)
 						}
 						_, err = waitUntilKubernetesStatusChangedState(d, meta, []string{"UPDATE_COMPLETE", "HEALTHY"}, []string{"UPDATE_FAILED"}, d.Timeout(schema.TimeoutUpdate))
 						if err != nil {
-							return fmt.Errorf("Error when update Kubernetes worker min/max node count [%s]: %v", id, err)
+							return fmt.Errorf("error when update Kubernetes worker min/max node count [%s]: %v", id, err)
 						}
 					}
 
@@ -230,11 +229,11 @@ func resourceKubernetesUpdate(d *schema.ResourceData, meta interface{}) error {
 							"nodegroup":  nodegroup.ID,
 						})
 						if err != nil {
-							return fmt.Errorf("Error when update Kubernetes worker node count [%s]: %v", id, err)
+							return fmt.Errorf("error when update Kubernetes worker node count [%s]: %v", id, err)
 						}
 						_, err = waitUntilKubernetesStatusChangedState(d, meta, []string{"UPDATE_COMPLETE", "HEALTHY"}, []string{"UPDATE_FAILED"}, d.Timeout(schema.TimeoutUpdate))
 						if err != nil {
-							return fmt.Errorf("Error when update Kubernetes worker node count [%s]: %v", id, err)
+							return fmt.Errorf("error when update Kubernetes worker node count [%s]: %v", id, err)
 						}
 					}
 				} else {
@@ -244,43 +243,43 @@ func resourceKubernetesUpdate(d *schema.ResourceData, meta interface{}) error {
 							"nodegroup":  nodegroup.ID,
 						})
 						if err != nil {
-							return fmt.Errorf("Error when update Kubernetes worker node count [%s]: %v", id, err)
+							return fmt.Errorf("error when update Kubernetes worker node count [%s]: %v", id, err)
 						}
 						_, err = waitUntilKubernetesStatusChangedState(d, meta, []string{"UPDATE_COMPLETE", "HEALTHY"}, []string{"UPDATE_FAILED"}, d.Timeout(schema.TimeoutUpdate))
 						if err != nil {
-							return fmt.Errorf("Error when update Kubernetes worker node count [%s]: %v", id, err)
+							return fmt.Errorf("error when update Kubernetes worker node count [%s]: %v", id, err)
 						}
 					}
 
 					if min_node_count_changed || max_node_count_changed {
 						_, err := client.Kubernetes.UpdateNodeGroup(id, nodegroup.ID, default_worker_block["min_node_count"].(int), default_worker_block["max_node_count"].(int))
 						if err != nil {
-							return fmt.Errorf("Error when update Kubernetes worker min/max node count [%s]: %v", id, err)
+							return fmt.Errorf("error when update Kubernetes worker min/max node count [%s]: %v", id, err)
 						}
 						_, err = waitUntilKubernetesStatusChangedState(d, meta, []string{"UPDATE_COMPLETE", "HEALTHY"}, []string{"UPDATE_FAILED"}, d.Timeout(schema.TimeoutUpdate))
 						if err != nil {
-							return fmt.Errorf("Error when update Kubernetes worker min/max node count [%s]: %v", id, err)
+							return fmt.Errorf("error when update Kubernetes worker min/max node count [%s]: %v", id, err)
 						}
 					}
 				}
 			}
 		}
 		if !found {
-			return fmt.Errorf("Not found default_worker nodegroup of kubernetes [%s]", id)
+			return fmt.Errorf("not found default_worker nodegroup of kubernetes [%s]", id)
 		}
 	}
 
 	if master_billing_mode_changed {
 		_, err := client.BillingMode.SetKubernateBilingMode(id, new_master_billing_mode.(string), "master")
 		if err != nil {
-			return fmt.Errorf("Error when change default master biling mode of Kubernetes cluster [%s]: %v", id, err)
+			return fmt.Errorf("error when change default master biling mode of Kubernetes cluster [%s]: %v", id, err)
 		}
 	}
 
 	if worker_billing_mode_changed {
 		_, err := client.BillingMode.SetKubernateBilingMode(id, new_worker_billing_mode.(string), "worker")
 		if err != nil {
-			return fmt.Errorf("Error when change default worker biling mode of Kubernetes cluster [%s]: %v", id, err)
+			return fmt.Errorf("error when change default worker biling mode of Kubernetes cluster [%s]: %v", id, err)
 		}
 	}
 
@@ -292,11 +291,11 @@ func resourceKubernetesDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := client.Kubernetes.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete kubernetes [%s]: %v", d.Id(), err)
+		return fmt.Errorf("error delete kubernetes [%s]: %v", d.Id(), err)
 	}
 	_, err = waitUntilKubernetesDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete kubernetes [%s]: %v", d.Id(), err)
+		return fmt.Errorf("error delete kubernetes [%s]: %v", d.Id(), err)
 	}
 	return nil
 }

@@ -85,7 +85,7 @@ func dataSourceEIPRead(d *schema.ResourceData, meta interface{}) error {
 		if err != nil {
 			if errors.Is(err, gocmcapiv2.ErrNotFound) {
 				d.SetId("")
-				return fmt.Errorf("Unable to retrieve eip [%s]: %s", eip_id, err)
+				return fmt.Errorf("unable to retrieve eip [%s]: %s", eip_id, err)
 			}
 		}
 		allEIPs = append(allEIPs, eip)
@@ -95,7 +95,7 @@ func dataSourceEIPRead(d *schema.ResourceData, meta interface{}) error {
 		}
 		eips, err := client.EIP.List(params)
 		if err != nil {
-			return fmt.Errorf("Error when get eips %v", err)
+			return fmt.Errorf("error when get eips %v", err)
 		}
 		allEIPs = append(allEIPs, eips...)
 	}
@@ -113,7 +113,7 @@ func dataSourceEIPRead(d *schema.ResourceData, meta interface{}) error {
 				}
 			}
 			if v := d.Get("status").(string); v != "" {
-				if strings.ToLower(eip.Status) != strings.ToLower(v) {
+				if !strings.EqualFold(eip.Status, v) {
 					continue
 				}
 			}
@@ -138,12 +138,12 @@ func dataSourceEIPRead(d *schema.ResourceData, meta interface{}) error {
 		allEIPs = filteredEIPs
 	}
 	if len(allEIPs) < 1 {
-		return fmt.Errorf("Your query returned no results. Please change your search criteria and try again")
+		return fmt.Errorf("your query returned no results. Please change your search criteria and try again")
 	}
 
 	if len(allEIPs) > 1 {
 		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allEIPs)
-		return fmt.Errorf("Your query returned more than one result. Please try a more specific search criteria")
+		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 
 	return dataSourceComputeEIPAttributes(d, allEIPs[0])
@@ -152,13 +152,13 @@ func dataSourceEIPRead(d *schema.ResourceData, meta interface{}) error {
 func dataSourceComputeEIPAttributes(d *schema.ResourceData, eip gocmcapiv2.EIP) error {
 	log.Printf("[DEBUG] Retrieved eip %s: %#v", eip.ID, eip)
 	d.SetId(eip.ID)
-	d.Set("ip_address", eip.FloatingIPAddress)
-	d.Set("fix_ip_address", eip.FixedIPAddress)
-	d.Set("device_id", eip.PortDetails.DeviceID)
-	d.Set("status", eip.Status)
-	d.Set("description", eip.Description)
-	d.Set("dns_name", eip.DNSName)
-	d.Set("dns_domain", eip.DNSDomain)
-	d.Set("created_at", eip.CreatedAt)
+	_ = d.Set("ip_address", eip.FloatingIPAddress)
+	_ = d.Set("fix_ip_address", eip.FixedIPAddress)
+	_ = d.Set("device_id", eip.PortDetails.DeviceID)
+	_ = d.Set("status", eip.Status)
+	_ = d.Set("description", eip.Description)
+	_ = d.Set("dns_name", eip.DNSName)
+	_ = d.Set("dns_domain", eip.DNSDomain)
+	_ = d.Set("created_at", eip.CreatedAt)
 	return nil
 }

@@ -47,13 +47,13 @@ func resourceKubernetesNodeGroupCreate(d *schema.ResourceData, meta interface{})
 
 	kubernetesnodegroup, err := client.Kubernetes.CreateNodeGroup(d.Get("cluster_id").(string), params)
 	if err != nil {
-		return fmt.Errorf("Error creating Kubernetes NodeGroup: %s", err)
+		return fmt.Errorf("error creating Kubernetes NodeGroup: %s", err)
 	}
 	d.SetId(kubernetesnodegroup.ID)
 
 	_, err = waitUntilKubernetesNodeGroupStatusChangedState(d, meta, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return fmt.Errorf("Error creating Kubernetes NodeGroup: %v", err)
+		return fmt.Errorf("error creating Kubernetes NodeGroup: %v", err)
 	}
 
 	return resourceKubernetesNodeGroupRead(d, meta)
@@ -63,7 +63,7 @@ func resourceKubernetesNodeGroupRead(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*CombinedConfig).goCMCClient()
 	nodegroup, err := client.Kubernetes.GetNodeGroup(d.Get("cluster_id").(string), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving Kubernetes NodeGroup %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving Kubernetes NodeGroup %s: %v", d.Id(), err)
 	}
 
 	_ = d.Set("id", nodegroup.ID)
@@ -86,13 +86,13 @@ func resourceKubernetesNodeGroupUpdate(d *schema.ResourceData, meta interface{})
 	client := meta.(*CombinedConfig).goCMCClient()
 	id := d.Id()
 	if d.HasChange("name") {
-		return fmt.Errorf("Can't change name of nodegroup %s after created", id)
+		return fmt.Errorf("can't change name of nodegroup %s after created", id)
 	}
 
 	if d.HasChange("billing_mode") {
 		_, err := client.BillingMode.SetKubernateBilingMode(d.Get("cluster_id").(string), d.Get("billing_mode").(string), "worker")
 		if err != nil {
-			return fmt.Errorf("Error when update billing mode of Kubernetes NodeGroup [%s]: %v", id, err)
+			return fmt.Errorf("error when update billing mode of Kubernetes NodeGroup [%s]: %v", id, err)
 		}
 	}
 	if d.HasChange("node_count") {
@@ -101,22 +101,22 @@ func resourceKubernetesNodeGroupUpdate(d *schema.ResourceData, meta interface{})
 			"node_count": d.Get("node_count").(int),
 		})
 		if err != nil {
-			return fmt.Errorf("Error when change Kubernetes NodeGroup [%s] node count: %v", id, err)
+			return fmt.Errorf("error when change Kubernetes NodeGroup [%s] node count: %v", id, err)
 		}
 		_, err = waitUntilKubernetesNodeGroupStatusChangedState(d, meta, d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
-			return fmt.Errorf("Error when change Kubernetes NodeGroup [%s] node count: %v", id, err)
+			return fmt.Errorf("error when change Kubernetes NodeGroup [%s] node count: %v", id, err)
 		}
 	}
 
 	if d.HasChange("min_node_count") || d.HasChange("max_node_count") {
 		_, err := client.Kubernetes.UpdateNodeGroup(d.Get("cluster_id").(string), id, d.Get("min_node_count").(int), d.Get("max_node_count").(int))
 		if err != nil {
-			return fmt.Errorf("Error when change min_node_count/max_node_count of Kubernetes NodeGroup [%s]: %v", id, err)
+			return fmt.Errorf("error when change min_node_count/max_node_count of Kubernetes NodeGroup [%s]: %v", id, err)
 		}
 		_, err = waitUntilKubernetesNodeGroupStatusChangedState(d, meta, d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
-			return fmt.Errorf("Error when change min_node_count/max_node_count of Kubernetes NodeGroup [%s]: %v", id, err)
+			return fmt.Errorf("error when change min_node_count/max_node_count of Kubernetes NodeGroup [%s]: %v", id, err)
 		}
 	}
 	return resourceKubernetesNodeGroupRead(d, meta)
@@ -127,11 +127,11 @@ func resourceKubernetesNodeGroupDelete(d *schema.ResourceData, meta interface{})
 	_, err := client.Kubernetes.DeleteNodeGroup(d.Get("cluster_id").(string), d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete kubernetes nodegroup [%s]: %v", d.Id(), err)
+		return fmt.Errorf("error delete kubernetes nodegroup [%s]: %v", d.Id(), err)
 	}
 	_, err = waitUntilKubernetesNodeGroupDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete kubernetes nodegroup [%s]: %v", d.Id(), err)
+		return fmt.Errorf("error delete kubernetes nodegroup [%s]: %v", d.Id(), err)
 	}
 	return nil
 }

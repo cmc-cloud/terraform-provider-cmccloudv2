@@ -36,12 +36,15 @@ func resourceIamUserCreate(d *schema.ResourceData, meta interface{}) error {
 	iamuser, err := getClient(meta).IamUser.Create(params)
 
 	if err != nil {
-		return fmt.Errorf("Error creating iam user: %s", err)
+		return fmt.Errorf("error creating iam user: %s", err)
 	}
 
 	d.SetId(iamuser.Username)
-	if d.Get("enabled").(bool) == false {
-		getClient(meta).IamUser.Disable(iamuser.Username)
+	if !d.Get("enabled").(bool) {
+		_, err := getClient(meta).IamUser.Disable(iamuser.Username)
+		if err != nil {
+			return fmt.Errorf("error disabling iam user: %s", err)
+		}
 	}
 	return resourceIamUserRead(d, meta)
 }
@@ -49,7 +52,7 @@ func resourceIamUserCreate(d *schema.ResourceData, meta interface{}) error {
 func resourceIamUserRead(d *schema.ResourceData, meta interface{}) error {
 	iamuser, err := getClient(meta).IamUser.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving iam user %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving iam user %s: %v", d.Id(), err)
 	}
 	_ = d.Set("id", iamuser.Username)
 	_ = d.Set("short_name", iamuser.ShortName)
@@ -65,7 +68,7 @@ func resourceIamUserRead(d *schema.ResourceData, meta interface{}) error {
 func resourceIamUserUpdate(d *schema.ResourceData, meta interface{}) error {
 	_, err := getClient(meta).IamUser.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving iam user %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving iam user %s: %v", d.Id(), err)
 	}
 
 	if d.HasChange("first_name") || d.HasChange("last_name") {
@@ -76,14 +79,14 @@ func resourceIamUserUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 		_, err := getClient(meta).IamUser.Update(d.Id(), params)
 		if err != nil {
-			return fmt.Errorf("Error when update iam user info [%s]: %v", d.Id(), err)
+			return fmt.Errorf("error when update iam user info [%s]: %v", d.Id(), err)
 		}
 	}
 
 	if d.HasChange("email") {
 		_, err := getClient(meta).IamUser.UpdateEmail(d.Id(), d.Get("email").(string))
 		if err != nil {
-			return fmt.Errorf("Error when update iam user email [%s]: %v", d.Id(), err)
+			return fmt.Errorf("error when update iam user email [%s]: %v", d.Id(), err)
 		}
 	}
 
@@ -93,15 +96,21 @@ func resourceIamUserUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 		_, err := getClient(meta).IamUser.SetPassword(d.Id(), params)
 		if err != nil {
-			return fmt.Errorf("Error when update iam user password [%s]: %v", d.Id(), err)
+			return fmt.Errorf("error when update iam user password [%s]: %v", d.Id(), err)
 		}
 	}
 
 	if d.HasChange("enabled") {
 		if d.Get("enabled").(bool) {
-			getClient(meta).IamUser.Enable(d.Get("username").(string))
+			_, err := getClient(meta).IamUser.Enable(d.Get("username").(string))
+			if err != nil {
+				return fmt.Errorf("error enabling iam user: %s", err)
+			}
 		} else {
-			getClient(meta).IamUser.Disable(d.Get("username").(string))
+			_, err := getClient(meta).IamUser.Disable(d.Get("username").(string))
+			if err != nil {
+				return fmt.Errorf("error disabling iam user: %s", err)
+			}
 		}
 	}
 	return resourceIamUserRead(d, meta)
@@ -111,11 +120,11 @@ func resourceIamUserDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := getClient(meta).IamUser.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete iam user: %v", err)
+		return fmt.Errorf("error delete iam user: %v", err)
 	}
 	_, err = waitUntilIamUserDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete iam user: %v", err)
+		return fmt.Errorf("error delete iam user: %v", err)
 	}
 	return nil
 }

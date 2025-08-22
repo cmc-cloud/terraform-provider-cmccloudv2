@@ -35,7 +35,7 @@ func resourceAutoScalingAZPolicyCreate(d *schema.ResourceData, meta interface{})
 	res, err := client.AutoScalingPolicy.CreateAZPolicy(params)
 
 	if err != nil {
-		return fmt.Errorf("Error creating az policy: %v", err.Error())
+		return fmt.Errorf("error creating az policy: %v", err.Error())
 	}
 	d.SetId(res.ID)
 	return resourceAutoScalingAZPolicyRead(d, meta)
@@ -45,7 +45,7 @@ func resourceAutoScalingAZPolicyRead(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*CombinedConfig).goCMCClient()
 	policy, err := client.AutoScalingPolicy.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving az policy %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving az policy %s: %v", d.Id(), err)
 	}
 
 	zone_names := make([]string, len(policy.Spec.Properties.Zones))
@@ -66,7 +66,7 @@ func resourceAutoScalingAZPolicyUpdate(d *schema.ResourceData, meta interface{})
 		}
 		_, err := client.AutoScalingPolicy.UpdateAZPolicy(d.Id(), params) //Update(id, map[string]interface{}{"name": d.Get("name").(string)})
 		if err != nil {
-			return fmt.Errorf("Error when update az policy [%s]: %v", d.Id(), err)
+			return fmt.Errorf("error when update az policy [%s]: %v", d.Id(), err)
 		}
 	}
 	return resourceAutoScalingAZPolicyRead(d, meta)
@@ -77,11 +77,11 @@ func resourceAutoScalingAZPolicyDelete(d *schema.ResourceData, meta interface{})
 	_, err := client.AutoScalingPolicy.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete az policy: %v", err)
+		return fmt.Errorf("error delete az policy: %v", err)
 	}
 	_, err = waitUntilAutoScalingPolicyDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete az policy: %v", err)
+		return fmt.Errorf("error delete az policy: %v", err)
 	}
 	return nil
 }

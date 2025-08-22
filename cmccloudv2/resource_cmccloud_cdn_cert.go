@@ -35,7 +35,7 @@ func resourceCDNCertCreate(d *schema.ResourceData, meta interface{}) error {
 	cdn_id, err := getClient(meta).CDNCert.Create(params)
 
 	if err != nil {
-		return fmt.Errorf("Error creating cdn cert: %s", err)
+		return fmt.Errorf("error creating cdn cert: %s", err)
 	}
 	d.SetId(cdn_id)
 
@@ -45,7 +45,7 @@ func resourceCDNCertCreate(d *schema.ResourceData, meta interface{}) error {
 func resourceCDNCertRead(d *schema.ResourceData, meta interface{}) error {
 	cdn, err := getClient(meta).CDNCert.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving cdn cert %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving cdn cert %s: %v", d.Id(), err)
 	}
 
 	_ = d.Set("id", cdn.ID)
@@ -68,7 +68,7 @@ func resourceCDNCertUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 	_, err := client.CDNCert.Update(id, params)
 	if err != nil {
-		return fmt.Errorf("Error when update dns cert [%s]: %v", id, err)
+		return fmt.Errorf("error when update dns cert [%s]: %v", id, err)
 	}
 
 	return resourceCDNCertRead(d, meta)
@@ -77,11 +77,11 @@ func resourceCDNCertDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := getClient(meta).CDNCert.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete cdn cert: %v", err)
+		return fmt.Errorf("error delete cdn cert: %v", err)
 	}
 	_, err = waitUntilCDNCertDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete cdn cert: %v", err)
+		return fmt.Errorf("error delete cdn cert: %v", err)
 	}
 	return nil
 }

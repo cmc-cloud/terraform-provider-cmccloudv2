@@ -37,7 +37,7 @@ func resourceWafIPCreate(d *schema.ResourceData, meta interface{}) error {
 	ip, err := getClient(meta).WafIP.Create(params)
 
 	if err != nil {
-		return fmt.Errorf("Error creating waf ip: %s", err)
+		return fmt.Errorf("error creating waf ip: %s", err)
 	}
 	d.SetId(ip.ID)
 	return resourceWafIPRead(d, meta)
@@ -46,7 +46,7 @@ func resourceWafIPCreate(d *schema.ResourceData, meta interface{}) error {
 func resourceWafIPRead(d *schema.ResourceData, meta interface{}) error {
 	ip, err := getClient(meta).WafIP.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving WafIP %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving WafIP %s: %v", d.Id(), err)
 	}
 
 	_ = d.Set("id", ip.ID)
@@ -68,7 +68,7 @@ func resourceWafIPUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 	_, err := client.WafIP.Update(id, params)
 	if err != nil {
-		return fmt.Errorf("Error when update waf ip [%s]: %v", id, err)
+		return fmt.Errorf("error when update waf ip [%s]: %v", id, err)
 	}
 
 	return resourceWafIPRead(d, meta)
@@ -77,11 +77,11 @@ func resourceWafIPDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := getClient(meta).WafIP.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete waf ip: %v", err)
+		return fmt.Errorf("error delete waf ip: %v", err)
 	}
 	_, err = waitUntilWafIPDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete waf ip: %v", err)
+		return fmt.Errorf("error delete waf ip: %v", err)
 	}
 	return nil
 }

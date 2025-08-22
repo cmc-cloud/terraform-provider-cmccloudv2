@@ -27,7 +27,7 @@ func resourceIamUserMembershipCreate(d *schema.ResourceData, meta interface{}) e
 	_, err := getClient(meta).IamGroup.AddUserToGroup(d.Get("user_name").(string), d.Get("group_name").(string))
 
 	if err != nil {
-		return fmt.Errorf("Error creating iam user membership: %s", err)
+		return fmt.Errorf("error creating iam user membership: %s", err)
 	}
 
 	d.SetId(fmt.Sprintf("%s-%s", d.Get("group_name").(string), d.Get("user_name").(string)))
@@ -47,8 +47,8 @@ func resourceIamUserMembershipRead(d *schema.ResourceData, meta interface{}) err
 	if splitIdx != -1 {
 		parts[0] = id[:splitIdx]
 		parts[1] = id[splitIdx+1:]
-		d.Set("group_name", parts[0])
-		d.Set("user_name", parts[1])
+		_ = d.Set("group_name", parts[0])
+		_ = d.Set("user_name", parts[1])
 	}
 
 	return nil
@@ -58,7 +58,7 @@ func resourceIamUserMembershipDelete(d *schema.ResourceData, meta interface{}) e
 	_, err := getClient(meta).IamGroup.RemoveUserFromGroup(d.Get("user_name").(string), d.Get("group_name").(string))
 
 	if err != nil {
-		return fmt.Errorf("Error delete iam user membership: %v", err)
+		return fmt.Errorf("error delete iam user membership: %v", err)
 	}
 	return nil
 }

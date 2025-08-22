@@ -38,7 +38,7 @@ func resourceWafCertCreate(d *schema.ResourceData, meta interface{}) error {
 	cert, err := getClient(meta).WafCert.Create(params)
 
 	if err != nil {
-		return fmt.Errorf("Error creating waf cert: %s", err)
+		return fmt.Errorf("error creating waf cert: %s", err)
 	}
 	d.SetId(cert.ID)
 	return resourceWafCertRead(d, meta)
@@ -47,7 +47,7 @@ func resourceWafCertCreate(d *schema.ResourceData, meta interface{}) error {
 func resourceWafCertRead(d *schema.ResourceData, meta interface{}) error {
 	cert, err := getClient(meta).WafCert.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving waf cert %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving waf cert %s: %v", d.Id(), err)
 	}
 
 	timestamp := int64(cert.Created)
@@ -71,11 +71,11 @@ func resourceWafCertDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := getClient(meta).WafCert.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("Error delete waf cert: %v", err)
+		return fmt.Errorf("error delete waf cert: %v", err)
 	}
 	_, err = waitUntilWafCertDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("Error delete waf cert: %v", err)
+		return fmt.Errorf("error delete waf cert: %v", err)
 	}
 	return nil
 }

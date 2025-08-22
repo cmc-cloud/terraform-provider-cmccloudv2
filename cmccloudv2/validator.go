@@ -1,12 +1,9 @@
 package cmccloudv2
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"regexp"
-	"strconv"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -40,65 +37,65 @@ func isValidIP(ip string) bool {
 }
 
 // Hàm để tùy chỉnh diff và bỏ qua các thay đổi của các thuộc tính cụ thể
-func ignoreChangesCustomizeDiff(fieldsToIgnore ...string) schema.CustomizeDiffFunc {
-	return func(diff *schema.ResourceDiff, v interface{}) error {
-		for _, field := range fieldsToIgnore {
-			if diff.HasChange(field) {
-				diff.Clear(field)
-			}
-		}
-		return nil
-	}
-}
+// func ignoreChangesCustomizeDiff(fieldsToIgnore ...string) schema.CustomizeDiffFunc {
+// 	return func(diff *schema.ResourceDiff, v interface{}) error {
+// 		for _, field := range fieldsToIgnore {
+// 			if diff.HasChange(field) {
+// 				_ = diff.Clear(field)
+// 			}
+// 		}
+// 		return nil
+// 	}
+// }
 
-func field1RequiredWhenOtherField2Is(field1 string, field2 string, values []string) schema.CustomizeDiffFunc {
-	return func(diff *schema.ResourceDiff, v interface{}) error {
-		field2Val := diff.Get(field2).(string)
+// func field1RequiredWhenOtherField2Is(field1 string, field2 string, values []string) schema.CustomizeDiffFunc {
+// 	return func(diff *schema.ResourceDiff, v interface{}) error {
+// 		field2Val := diff.Get(field2).(string)
 
-		if arrayContains(values, field2Val) {
-			// yeu cau field1 phai duoc set gia tri
-			field1Val, field1Set := diff.GetOkExists(field1)
-			if !field1Set || field1Val.(string) == "" {
-				return errors.New(field1 + " must be set when " + field2 + " is " + field2Val)
-			}
-		}
-		return nil
-	}
-}
+// 		if arrayContains(values, field2Val) {
+// 			// yeu cau field1 phai duoc set gia tri
+// 			field1Val, field1Set := diff.GetOkExists(field1)
+// 			if !field1Set || field1Val.(string) == "" {
+// 				return errors.New(field1 + " must be set when " + field2 + " is " + field2Val)
+// 			}
+// 		}
+// 		return nil
+// 	}
+// }
 
-func ensureField2RequiredWhenField1True(field1, field2 string) schema.CustomizeDiffFunc {
-	return func(diff *schema.ResourceDiff, v interface{}) error {
-		// Kiểm tra nếu field1 được đặt thành true
-		field1Set := diff.Get(field1).(bool)
+// func ensureField2RequiredWhenField1True(field1, field2 string) schema.CustomizeDiffFunc {
+// 	return func(diff *schema.ResourceDiff, v interface{}) error {
+// 		// Kiểm tra nếu field1 được đặt thành true
+// 		field1Set := diff.Get(field1).(bool)
 
-		// Kiểm tra nếu field2 có giá trị hay không
-		val2, ok := diff.GetOkExists(field2)
-		if field1Set {
-			if !ok {
-				return errors.New(field2 + " must be set when " + field1 + " is true")
-			}
-			switch val2.(type) {
-			case int:
-				if v.(int) == 0 {
-					return errors.New(field2 + " must be set when " + field1 + " is true")
-				}
-				return nil
-			case string:
-				if v.(string) == "" {
-					return errors.New(field2 + " must be set when " + field1 + " is true")
-				}
-				return nil
-			case bool:
-				if v.(bool) == false {
-					return errors.New(field2 + " must be set when " + field1 + " is true")
-				}
-				return nil
-			default:
-			}
-		}
-		return nil
-	}
-}
+//			// Kiểm tra nếu field2 có giá trị hay không
+//			val2, ok := diff.GetOkExists(field2)
+//			if field1Set {
+//				if !ok {
+//					return errors.New(field2 + " must be set when " + field1 + " is true")
+//				}
+//				switch val2.(type) {
+//				case int:
+//					if v.(int) == 0 {
+//						return errors.New(field2 + " must be set when " + field1 + " is true")
+//					}
+//					return nil
+//				case string:
+//					if v.(string) == "" {
+//						return errors.New(field2 + " must be set when " + field1 + " is true")
+//					}
+//					return nil
+//				case bool:
+//					if v.(bool) == false {
+//						return errors.New(field2 + " must be set when " + field1 + " is true")
+//					}
+//					return nil
+//				default:
+//				}
+//			}
+//			return nil
+//		}
+//	}
 func validateBillingMode(v interface{}, key string) (warnings []string, errors []error) {
 	biling_mode := v.(string)
 	if biling_mode != "monthly" && biling_mode != "hourly" {
@@ -107,10 +104,10 @@ func validateBillingMode(v interface{}, key string) (warnings []string, errors [
 	return nil, nil
 }
 
-func validateNetmask(v interface{}, k string) (warnings []string, errors []error) {
-	re := `^(((255\.){3}(255|254|252|248|240|224|192|128|0+))|((255\.){2}(255|254|252|248|240|224|192|128|0+)\.0)|((255\.)(255|254|252|248|240|224|192|128|0+)(\.0+){2})|((255|254|252|248|240|224|192|128|0+)(\.0+){3}))$`
-	return validateRegexp(re)(v, k)
-}
+//	func validateNetmask(v interface{}, k string) (warnings []string, errors []error) {
+//		re := `^(((255\.){3}(255|254|252|248|240|224|192|128|0+))|((255\.){2}(255|254|252|248|240|224|192|128|0+)\.0)|((255\.)(255|254|252|248|240|224|192|128|0+)(\.0+){2})|((255|254|252|248|240|224|192|128|0+)(\.0+){3}))$`
+//		return validateRegexp(re)(v, k)
+//	}
 func validateUUID(v interface{}, k string) (warnings []string, errors []error) {
 	re := `^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$`
 	return validateRegexp(re)(v, k)
@@ -130,10 +127,10 @@ func validateNameK8s(v interface{}, k string) (warnings []string, errors []error
 	return validateRegexp(re)(v, k)
 }
 
-func validateFirewallID(v interface{}, k string) (warnings []string, errors []error) {
-	re := `^(allow|deny|[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12})$`
-	return validateRegexp(re)(v, k)
-}
+//	func validateFirewallID(v interface{}, k string) (warnings []string, errors []error) {
+//		re := `^(allow|deny|[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12})$`
+//		return validateRegexp(re)(v, k)
+//	}
 func validatePortNumber(val interface{}, key string) (warns []string, errs []error) {
 	v, ok := val.(int)
 	if !ok {
@@ -148,49 +145,49 @@ func validatePortNumber(val interface{}, key string) (warns []string, errs []err
 }
 
 // validatePortRange checks if the string is a valid port range in the format portstart-portend
-func validatePortRange(val interface{}, key string) (warns []string, errs []error) {
-	v, ok := val.(string)
-	if !ok {
-		errs = append(errs, fmt.Errorf("%q is not a valid string", key))
-		return
-	}
+// func validatePortRange(val interface{}, key string) (warns []string, errs []error) {
+// 	v, ok := val.(string)
+// 	if !ok {
+// 		errs = append(errs, fmt.Errorf("%q is not a valid string", key))
+// 		return
+// 	}
 
-	// Split the string by hyphen
-	parts := strings.Split(v, "-")
-	if len(parts) != 2 {
-		errs = append(errs, fmt.Errorf("%q must be in the format portstart-portend", key))
-		return
-	}
+// 	// Split the string by hyphen
+// 	parts := strings.Split(v, "-")
+// 	if len(parts) != 2 {
+// 		errs = append(errs, fmt.Errorf("%q must be in the format portstart-portend", key))
+// 		return
+// 	}
 
-	// Parse the start and end ports
-	startPort, err := strconv.Atoi(parts[0])
-	if err != nil {
-		errs = append(errs, fmt.Errorf("%q start port is not a valid number", key))
-		return
-	}
+// 	// Parse the start and end ports
+// 	startPort, err := strconv.Atoi(parts[0])
+// 	if err != nil {
+// 		errs = append(errs, fmt.Errorf("%q start port is not a valid number", key))
+// 		return
+// 	}
 
-	endPort, err := strconv.Atoi(parts[1])
-	if err != nil {
-		errs = append(errs, fmt.Errorf("%q end port is not a valid number", key))
-		return
-	}
+// 	endPort, err := strconv.Atoi(parts[1])
+// 	if err != nil {
+// 		errs = append(errs, fmt.Errorf("%q end port is not a valid number", key))
+// 		return
+// 	}
 
-	// Validate the port numbers
-	if startPort < 1 || startPort > 65535 {
-		errs = append(errs, fmt.Errorf("%q start port must be between 1 and 65535", key))
-	}
+// 	// Validate the port numbers
+// 	if startPort < 1 || startPort > 65535 {
+// 		errs = append(errs, fmt.Errorf("%q start port must be between 1 and 65535", key))
+// 	}
 
-	if endPort < 1 || endPort > 65535 {
-		errs = append(errs, fmt.Errorf("%q end port must be between 1 and 65535", key))
-	}
+// 	if endPort < 1 || endPort > 65535 {
+// 		errs = append(errs, fmt.Errorf("%q end port must be between 1 and 65535", key))
+// 	}
 
-	// Validate the port range
-	if startPort > endPort {
-		errs = append(errs, fmt.Errorf("%q start port must be less than or equal to end port", key))
-	}
+// 	// Validate the port range
+// 	if startPort > endPort {
+// 		errs = append(errs, fmt.Errorf("%q start port must be less than or equal to end port", key))
+// 	}
 
-	return
-}
+//		return
+//	}
 func validateRegexp(re string) schema.SchemaValidateFunc {
 	return func(v interface{}, k string) (ws []string, errors []error) {
 		value := fmt.Sprint(v)
@@ -216,16 +213,17 @@ func validateIPAddress(i interface{}, val string) ([]string, []error) {
 	}
 	return nil, nil
 }
-func validateAll(validators ...schema.SchemaValidateFunc) schema.SchemaValidateFunc {
-	return func(val interface{}, key string) (warns []string, errs []error) {
-		for _, validator := range validators {
-			w, e := validator(val, key)
-			warns = append(warns, w...)
-			errs = append(errs, e...)
-		}
-		return warns, errs
-	}
-}
+
+//	func validateAll(validators ...schema.SchemaValidateFunc) schema.SchemaValidateFunc {
+//		return func(val interface{}, key string) (warns []string, errs []error) {
+//			for _, validator := range validators {
+//				w, e := validator(val, key)
+//				warns = append(warns, w...)
+//				errs = append(errs, e...)
+//			}
+//			return warns, errs
+//		}
+//	}
 func validateEmpty(val interface{}, key string) (warns []string, errs []error) {
 	v, ok := val.(string)
 	if !ok || v != "" {
