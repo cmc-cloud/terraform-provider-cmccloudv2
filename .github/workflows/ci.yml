@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install golangci-lint
-        run: curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.22
+        run: curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.61.0
 
       - name: Download dependencies
         run: go mod tidy
