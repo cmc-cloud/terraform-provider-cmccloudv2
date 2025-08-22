@@ -9,7 +9,8 @@ on:
   push:
     tags:
       - 'v*'
-
+  release:
+    types: [created, published]
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
