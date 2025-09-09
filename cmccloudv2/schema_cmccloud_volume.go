@@ -26,6 +26,12 @@ func volumeSchema() map[string]*schema.Schema {
 			Required: true,
 			ForceNew: true,
 		},
+		"secret_id": {
+			Type:         schema.TypeString,
+			ValidateFunc: validateUUID,
+			Optional:     true,
+			ForceNew:     true,
+		},
 		"billing_mode": {
 			Type:         schema.TypeString,
 			ValidateFunc: validateBillingMode,

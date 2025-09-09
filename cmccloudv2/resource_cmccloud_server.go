@@ -330,7 +330,7 @@ func convertVolumeAttachs(vols []gocmcapiv2.VolumeAttach) []map[string]interface
 func waitUntilServerDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
 	return waitUntilResourceDeleted(d, meta, WaitConf{
 		Delay:      10 * time.Second,
-		MinTimeout: 30 * time.Second,
+		MinTimeout: 20 * time.Second,
 	}, func(id string) (any, error) {
 		return getClient(meta).Server.Get(id, false)
 	})
@@ -339,7 +339,7 @@ func waitUntilServerDeleted(d *schema.ResourceData, meta interface{}) (interface
 func waitUntilServerStatusChangedState(d *schema.ResourceData, meta interface{}, targetStatus []string, errorStatus []string) (interface{}, error) {
 	return waitUntilResourceStatusChanged(d, meta, targetStatus, errorStatus, WaitConf{
 		Delay:      10 * time.Second,
-		MinTimeout: 30 * time.Second,
+		MinTimeout: 20 * time.Second,
 	}, func(id string) (any, error) {
 		return getClient(meta).Server.Get(id, false)
 	}, func(obj interface{}) string {

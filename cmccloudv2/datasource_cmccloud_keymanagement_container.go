@@ -76,7 +76,7 @@ func dataSourceKeyManagementContainerRead(d *schema.ResourceData, meta interface
 				}
 			}
 			if v := d.Get("type").(string); v != "" {
-				if !strings.EqualFold(container.Name, v) {
+				if !strings.EqualFold(container.Type, v) {
 					continue
 				}
 			}

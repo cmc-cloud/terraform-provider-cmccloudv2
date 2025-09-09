@@ -40,6 +40,7 @@ func resourceVolumeCreate(d *schema.ResourceData, meta interface{}) error {
 		"type":         d.Get("type").(string),
 		"zone_name":    d.Get("zone").(string),
 		"billing_mode": d.Get("billing_mode").(string),
+		"secret":       d.Get("secret_id").(string),
 		"tags":         d.Get("tags").(*schema.Set).List(),
 	})
 	if err != nil {
@@ -67,6 +68,7 @@ func resourceVolumeRead(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("zone", volume.AvailabilityZone)
 	_ = d.Set("billing_mode", volume.BillingMode)
 	_ = d.Set("status", volume.Status)
+	setString(d, "secret_id", volume.EncryptionKeyID)
 	_ = d.Set("tags", convertTagsToSet(volume.Tags))
 	_ = d.Set("created_at", volume.CreatedAt)
 	return nil

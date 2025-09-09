@@ -105,4 +105,4 @@ require (
 	google.golang.org/protobuf v1.34.0 // indirect
 )
 // uncomment this line when build from code
-// replace github.com/cmc-cloud/gocmcapiv2 => D:\code\CMC\openstack\terraform\gocmcapiv2
+replace github.com/cmc-cloud/gocmcapiv2 => D:\code\CMC\openstack\terraform\gocmcapiv2

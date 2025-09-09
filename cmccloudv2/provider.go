@@ -125,6 +125,7 @@ func Provider() terraform.ResourceProvider {
 			"cmccloudv2_redis_configuration":       datasourceRedisConfiguration(),
 			"cmccloudv2_security_group":            datasourceSecurityGroup(),
 			"cmccloudv2_keymanagement_container":   datasourceKeyManagementContainer(),
+			"cmccloudv2_keymanagement_secret":      datasourceKeyManagementSecret(),
 			"cmccloudv2_certificate":               datasourceCertificate(),
 			"cmccloudv2_iam_project":               datasourceIamProject(),
 			"cmccloudv2_iam_group":                 datasourceIamGroup(),
@@ -133,7 +134,6 @@ func Provider() terraform.ResourceProvider {
 			"cmccloudv2_iam_custom_role":           datasourceIamCustomRole(),
 			"cmccloudv2_devops_project":            datasourceDevopsProject(),
 			"cmccloudv2_container_registry_repo":   datasourceContainerRegistryRepository(),
-			// "cmccloudv2_keymanagement_secret":   datasourceKeyManagementSe(),
 			// "cmccloudv2_redis_instance":                  datasourceRedisInstance(),
 		},
 	}
