@@ -116,6 +116,45 @@ func kubernetesv2NodeGroupSchema() map[string]*schema.Schema {
 			},
 			Description: "Array of node metadata objects. Each object must have key, value, type, and optionally effect.",
 		},
+		// "cidr_block_pod": {
+		// 	Type:         schema.TypeString,
+		// 	Required:     true,
+		// 	ForceNew:     true,
+		// 	ValidateFunc: validateIPCidrRange,
+		// },
+		// "ntp_enabled": {
+		// 	Type:     schema.TypeBool,
+		// 	Optional: true,
+		// 	Default:  false,
+		// },
+		"ntp_servers": {
+			Type:        schema.TypeList, // dùng List để giữ thứ tự
+			Optional:    true,
+			ForceNew:    true,
+			Description: "List of NTP servers (order matters).",
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"host": {
+						Type:        schema.TypeString,
+						Required:    true,
+						Description: "NTP server hostname or IP.",
+					},
+					"port": {
+						Type:        schema.TypeInt,
+						Optional:    true,
+						Default:     123,
+						Description: "NTP server port.",
+					},
+					"protocol": {
+						Type:         schema.TypeString,
+						Optional:     true,
+						Default:      "udp",
+						Description:  "Protocol used (udp or tcp).",
+						ValidateFunc: validation.StringInSlice([]string{"udp", "tcp"}, false),
+					},
+				},
+			},
+		},
 		// "node_metadatas": {
 		// 	Type:     schema.TypeList,
 		// 	Optional: true,

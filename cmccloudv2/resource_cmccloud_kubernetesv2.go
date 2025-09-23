@@ -46,25 +46,30 @@ func resourceKubernetesv2Create(d *schema.ResourceData, meta interface{}) error 
 	if err != nil {
 		return fmt.Errorf("error receving subnet with id = %s: %v", d.Get("subnet_id").(string), err)
 	}
+
 	kubernetes, err := client.Kubernetesv2.Create(map[string]interface{}{
-		"billingMode":    d.Get("billing_mode").(string),
-		"region":         client.Configs.RegionId,
-		"project":        client.Configs.ProjectId,
-		"name":           d.Get("name").(string),
-		"zone":           d.Get("zone").(string),
-		"subnetId":       d.Get("subnet_id").(string),
-		"vpcId":          subnet.NetworkID,
-		"version":        d.Get("kubernetes_version").(string),
-		"replicas":       d.Get("master_count").(int),
-		"masterFlavorId": d.Get("master_flavor_name").(string),
-		// "workerNumberEstimate":             d.Get("max_node_count").(int),
-		"cidrBlockPod":                     d.Get("cidr_block_pod").(string),
-		"cidrBlockService":                 d.Get("cidr_block_service").(string),
-		"clusterNetworkServiceDomain":      d.Get("network_driver").(string),
+		"billingMode":                 d.Get("billing_mode").(string),
+		"region":                      client.Configs.RegionId,
+		"project":                     client.Configs.ProjectId,
+		"name":                        d.Get("name").(string),
+		"zone":                        d.Get("zone").(string),
+		"subnetId":                    d.Get("subnet_id").(string),
+		"vpcId":                       subnet.NetworkID,
+		"version":                     d.Get("kubernetes_version").(string),
+		"replicas":                    d.Get("master_count").(int),
+		"masterFlavorId":              d.Get("master_flavor_name").(string),
+		"cidrBlockNode":               subnet.Cidr,
+		"cidrBlockPod":                d.Get("cidr_block_pod").(string),
+		"cidrBlockService":            d.Get("cidr_block_service").(string),
+		"clusterNetworkServiceDomain": d.Get("network_driver").(string),
+		"nodeMaskCidr":                d.Get("node_mask_cidr").(int),
+		// "isNTP":                            d.Get("ntp_enabled").(bool),
+		"ntpServers":                       flatternNtpServers(d),
 		"clusterNetworkServicesCidrBlocks": "",
 		"clusterNetworkApiServerPort":      "",
 		"rolloutStrategyType":              "",
 		"rolloutStrategyMaxSurge":          "",
+		// "workerNumberEstimate":             d.Get("max_node_count").(int),
 	})
 
 	if err != nil {
@@ -116,6 +121,8 @@ func resourceKubernetesv2Read(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("network_driver", kubernetes.ServiceDomain)
 	_ = d.Set("created_at", kubernetes.CreatedAt)
 	_ = d.Set("state", kubernetes.State)
+	setInt(d, "node_mask_cidr", kubernetes.NodeMaskCidr)
+	_ = d.Set("ntp_servers", convertNtpServers(kubernetes.NtpServers))
 
 	status, err := client.Kubernetesv2.GetStatus(d.Id())
 	if err != nil {
@@ -260,4 +267,30 @@ func waitUntilKubernetesv2StatusChangedState(d *schema.ResourceData, meta interf
 	}, func(obj interface{}) string {
 		return obj.(gocmcapiv2.Kubernetesv2).State
 	})
+}
+
+func flatternNtpServers(d *schema.ResourceData) []map[string]interface{} {
+	servers := d.Get("ntp_servers").([]interface{})
+	result := make([]map[string]interface{}, len(servers))
+	for i, server := range servers {
+		r := server.(map[string]interface{})
+		result[i] = map[string]interface{}{
+			"host":     r["host"].(string),
+			"protocol": r["protocol"].(string),
+			"port":     r["port"].(int),
+		}
+	}
+	return result
+}
+
+func convertNtpServers(servers []gocmcapiv2.NtpServer) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(servers))
+	for i, server := range servers {
+		result[i] = map[string]interface{}{
+			"host":     server.Host,
+			"port":     server.Port,
+			"protocol": server.Protocol,
+		}
+	}
+	return result
 }

@@ -112,6 +112,10 @@ func resourceKubernetesv2NodeGroupCreate(d *schema.ResourceData, meta interface{
 	params["volumeType"] = d.Get("volume_type").(string)
 	params["volumeSize"] = d.Get("volume_size").(int)
 	params["billingMode"] = d.Get("billing_mode").(string)
+	// params["isNTP"] = d.Get("ntp_enabled").(bool)
+	params["ntpServers"] = flatternNtpServers(d)
+	// params["cidrBlockPod"] = d.Get("cidr_block_pod").(string)
+
 	// kiểm tra max_pods được khai báo không
 	if v, ok := d.GetOk("max_pods"); ok {
 		params["maxPodPerNode"] = v.(int)
@@ -185,6 +189,7 @@ func resourceKubernetesv2NodeGroupRead(d *schema.ResourceData, meta interface{})
 	_ = d.Set("enable_autoscale", false)
 	_ = d.Set("enable_autohealing", false)
 	_ = d.Set("status", nodegroup.Status)
+	_ = d.Set("ntp_servers", convertNtpServers(nodegroup.NtpServers))
 	for _, provider := range nodegroup.ExternalProviders {
 		if strings.Contains(provider.Name, "auto-scale") {
 			if provider.Status == "active" && provider.Config.MaxNode > provider.Config.MinNode {

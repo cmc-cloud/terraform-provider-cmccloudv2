@@ -83,7 +83,7 @@ func dataSourceVolumeTypeRead(d *schema.ResourceData, meta interface{}, for_data
 		var filteredVolumeTypes []gocmcapiv2.VolumeType
 		for _, volumetype := range allVolumeTypes {
 			if v := d.Get("description").(string); v != "" {
-				if !strings.EqualFold(volumetype.Name, v) {
+				if !strings.EqualFold(volumetype.Description, v) {
 					continue
 				}
 			}

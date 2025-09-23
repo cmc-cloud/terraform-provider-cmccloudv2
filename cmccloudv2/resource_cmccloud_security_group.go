@@ -101,6 +101,9 @@ func resourceSecurityGroupRead(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("description", sg.Description)
 	_ = d.Set("stateful", sg.Stateful)
 	_ = d.Set("rule", convertSecurityGroupRules(sg.Rules))
+	// fmt.Printf("error receiving Security Group %v", convertSecurityGroupRules(sg.Rules))
+
+	gocmcapiv2.Logo("convertSecurityGroupRules(sg.Rules)", convertSecurityGroupRules(sg.Rules))
 	return nil
 }
 
@@ -183,15 +186,31 @@ func convertSecurityGroupRules(rules []gocmcapiv2.SecurityGroupRule) []map[strin
 		// if rule.PortRangeMax > 0 {
 		// 	ports += "-" + strconv.Itoa(rule.PortRangeMax)
 		// }
+		remote_group_id := rule.RemoteGroupID
+		if remote_group_id == nil {
+			remote_group_id = ""
+		}
+		ether_type := rule.EtherType
+		// if ether_type == nil {
+		// 	ether_type = ""
+		// }
+		port_range_max := rule.PortRangeMax
+		// if port_range_max == nil {
+		// 	port_range_max = 0
+		// }
+		port_range_min := rule.PortRangeMin
+		// if port_range_min == nil {
+		// 	port_range_min = 0
+		// }
 		result[i] = map[string]interface{}{
 			"id":              rule.ID,
 			"protocol":        rule.Protocol,
 			"direction":       rule.Direction,
 			"cidr":            rule.CIDR,
-			"remote_group_id": rule.RemoteGroupID,
-			"ether_type":      rule.EtherType,
-			"port_range_max":  rule.PortRangeMax,
-			"port_range_min":  rule.PortRangeMin,
+			"remote_group_id": remote_group_id,
+			"ether_type":      ether_type,
+			"port_range_max":  port_range_max,
+			"port_range_min":  port_range_min,
 			// "ports":                 ports,
 		}
 	}

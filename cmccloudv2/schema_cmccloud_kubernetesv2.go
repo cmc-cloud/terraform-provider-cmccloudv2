@@ -65,6 +65,45 @@ func kubernetesv2Schema() map[string]*schema.Schema {
 			ValidateFunc: validateIPCidrRange,
 			ForceNew:     true,
 		},
+		"node_mask_cidr": {
+			Type:         schema.TypeInt,
+			Required:     true,
+			ValidateFunc: validation.IntBetween(0, 32),
+			ForceNew:     true,
+		},
+		// "ntp_enabled": {
+		// 	Type:     schema.TypeBool,
+		// 	Optional: true,
+		// 	Default:  false,
+		// },
+		"ntp_servers": {
+			Type:        schema.TypeList, // dùng List để giữ thứ tự
+			Optional:    true,
+			ForceNew:    true,
+			Description: "List of NTP servers (order matters).",
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"host": {
+						Type:        schema.TypeString,
+						Required:    true,
+						Description: "NTP server hostname or IP.",
+					},
+					"port": {
+						Type:        schema.TypeInt,
+						Optional:    true,
+						Default:     123,
+						Description: "NTP server port.",
+					},
+					"protocol": {
+						Type:         schema.TypeString,
+						Optional:     true,
+						Default:      "udp",
+						Description:  "Protocol used (udp or tcp).",
+						ValidateFunc: validation.StringInSlice([]string{"udp", "tcp"}, false),
+					},
+				},
+			},
+		},
 		"network_driver": {
 			Type:         schema.TypeString,
 			Optional:     true,
