@@ -35,6 +35,15 @@ func resourceKubernetesv2() *schema.Resource {
 					return fmt.Errorf("when `enable_autoscale` is 'false', `autoscale_max_node, autoscale_max_ram_gb, autoscale_max_core must not be set")
 				}
 			}
+
+			driver := diff.Get("network_driver").(string)
+
+			if driver != "cilium" {
+				// Nếu không phải cilium mà user cố tình set mode → báo lỗi
+				if isSet(diff, "network_driver_mode") {
+					return fmt.Errorf("`network_driver_mode` only avaiable when `network_driver = \"cilium\"`")
+				}
+			}
 			return nil
 		},
 	}
@@ -47,7 +56,7 @@ func resourceKubernetesv2Create(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("error receving subnet with id = %s: %v", d.Get("subnet_id").(string), err)
 	}
 
-	kubernetes, err := client.Kubernetesv2.Create(map[string]interface{}{
+	params := map[string]interface{}{
 		"billingMode":                 d.Get("billing_mode").(string),
 		"region":                      client.Configs.RegionId,
 		"project":                     client.Configs.ProjectId,
@@ -70,7 +79,12 @@ func resourceKubernetesv2Create(d *schema.ResourceData, meta interface{}) error 
 		"rolloutStrategyType":              "",
 		"rolloutStrategyMaxSurge":          "",
 		// "workerNumberEstimate":             d.Get("max_node_count").(int),
-	})
+	}
+
+	if d.Get("network_driver").(string) == "cilium" {
+		params["clusterNetworkDriverMode"] = d.Get("network_driver_mode").(string)
+	}
+	kubernetes, err := client.Kubernetesv2.Create(params)
 
 	if err != nil {
 		return fmt.Errorf("error creating Kubernetesv2: %s", err)
@@ -122,6 +136,7 @@ func resourceKubernetesv2Read(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("created_at", kubernetes.CreatedAt)
 	_ = d.Set("state", kubernetes.State)
 	setInt(d, "node_mask_cidr", kubernetes.NodeMaskCidr)
+	setString(d, "network_driver_mode", kubernetes.ClusterNetworkDriverMode)
 	_ = d.Set("ntp_servers", convertNtpServers(kubernetes.NtpServers))
 
 	status, err := client.Kubernetesv2.GetStatus(d.Id())

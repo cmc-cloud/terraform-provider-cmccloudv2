@@ -1,6 +1,7 @@
 package cmccloudv2
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -47,14 +48,17 @@ func resourceVolumeAttachmentCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceVolumeAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+	return _readVolumeAttachment(d.Get("server_id").(string), d.Id(), d, meta)
+}
+func _readVolumeAttachment(server_id string, volume_id string, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
-	volumeID := d.Id()
-	vol, err := client.Server.GetVolumeAttachmentDetail(d.Get("server_id").(string), volumeID)
+	vol, err := client.Server.GetVolumeAttachmentDetail(server_id, volume_id)
 	if err != nil {
 		return fmt.Errorf("error retrieving Volume Attachment %s: %v", d.Id(), err)
 	}
+	d.SetId(volume_id)
 	_ = d.Set("server_id", vol.ServerID)
-	_ = d.Set("volume_id", volumeID)
+	_ = d.Set("volume_id", volume_id)
 	_ = d.Set("delete_on_terminated", vol.DeleteOnTermination)
 	return nil
 }
@@ -76,8 +80,21 @@ func resourceVolumeAttachmentDelete(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceVolumeAttachmentImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	err := resourceVolumeAttachmentRead(d, meta)
-	return []*schema.ResourceData{d}, err
+	id := d.Id()
+	splitIdx := -1
+	for i := 0; i < len(id); i++ {
+		if id[i] == '-' {
+			splitIdx = i
+			break
+		}
+	}
+	if splitIdx != -1 {
+		server_id := id[:splitIdx]
+		volume_id := id[splitIdx+1:]
+		err := _readVolumeAttachment(server_id, volume_id, d, meta)
+		return []*schema.ResourceData{d}, err
+	}
+	return []*schema.ResourceData{d}, errors.New("Invalid import id")
 }
 
 func waitUntilVolumeAttachedStateChanged(d *schema.ResourceData, meta interface{}, server_id string, pendingStatus []string, targetStatus []string) (interface{}, error) {

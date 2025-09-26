@@ -53,6 +53,7 @@ func Provider() terraform.ResourceProvider {
 			"cmccloudv2_eip_port":                 resourceEIPPort(),
 			"cmccloudv2_efs":                      resourceEFS(),
 			"cmccloudv2_security_group":           resourceSecurityGroup(),
+			"cmccloudv2_security_group_rule":      resourceSecurityGroupRule(),
 			"cmccloudv2_kubernetes":               resourceKubernetes(),
 			"cmccloudv2_kubernetes_nodegroup":     resourceKubernetesNodeGroup(),
 			"cmccloudv2_kubernetesv2":             resourceKubernetesv2(),

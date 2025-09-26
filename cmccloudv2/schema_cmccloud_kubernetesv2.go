@@ -108,10 +108,16 @@ func kubernetesv2Schema() map[string]*schema.Schema {
 			Type:         schema.TypeString,
 			Optional:     true,
 			Default:      "calico",
-			ValidateFunc: validation.NoZeroValues,
+			ValidateFunc: validation.StringInSlice([]string{"calico", "cilium"}, false),
 			ForceNew:     true,
 		},
-
+		"network_driver_mode": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			Default:      "overlay",
+			ValidateFunc: validation.StringInSlice([]string{"overlay", "native-routing"}, false),
+			ForceNew:     true,
+		},
 		"enable_autohealing": {
 			Type:     schema.TypeBool,
 			Optional: true,
