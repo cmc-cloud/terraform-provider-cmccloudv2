@@ -40,9 +40,9 @@ func resourceSecurityGroup() *schema.Resource {
 func resourceSecurityGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	// Before creating the security group, make sure all rules are valid.
-	if err := checkRuleErrors(d, "rule"); err != nil {
-		return fmt.Errorf("invalid rule: %s", err)
-	}
+	// if err := checkRuleErrors(d, "rule"); err != nil {
+	// 	return fmt.Errorf("invalid rule: %s", err)
+	// }
 	// If all rules are valid, proceed with creating the security group.
 	group, err := client.SecurityGroup.Create(map[string]interface{}{
 		"name":          d.Get("name").(string),
@@ -69,23 +69,23 @@ func resourceSecurityGroupCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	// Now that the security group has been created, iterate through each rule and create it
-	rawRules := d.Get("rule").(*schema.Set).List()
-	for i, rawRule := range rawRules {
-		rawRuleMap := rawRule.(map[string]interface{})
-		_, err := client.SecurityGroup.CreateRule(group.ID, map[string]interface{}{
-			"ether_type":      rawRuleMap["ether_type"].(string),
-			"direction":       rawRuleMap["direction"].(string),
-			"protocol":        rawRuleMap["protocol"].(string),
-			"port_range_min":  rawRuleMap["port_range_min"].(int),
-			"port_range_max":  rawRuleMap["port_range_max"].(int),
-			"cidr":            rawRuleMap["cidr"].(string),
-			"remote_group_id": rawRuleMap["remote_group_id"].(string),
-			"description":     rawRuleMap["description"].(string),
-		})
-		if err != nil {
-			return fmt.Errorf("error creating Security Group Rule index %d rule: %s", (i + 1), err)
-		}
-	}
+	// rawRules := d.Get("rule").(*schema.Set).List()
+	// for i, rawRule := range rawRules {
+	// 	rawRuleMap := rawRule.(map[string]interface{})
+	// 	_, err := client.SecurityGroup.CreateRule(group.ID, map[string]interface{}{
+	// 		"ether_type":      rawRuleMap["ether_type"].(string),
+	// 		"direction":       rawRuleMap["direction"].(string),
+	// 		"protocol":        rawRuleMap["protocol"].(string),
+	// 		"port_range_min":  rawRuleMap["port_range_min"].(int),
+	// 		"port_range_max":  rawRuleMap["port_range_max"].(int),
+	// 		"cidr":            rawRuleMap["cidr"].(string),
+	// 		"remote_group_id": rawRuleMap["remote_group_id"].(string),
+	// 		"description":     rawRuleMap["description"].(string),
+	// 	})
+	// 	if err != nil {
+	// 		return fmt.Errorf("error creating Security Group Rule index %d rule: %s", (i + 1), err)
+	// 	}
+	// }
 
 	return resourceSecurityGroupRead(d, meta)
 }
