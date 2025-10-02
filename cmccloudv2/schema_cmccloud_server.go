@@ -52,6 +52,12 @@ func serverSchema() map[string]*schema.Schema {
 			ForceNew:     true,
 			ValidateFunc: validateUUID,
 		},
+		"volume_name": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			Description:  "Name of root volume",
+			ValidateFunc: validation.NoZeroValues,
+		},
 		"volume_size": {
 			Type:     schema.TypeInt,
 			Required: true,

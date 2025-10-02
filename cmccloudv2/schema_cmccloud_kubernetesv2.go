@@ -67,7 +67,8 @@ func kubernetesv2Schema() map[string]*schema.Schema {
 		},
 		"node_mask_cidr": {
 			Type:         schema.TypeInt,
-			Required:     true,
+			Optional:     true,
+			Default:      24,
 			ValidateFunc: validation.IntBetween(0, 32),
 			ForceNew:     true,
 		},

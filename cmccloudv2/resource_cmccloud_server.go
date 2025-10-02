@@ -94,6 +94,14 @@ func resourceServerCreate(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return fmt.Errorf("create server failed: %v", err)
 	}
+
+	// neu dat ten => tim root disk roi change name
+	if d.Get("volume_name").(string) != "" {
+		err = setRootVolumeName(res.Server.ID, d, meta)
+		if err != nil {
+			return fmt.Errorf("error when set volume name %s: %v", d.Id(), err)
+		}
+	}
 	return readOrImport(d, meta, false)
 }
 
@@ -182,6 +190,14 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 		_, err := client.Server.SetTags(id, d.Get("tags").(*schema.Set).List())
 		if err != nil {
 			return fmt.Errorf("error when set server tags [%s]: %v", id, err)
+		}
+	}
+
+	// neu dat ten => tim root disk roi change name
+	if d.HasChange("volume_name") && d.Get("volume_name").(string) != "" {
+		err := setRootVolumeName(d.Id(), d, meta)
+		if err != nil {
+			return fmt.Errorf("error when set volume name %s: %v", d.Id(), err)
 		}
 	}
 
@@ -281,6 +297,20 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return readOrImport(d, meta, false)
+}
+
+func setRootVolumeName(server_id string, d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*CombinedConfig).goCMCClient()
+	volumes, err := client.Server.GetVolumeAttachments(server_id)
+	if err != nil {
+		return fmt.Errorf("error retrieving server %s: %v", server_id, err)
+	}
+	for _, volume := range volumes {
+		if len(volume.Attachments) > 0 && volume.Attachments[0].Device == "/dev/vda" {
+			client.Volume.Rename(volume.Attachments[0].VolumeID, d.Get("volume_name").(string))
+		}
+	}
+	return nil
 }
 
 func resourceServerDelete(d *schema.ResourceData, meta interface{}) error {
