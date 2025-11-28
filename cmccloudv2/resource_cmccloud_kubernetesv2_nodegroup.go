@@ -94,6 +94,26 @@ func getAutoScaleConfig(d *schema.ResourceData, meta interface{}) (map[string]in
 func resourceKubernetesv2NodeGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 
+	networkId := ""
+	if v, ok := d.GetOk("subnet_id"); ok {
+		if v.(string) != "" {
+			subnet, err := client.Subnet.Get(d.Get("subnet_id").(string))
+			if err != nil {
+				return fmt.Errorf("error receving subnet with id = %s: %v", d.Get("subnet_id").(string), err)
+			}
+			networkId = subnet.NetworkID
+		}
+	}
+	if networkId == "" {
+		// lay networkId tu cluster
+		cluster_id := d.Get("cluster_id").(string)
+		cluster, err := client.Kubernetesv2.Get(cluster_id)
+		if err != nil {
+			return fmt.Errorf("error receving cluster with id = %s: %v", cluster_id, err)
+		}
+		networkId = cluster.VpcID
+	}
+
 	cluster_id := d.Get("cluster_id").(string)
 	params, flavor, err := getAutoScaleConfig(d, meta)
 	if err != nil {
@@ -112,6 +132,7 @@ func resourceKubernetesv2NodeGroupCreate(d *schema.ResourceData, meta interface{
 	params["volumeType"] = d.Get("volume_type").(string)
 	params["volumeSize"] = d.Get("volume_size").(int)
 	params["billingMode"] = d.Get("billing_mode").(string)
+	params["networkID"] = networkId
 	// params["isNTP"] = d.Get("ntp_enabled").(bool)
 	params["ntpServers"] = flatternNtpServers(d)
 	// params["cidrBlockPod"] = d.Get("cidr_block_pod").(string)
@@ -168,7 +189,21 @@ func resourceKubernetesv2NodeGroupCreate(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	return resourceKubernetesv2NodeGroupRead(d, meta)
+	res := resourceKubernetesv2NodeGroupRead(d, meta)
+
+	// kiểm tra có block gpu_configs không, nếu có thì thực hiện ConfigGpu, cần đủ các thuộc tính "gpu_model", "driver", "strategy", "mig_supported", "mig_profile", "time_slicing","gpu_profiles" thuộc gpu_configs
+	// if v, ok := d.GetOk("gpu_config"); ok && len(v.([]interface{})) > 0 {
+	// 	gpuParams, err := getGpuConfig(d, meta)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	_, err = client.Kubernetesv2.ConfigGpu(cluster_id, d.Id(), gpuParams)
+	// 	if err != nil {
+	// 		return fmt.Errorf("error configuring GPU for Kubernetes NodeGroup: %v", err)
+	// 	}
+	// }
+
+	return res
 }
 
 func resourceKubernetesv2NodeGroupRead(d *schema.ResourceData, meta interface{}) error {
@@ -220,6 +255,20 @@ func resourceKubernetesv2NodeGroupRead(d *schema.ResourceData, meta interface{})
 			}
 			setInt(d, "max_unhealthy_percent", int(provider.Config.MaxUnhealthy))
 			setInt(d, "node_startup_timeout_minutes", int(provider.Config.NodeStartupTimeout))
+		}
+	}
+
+	params := map[string]string{
+		"network_id": nodegroup.VpcID, // VpcId o day la network id cua subnet
+	}
+	subnets, err := client.Subnet.List(params)
+	if err != nil {
+		return fmt.Errorf("error retrieving list of subnets %v", err)
+	}
+	for _, subnet := range subnets {
+		if subnet.NetworkID == nodegroup.VpcID {
+			_ = d.Set("subnet_id", subnet.ID)
+			break
 		}
 	}
 	return nil
@@ -291,6 +340,24 @@ func resourceKubernetesv2NodeGroupUpdate(d *schema.ResourceData, meta interface{
 		}
 	}
 
+	// if d.HasChange("gpu_config") {
+	// 	if v, ok := d.GetOk("gpu_config"); ok && len(v.([]interface{})) > 0 {
+	// 		gpuParams, err := getGpuConfig(d, meta)
+	// 		if err != nil {
+	// 			return err
+	// 		}
+	// 		_, err = client.Kubernetesv2.ConfigGpu(cluster_id, d.Id(), gpuParams)
+	// 		if err != nil {
+	// 			return fmt.Errorf("error configuring GPU for Kubernetes NodeGroup: %v", err)
+	// 		}
+	// 	} else {
+	// 		// gpu_config block removed => disable GPU
+	// 		_, err := client.Kubernetesv2.DisableGpu(cluster_id, d.Id())
+	// 		if err != nil {
+	// 			return fmt.Errorf("error disabling GPU for Kubernetes NodeGroup: %v", err)
+	// 		}
+	// 	}
+	// }
 	return resourceKubernetesv2NodeGroupRead(d, meta)
 }
 

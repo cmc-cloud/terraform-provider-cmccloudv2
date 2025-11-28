@@ -20,6 +20,7 @@ func resourceVolume() *schema.Resource {
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(20 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 		SchemaVersion: 1,
 		Schema:        volumeSchema(),

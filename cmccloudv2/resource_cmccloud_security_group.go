@@ -217,42 +217,42 @@ func convertSecurityGroupRules(rules []gocmcapiv2.SecurityGroupRule) []map[strin
 	return result
 }
 
-func checkRuleErrors(d *schema.ResourceData, field string) error {
-	rawRules := d.Get(field).(*schema.Set).List()
+// func checkRuleErrors(d *schema.ResourceData, field string) error {
+// 	rawRules := d.Get(field).(*schema.Set).List()
 
-	for index, rawRule := range rawRules {
-		rawRuleMap := rawRule.(map[string]interface{})
+// 	for index, rawRule := range rawRules {
+// 		rawRuleMap := rawRule.(map[string]interface{})
 
-		// only one of cidr, from_group_id, or self can be set
-		cidr := rawRuleMap["cidr"].(string)
-		groupID := rawRuleMap["remote_group_id"].(string)
-		port_range_min := rawRuleMap["port_range_min"].(int)
-		port_range_max := rawRuleMap["port_range_max"].(int)
-		errorMessage := fmt.Errorf("rule.%d: only one of cidr or remote_group_id can be set", index)
+// 		// only one of cidr, from_group_id, or self can be set
+// 		cidr := rawRuleMap["cidr"].(string)
+// 		groupID := rawRuleMap["remote_group_id"].(string)
+// 		port_range_min := rawRuleMap["port_range_min"].(int)
+// 		port_range_max := rawRuleMap["port_range_max"].(int)
+// 		errorMessage := fmt.Errorf("rule.%d: only one of cidr or remote_group_id can be set", index)
 
-		// if cidr is set, from_group_id and self cannot be set
-		if cidr != "" {
-			if groupID != "" {
-				return errorMessage
-			}
-		}
+// 		// if cidr is set, from_group_id and self cannot be set
+// 		if cidr != "" {
+// 			if groupID != "" {
+// 				return errorMessage
+// 			}
+// 		}
 
-		// if from_group_id is set, cidr and self cannot be set
-		if groupID != "" {
-			if cidr != "" {
-				return errorMessage
-			}
-		}
+// 		// if from_group_id is set, cidr and self cannot be set
+// 		if groupID != "" {
+// 			if cidr != "" {
+// 				return errorMessage
+// 			}
+// 		}
 
-		if port_range_min != 0 && port_range_max != 0 && port_range_min > port_range_max {
-			if cidr != "" {
-				return fmt.Errorf("rule.%d: port_range_max must be >= port_range_min", index)
-			}
-		}
-	}
+// 		if port_range_min != 0 && port_range_max != 0 && port_range_min > port_range_max {
+// 			if cidr != "" {
+// 				return fmt.Errorf("rule.%d: port_range_max must be >= port_range_min", index)
+// 			}
+// 		}
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 func waitUntilSecurityGroupDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
 	return waitUntilResourceDeleted(d, meta, WaitConf{

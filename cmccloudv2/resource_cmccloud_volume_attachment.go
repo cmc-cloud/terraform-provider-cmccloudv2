@@ -94,7 +94,7 @@ func resourceVolumeAttachmentImport(d *schema.ResourceData, meta interface{}) ([
 		err := _readVolumeAttachment(server_id, volume_id, d, meta)
 		return []*schema.ResourceData{d}, err
 	}
-	return []*schema.ResourceData{d}, errors.New("Invalid import id")
+	return []*schema.ResourceData{d}, errors.New("invalid import id")
 }
 
 func waitUntilVolumeAttachedStateChanged(d *schema.ResourceData, meta interface{}, server_id string, pendingStatus []string, targetStatus []string) (interface{}, error) {

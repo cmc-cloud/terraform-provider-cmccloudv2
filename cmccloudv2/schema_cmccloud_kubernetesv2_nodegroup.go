@@ -184,10 +184,71 @@ func kubernetesv2NodeGroupSchema() map[string]*schema.Schema {
 			Optional:     true,
 			ValidateFunc: validation.IntBetween(1, 100),
 		},
+		"subnet_id": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validateUUID,
+		},
 		"status": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
+		// "gpu_config": {
+		// 	Type:     schema.TypeList,
+		// 	Optional: true,
+		// 	MaxItems: 1,
+		// 	Elem: &schema.Resource{
+		// 		Schema: map[string]*schema.Schema{
+		// 			// "gpu_model": {
+		// 			// 	Type:     schema.TypeString,
+		// 			// 	Required: true,
+		// 			// },
+		// 			"driver": {
+		// 				Type:     schema.TypeString,
+		// 				Required: true,
+		// 			},
+		// 			"strategy": {
+		// 				Type:         schema.TypeString,
+		// 				Optional:     true,
+		// 				Default:      "single",
+		// 				ValidateFunc: validation.StringInSlice([]string{"single", "mixed"}, false),
+		// 			},
+		// 			// "mig_supported": {
+		// 			// 	Type:     schema.TypeBool,
+		// 			// 	Optional: true,
+		// 			// 	Default:  false,
+		// 			// },
+		// 			"mig_profile": {
+		// 				Type:     schema.TypeString,
+		// 				Optional: true,
+		// 				Default:  "",
+		// 			},
+		// 			// "time_slicing": {
+		// 			// 	Type:     schema.TypeBool,
+		// 			// 	Optional: true,
+		// 			// 	Default:  false,
+		// 			// },
+		// 			"gpu_profiles": {
+		// 				Type:     schema.TypeSet,
+		// 				Optional: true,
+		// 				Elem: &schema.Resource{
+		// 					Schema: map[string]*schema.Schema{
+		// 						"name": {
+		// 							Type:     schema.TypeString,
+		// 							Required: true,
+		// 						},
+		// 						"replicas": {
+		// 							Type:     schema.TypeInt,
+		// 							Required: true,
+		// 						},
+		// 					},
+		// 				},
+		// 			},
+		// 		},
+		// 	},
+		// 	Description: "GPU configuration block for the node group.",
+		// },
 		// "labels": {
 		// 	Type:     schema.TypeMap,
 		// 	Optional: true,
@@ -200,5 +261,6 @@ func kubernetesv2NodeGroupSchema() map[string]*schema.Schema {
 		// 	Type:     schema.TypeMap,
 		// 	Optional: true,
 		// },
+
 	}
 }

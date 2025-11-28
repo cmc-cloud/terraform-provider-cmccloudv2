@@ -307,7 +307,10 @@ func setRootVolumeName(server_id string, d *schema.ResourceData, meta interface{
 	}
 	for _, volume := range volumes {
 		if len(volume.Attachments) > 0 && volume.Attachments[0].Device == "/dev/vda" {
-			client.Volume.Rename(volume.Attachments[0].VolumeID, d.Get("volume_name").(string))
+			_, err = client.Volume.Rename(volume.Attachments[0].VolumeID, d.Get("volume_name").(string))
+			if err != nil {
+				return fmt.Errorf("error rename volume %s: %v", volume.Attachments[0].VolumeID, err)
+			}
 		}
 	}
 	return nil
