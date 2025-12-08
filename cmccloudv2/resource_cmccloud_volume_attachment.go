@@ -83,7 +83,7 @@ func resourceVolumeAttachmentImport(d *schema.ResourceData, meta interface{}) ([
 	id := d.Id()
 	splitIdx := -1
 	for i := 0; i < len(id); i++ {
-		if id[i] == '-' {
+		if id[i] == '_' {
 			splitIdx = i
 			break
 		}
