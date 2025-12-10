@@ -36,14 +36,14 @@ func resourceKubernetesv2() *schema.Resource {
 				}
 			}
 
-			driver := diff.Get("network_driver").(string)
+			// driver := diff.Get("network_driver").(string)
 
-			if driver != "cilium" {
-				// Nếu không phải cilium mà user cố tình set mode → báo lỗi
-				if isSet(diff, "network_driver_mode") {
-					return fmt.Errorf("`network_driver_mode` only avaiable when `network_driver = \"cilium\"`")
-				}
-			}
+			// if driver != "cilium" {
+			// 	// Nếu không phải cilium mà user cố tình set mode → báo lỗi
+			// 	if isSet(diff, "network_driver_mode") {
+			// 		return fmt.Errorf("`network_driver_mode` only avaiable when `network_driver = \"cilium\"`")
+			// 	}
+			// }
 			return nil
 		},
 	}
