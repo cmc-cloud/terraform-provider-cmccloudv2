@@ -135,8 +135,11 @@ func resourceKubernetesv2Read(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("network_driver", kubernetes.ServiceDomain)
 	_ = d.Set("created_at", kubernetes.CreatedAt)
 	_ = d.Set("state", kubernetes.State)
-	setInt(d, "node_mask_cidr", kubernetes.NodeMaskCidr)
-	setString(d, "network_driver_mode", kubernetes.ClusterNetworkDriverMode)
+
+	_ = d.Set("node_mask_cidr", kubernetes.NodeMaskCidr)
+	_ = d.Set("network_driver_mode", kubernetes.ClusterNetworkDriverMode)
+	// setInt(d, "node_mask_cidr", kubernetes.NodeMaskCidr)
+	// setString(d, "network_driver_mode", kubernetes.ClusterNetworkDriverMode)
 	_ = d.Set("ntp_servers", convertNtpServers(kubernetes.NtpServers))
 
 	status, err := client.Kubernetesv2.GetStatus(d.Id())
