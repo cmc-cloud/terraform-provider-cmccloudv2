@@ -40,6 +40,7 @@ func resourceVolumeCreate(d *schema.ResourceData, meta interface{}) error {
 		"size":         d.Get("size").(int),
 		"type":         d.Get("type").(string),
 		"zone_name":    d.Get("zone").(string),
+		"backup_id":    d.Get("backup_id").(string),
 		"billing_mode": d.Get("billing_mode").(string),
 		"secret":       d.Get("secret_id").(string),
 		"tags":         d.Get("tags").(*schema.Set).List(),

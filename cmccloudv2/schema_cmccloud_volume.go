@@ -43,6 +43,11 @@ func volumeSchema() map[string]*schema.Schema {
 			Optional: true,
 			ForceNew: true,
 		},
+		"backup_id": {
+			Type:     schema.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
 		// "server_id": {
 		// 	Type:         schema.TypeString,
 		// 	Optional:     true,
