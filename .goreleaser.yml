@@ -38,17 +38,16 @@ checksum:
   name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'
   algorithm: sha256
 signs:
-  - id: skip
-    disable: true
-  - artifacts: checksum
-    args:
-      - "--batch"
-      - "--local-user"
-      - "{{ .Env.GPG_FINGERPRINT }}"
-      - "--output"
-      - "${signature}"
-      - "--detach-sign"
-      - "${artifact}"
+  - disable: true
+  # - artifacts: checksum
+  #   args:
+  #     - "--batch"
+  #     - "--local-user"
+  #     - "{{ .Env.GPG_FINGERPRINT }}"
+  #     - "--output"
+  #     - "${signature}"
+  #     - "--detach-sign"
+  #     - "${artifact}"
 release:
   draft: true
 changelog:
