@@ -10,7 +10,8 @@ on:
     tags:
       - 'v*'
   release:
-    types: [created, published]
+    types: [created]
+    #types: [created, published]
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
