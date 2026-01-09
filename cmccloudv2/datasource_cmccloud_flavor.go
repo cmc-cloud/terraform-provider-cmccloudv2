@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/cmc-cloud/gocmcapiv2"
+	"github.com/cmc-cloud/terraform-provider-cmccloudv2/gocmcapiv2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 

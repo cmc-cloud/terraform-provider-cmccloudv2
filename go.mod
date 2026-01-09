@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	// run: go get -d github.com/cmc-cloud/gocmcapiv2@55d4b02 to get correct lastest version, 55d4b02 = last hash github commit
-	github.com/cmc-cloud/gocmcapiv2 v1.25.11 // v0.0.0-20251128025429-55d4b02b65d3
+	// github.com/cmc-cloud/gocmcapiv2 v1.25.11 // v0.0.0-20251128025429-55d4b02b65d3
 	github.com/hashicorp/terraform-plugin-sdk v1.17.2
 )
 
@@ -106,4 +106,4 @@ require (
 )
 
 // uncomment this line when build from code
-replace github.com/cmc-cloud/gocmcapiv2 => D:\code\CMC\openstack\terraform\gocmcapiv2
+// replace github.com/cmc-cloud/gocmcapiv2 => D:\code\CMC\openstack\terraform\gocmcapiv2

@@ -3,7 +3,8 @@ package cmccloudv2
 import (
 	"log"
 
-	gocmcapi "github.com/cmc-cloud/gocmcapiv2"
+	gocmcapi "github.com/cmc-cloud/terraform-provider-cmccloudv2/gocmcapiv2"
+	// gocmcapi "github.com/cmc-cloud/terraform-provider-cmccloudv2/gocmcapiv2"
 )
 
 // Config object
