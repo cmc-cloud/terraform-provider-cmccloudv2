@@ -36,9 +36,10 @@ func datasourceVPCSchema() map[string]*schema.Schema {
 			ForceNew:    true,
 		},
 		"created_at": {
-			Type:     schema.TypeString,
-			Computed: true,
-			ForceNew: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			ForceNew:    true,
+			Description: "Created time of vpc",
 		},
 	}
 }

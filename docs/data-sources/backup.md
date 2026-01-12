@@ -38,14 +38,14 @@ data "cmccloudv2_backup" "backup_3" {
 ### Optional
 
 - `backup_id` (String) Id of the backup
-- `is_incremental` (Boolean) filter by volume bootable
-- `is_latest` (Boolean) true if you want to get the latest backup that match other filter
+- `is_incremental` (Boolean) If set to true, it is incremental backup, other it is full backup
+- `is_latest` (Boolean) true if you want to get the latest backup
 - `name` (String) Filter by name of backup (case-insenitive)
 - `status` (String) Filter by status of backup (case-insenitive), match exactly
 - `volume_id` (String) Id of the volume
 
 ### Read-Only
 
-- `created_at` (String)
+- `created_at` (String) Created at of the backup
 - `id` (String) The ID of this resource.
-- `real_size_gb` (Number)
+- `real_size_gb` (Number) Real size of the backup in GB

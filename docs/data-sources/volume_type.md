@@ -27,7 +27,7 @@ data "cmccloudv2_volume_type" "volume_type_1" {
 ### Optional
 
 - `description` (String) Filter by description that match exactly this text (case-insensitive), description is the text display on the portal
-- `multi_attach` (Boolean)
+- `multi_attach` (Boolean) Filter by multi_attach of volume type
 - `name` (String) Id of the server that volumetype attached (case-insensitive), match exactly
 - `volume_type_id` (String) Id of the volumetype
 

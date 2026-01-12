@@ -17,11 +17,11 @@ description: |-
 
 ### Required
 
-- `name` (String)
+- `name` (String) The name of the ECS Group
 
 ### Optional
 
-- `policy` (String)
+- `policy` (String) The policy of the ECS Group
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only

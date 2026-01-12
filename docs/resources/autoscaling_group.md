@@ -36,15 +36,15 @@ resource "cmccloudv2_autoscaling_group" "as_group1" {
 
 ### Required
 
-- `as_configuration_id` (String)
-- `desired_capacity` (Number)
-- `max_size` (Number)
-- `min_size` (Number)
-- `name` (String)
+- `as_configuration_id` (String) Autoscaling configuration ID
+- `desired_capacity` (Number) Desired number of instances in the autoscaling group
+- `max_size` (Number) Maximum number of instances in the autoscaling group
+- `min_size` (Number) Minimum number of instances in the autoscaling group
+- `name` (String) Name of the autoscaling group
 
 ### Optional
 
-- `policies` (Set of String)
+- `policies` (Set of String) List of autoscaling policy IDs
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only

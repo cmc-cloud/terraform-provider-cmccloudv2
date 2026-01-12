@@ -29,7 +29,7 @@ data "cmccloudv2_devops_project" "project_1" {
 
 ### Required
 
-- `type` (String)
+- `type` (String) type of devops project, owner or share
 
 ### Optional
 
@@ -39,5 +39,5 @@ data "cmccloudv2_devops_project" "project_1" {
 
 ### Read-Only
 
-- `created_at` (String)
+- `created_at` (String) Created at of the devops project
 - `id` (String) The ID of this resource.

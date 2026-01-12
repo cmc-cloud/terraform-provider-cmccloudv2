@@ -42,8 +42,9 @@ func datasourceKeyManagementSecretSchema() map[string]*schema.Schema {
 		// 	ForceNew:    true,
 		// },
 		"created_at": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Created time of KeyManagementSecret",
 		},
 	}
 }

@@ -29,7 +29,7 @@ data "cmccloudv2_iam_user" "dev" {
 
 ### Optional
 
-- `email` (String) filter by email of user
+- `email` (String) Filter by email of user
 - `username` (String) Filter by full username
 
 ### Read-Only

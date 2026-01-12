@@ -30,9 +30,10 @@ func datasourceSubnetSchema() map[string]*schema.Schema {
 			ForceNew:    true,
 		},
 		"cidr": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Type:        schema.TypeString,
+			Optional:    true,
+			ForceNew:    true,
+			Description: "Filter by cidr of subnet",
 		},
 		"gateway_ip": {
 			Type:        schema.TypeString,
@@ -41,9 +42,10 @@ func datasourceSubnetSchema() map[string]*schema.Schema {
 			ForceNew:    true,
 		},
 		"created_at": {
-			Type:     schema.TypeString,
-			Computed: true,
-			ForceNew: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			ForceNew:    true,
+			Description: "Created time of subnet",
 		},
 	}
 }

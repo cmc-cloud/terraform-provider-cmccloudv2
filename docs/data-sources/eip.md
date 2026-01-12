@@ -34,11 +34,11 @@ data "cmccloudv2_eip" "elb2" {
 - `dns_domain` (String) filter by dns_domain that contains this text (case-insensitive)
 - `dns_name` (String) filter by dns_name that contains this text (case-insensitive)
 - `eip_id` (String) Id of the eip
-- `fixed_ip_address` (String)
+- `fixed_ip_address` (String) Filter by fixed_ip_address of eip
 - `ip_address` (String) Filter by ip address of eip
 - `status` (String) filter by eip status (case-insensitive)
 
 ### Read-Only
 
-- `created_at` (String)
+- `created_at` (String) Created at of the eip
 - `id` (String) The ID of this resource.

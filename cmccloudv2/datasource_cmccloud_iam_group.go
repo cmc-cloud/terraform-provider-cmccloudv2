@@ -16,8 +16,9 @@ func datasourceIamGroupSchema() map[string]*schema.Schema {
 			ForceNew:    true,
 		},
 		"description": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Description of group",
 		},
 	}
 }

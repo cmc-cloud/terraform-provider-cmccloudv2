@@ -34,6 +34,6 @@ data "cmccloudv2_certificate" "cert_2" {
 
 ### Read-Only
 
-- `created_at` (String)
+- `created_at` (String) Created at of the certificate
 - `id` (String) The ID of this resource.
-- `secret_ref` (String)
+- `secret_ref` (String) Secret reference of the certificate

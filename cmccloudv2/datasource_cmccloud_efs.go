@@ -48,24 +48,29 @@ func datasourceEFSSchema() map[string]*schema.Schema {
 			ForceNew:    true,
 		},
 		"type": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Type of EFS",
 		},
 		"protocol_type": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Protocol type of EFS",
 		},
 		"status": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Status of EFS",
 		},
 		"capacity": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Capacity of EFS",
 		},
 		"created_at": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Created at of EFS",
 		},
 	}
 }

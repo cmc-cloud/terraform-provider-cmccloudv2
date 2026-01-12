@@ -38,5 +38,5 @@ data "cmccloudv2_keymanagement_secret" "redis_config_1" {
 
 ### Read-Only
 
-- `created_at` (String)
+- `created_at` (String) Created time of KeyManagementSecret
 - `id` (String) The ID of this resource.

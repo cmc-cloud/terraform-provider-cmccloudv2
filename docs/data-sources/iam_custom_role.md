@@ -28,6 +28,6 @@ data "cmccloudv2_iam_custom_role" "crdev" {
 
 ### Read-Only
 
-- `created` (String)
-- `description` (String)
+- `created` (String) Created time of role
+- `description` (String) Description of role
 - `id` (String) The ID of this resource.

@@ -37,10 +37,10 @@ data "cmccloudv2_efs" "efs1" {
 
 ### Read-Only
 
-- `capacity` (String)
-- `created_at` (String)
+- `capacity` (String) Capacity of EFS
+- `created_at` (String) Created at of EFS
 - `description` (String) Filter EFS that has description contains this text
 - `id` (String) The ID of this resource.
-- `protocol_type` (String)
-- `status` (String)
-- `type` (String)
+- `protocol_type` (String) Protocol type of EFS
+- `status` (String) Status of EFS
+- `type` (String) Type of EFS

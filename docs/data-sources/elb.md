@@ -40,5 +40,5 @@ data "cmccloudv2_elb" "elb3" {
 
 ### Read-Only
 
-- `created_at` (String)
+- `created_at` (String) Created at of the elb
 - `id` (String) The ID of this resource.

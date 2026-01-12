@@ -18,14 +18,16 @@ func datasourceAutoScalingConfigurationSchema() map[string]*schema.Schema {
 			Description: "Id of the autoscaling configuration",
 		},
 		"name": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Type:        schema.TypeString,
+			Optional:    true,
+			ForceNew:    true,
+			Description: "Name of the autoscaling configuration",
 		},
 		"created_at": {
-			Type:     schema.TypeString,
-			Computed: true,
-			ForceNew: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			ForceNew:    true,
+			Description: "Created at of the autoscaling configuration",
 		},
 	}
 }

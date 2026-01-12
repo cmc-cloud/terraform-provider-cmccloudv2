@@ -28,5 +28,5 @@ data "cmccloudv2_iam_group" "dev" {
 
 ### Read-Only
 
-- `description` (String)
+- `description` (String) Description of group
 - `id` (String) The ID of this resource.

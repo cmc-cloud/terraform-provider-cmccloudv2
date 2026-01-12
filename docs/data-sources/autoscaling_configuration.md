@@ -30,9 +30,9 @@ data "cmccloudv2_autoscaling_configuration" "backup_2" {
 ### Optional
 
 - `autoscaling_configuration_id` (String) Id of the autoscaling configuration
-- `name` (String)
+- `name` (String) Name of the autoscaling configuration
 
 ### Read-Only
 
-- `created_at` (String)
+- `created_at` (String) Created at of the autoscaling configuration
 - `id` (String) The ID of this resource.

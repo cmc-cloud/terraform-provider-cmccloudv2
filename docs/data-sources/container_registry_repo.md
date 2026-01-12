@@ -17,14 +17,14 @@ description: |-
 
 ### Required
 
-- `devops_project_id` (String)
+- `devops_project_id` (String) Id of the devops project
 
 ### Optional
 
 - `container_registry_id` (String) Id of the container registry
-- `name` (String)
+- `name` (String) Filter by name of container registry repository (case-insensitive)
 
 ### Read-Only
 
-- `created_at` (String)
+- `created_at` (String) Created at of the container registry repository
 - `id` (String) The ID of this resource.

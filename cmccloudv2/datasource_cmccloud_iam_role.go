@@ -17,13 +17,13 @@ func datasourceIamRoleSchema() map[string]*schema.Schema {
 		},
 		"title": {
 			Type:        schema.TypeString,
-			Description: "filter by title",
+			Description: "Filter by title",
 			Optional:    true,
 			ForceNew:    true,
 		},
 		"region_id": {
 			Type:        schema.TypeString,
-			Description: "filter by region id",
+			Description: "Filter by region id",
 			Optional:    true,
 			ForceNew:    true,
 		},

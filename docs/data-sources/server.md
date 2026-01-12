@@ -43,8 +43,8 @@ data "cmccloudv2_server" "server1" {
 
 ### Read-Only
 
-- `cpu` (Number)
-- `created_at` (String)
-- `flavor_name` (String)
+- `cpu` (Number) Number of CPUs of server
+- `created_at` (String) Created time of server
+- `flavor_name` (String) Flavor name of server
 - `id` (String) The ID of this resource.
-- `ram` (Number)
+- `ram` (Number) Number of Ram in GB of server

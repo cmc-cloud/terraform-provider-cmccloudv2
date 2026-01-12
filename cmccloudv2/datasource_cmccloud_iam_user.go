@@ -17,7 +17,7 @@ func datasourceIamUserSchema() map[string]*schema.Schema {
 		},
 		"email": {
 			Type:        schema.TypeString,
-			Description: "filter by email of user",
+			Description: "Filter by email of user",
 			Optional:    true,
 			ForceNew:    true,
 		},

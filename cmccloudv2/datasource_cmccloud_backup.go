@@ -36,25 +36,27 @@ func datasourceVolumeBackupSchema() map[string]*schema.Schema {
 		},
 		"is_latest": {
 			Type:        schema.TypeBool,
-			Description: "true if you want to get the latest backup that match other filter",
+			Description: "true if you want to get the latest backup",
 			Optional:    true,
 			ForceNew:    true,
 		},
 		"is_incremental": {
 			Type:        schema.TypeBool,
-			Description: "filter by volume bootable",
 			Optional:    true,
 			ForceNew:    true,
+			Description: "If set to true, it is incremental backup, other it is full backup",
 		},
 		"created_at": {
-			Type:     schema.TypeString,
-			Computed: true,
-			ForceNew: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			ForceNew:    true,
+			Description: "Created at of the backup",
 		},
 		"real_size_gb": {
-			Type:     schema.TypeFloat,
-			Computed: true,
-			ForceNew: true,
+			Type:        schema.TypeFloat,
+			Computed:    true,
+			ForceNew:    true,
+			Description: "Real size of the backup in GB",
 		},
 	}
 }

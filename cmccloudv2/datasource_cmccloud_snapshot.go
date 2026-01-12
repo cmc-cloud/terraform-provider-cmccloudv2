@@ -41,14 +41,16 @@ func datasourceVolumeSnapshotSchema() map[string]*schema.Schema {
 			ForceNew:    true,
 		},
 		"created_at": {
-			Type:     schema.TypeString,
-			Computed: true,
-			ForceNew: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			ForceNew:    true,
+			Description: "Created time of snapshot",
 		},
 		"real_size_gb": {
-			Type:     schema.TypeFloat,
-			Computed: true,
-			ForceNew: true,
+			Type:        schema.TypeFloat,
+			Computed:    true,
+			ForceNew:    true,
+			Description: "Real size of snapshot in GB",
 		},
 	}
 }

@@ -25,12 +25,12 @@ resource "cmccloudv2_security_group" "security_group1" {
 
 ### Required
 
-- `name` (String)
-- `stateful` (Boolean)
+- `name` (String) The name of the security group
+- `stateful` (Boolean) The stateful of the security group, if true, the security group is stateful
 
 ### Optional
 
-- `description` (String)
+- `description` (String) The description of the security group
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only

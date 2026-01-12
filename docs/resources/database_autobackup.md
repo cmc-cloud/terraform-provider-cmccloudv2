@@ -28,23 +28,23 @@ resource "cmccloudv2_database_autobackup" "database_autobackup1" {
 
 ### Required
 
-- `instance_id` (String)
-- `name` (String)
-- `schedule_time` (String)
+- `instance_id` (String) The ID of the database instance
+- `name` (String) The name of the database auto backup
+- `schedule_time` (String) The schedule time in HH:mm format, eg: 19:05
 
 ### Optional
 
-- `incremental` (Boolean)
-- `interval` (Number)
-- `max_keep` (Number)
+- `incremental` (Boolean) If true, it is incremental backup, if false, it is full backup. Default is true
+- `interval` (Number) The interval of the auto backup
+- `max_keep` (Number) The maximum number of backups to keep
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
 
-- `created_at` (String)
+- `created_at` (String) The creation time of the auto backup
 - `id` (String) The ID of this resource.
-- `last_run` (String)
-- `volume_size` (Number)
+- `last_run` (String) The last run time of the auto backup
+- `volume_size` (Number) The size of the volume in GB
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

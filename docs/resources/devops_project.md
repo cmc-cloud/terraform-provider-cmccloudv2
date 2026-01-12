@@ -17,7 +17,7 @@ description: |-
 
 ### Required
 
-- `name` (String)
+- `name` (String) The name of the Devops Project
 
 ### Optional
 
@@ -25,10 +25,10 @@ description: |-
 
 ### Read-Only
 
-- `created_at` (String)
-- `description` (String)
+- `created_at` (String) The creation time of the Devops Project
+- `description` (String) The description of the Devops Project
 - `id` (String) The ID of this resource.
-- `is_default` (Boolean)
+- `is_default` (Boolean) If true, the Devops Project is the default one
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

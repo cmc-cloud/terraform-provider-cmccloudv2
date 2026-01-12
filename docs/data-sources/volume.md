@@ -45,5 +45,5 @@ data "cmccloudv2_volume" "volume_root" {
 
 ### Read-Only
 
-- `created_at` (String)
+- `created_at` (String) Created time of volume
 - `id` (String) The ID of this resource.

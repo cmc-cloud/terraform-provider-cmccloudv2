@@ -44,6 +44,6 @@ data "cmccloudv2_snapshot" "snapshot-latest" {
 
 ### Read-Only
 
-- `created_at` (String)
+- `created_at` (String) Created time of snapshot
 - `id` (String) The ID of this resource.
-- `real_size_gb` (Number)
+- `real_size_gb` (Number) Real size of snapshot in GB

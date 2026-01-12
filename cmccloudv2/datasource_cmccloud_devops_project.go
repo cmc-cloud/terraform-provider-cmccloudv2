@@ -24,6 +24,7 @@ func datasourceDevopsProjectSchema() map[string]*schema.Schema {
 			Required:     true,
 			ValidateFunc: validation.StringInSlice([]string{"owner", "share"}, false),
 			ForceNew:     true,
+			Description:  "type of devops project, owner or share",
 		},
 		"name": {
 			Type:        schema.TypeString,
@@ -38,9 +39,10 @@ func datasourceDevopsProjectSchema() map[string]*schema.Schema {
 			Description: "search by description",
 		},
 		"created_at": {
-			Type:     schema.TypeString,
-			Computed: true,
-			ForceNew: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			ForceNew:    true,
+			Description: "Created at of the devops project",
 		},
 	}
 }

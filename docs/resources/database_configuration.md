@@ -38,14 +38,14 @@ resource "cmccloudv2_database_configuration" "database_config_terraform" {
 
 ### Required
 
-- `datastore_type` (String)
-- `datastore_version` (String)
-- `name` (String)
+- `datastore_type` (String) The type of the datastore
+- `datastore_version` (String) The version of the datastore
+- `name` (String) The name of the database configuration
 
 ### Optional
 
-- `description` (String)
-- `parameters` (Block Set) (see [below for nested schema](#nestedblock--parameters))
+- `description` (String) The description of the database configuration
+- `parameters` (Block Set) The parameters of the database configuration (see [below for nested schema](#nestedblock--parameters))
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
@@ -57,8 +57,8 @@ resource "cmccloudv2_database_configuration" "database_config_terraform" {
 
 Required:
 
-- `key` (String)
-- `value` (String)
+- `key` (String) The key of the parameter
+- `value` (String) The value of the parameter
 
 
 <a id="nestedblock--timeouts"></a>

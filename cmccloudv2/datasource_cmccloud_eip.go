@@ -24,9 +24,10 @@ func datasourceEIPSchema() map[string]*schema.Schema {
 			ForceNew:    true,
 		},
 		"fixed_ip_address": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Type:        schema.TypeString,
+			Optional:    true,
+			ForceNew:    true,
+			Description: "Filter by fixed_ip_address of eip",
 		},
 		"device_id": {
 			Type:        schema.TypeString,
@@ -62,9 +63,10 @@ func datasourceEIPSchema() map[string]*schema.Schema {
 			ForceNew:    true,
 		},
 		"created_at": {
-			Type:     schema.TypeString,
-			Computed: true,
-			ForceNew: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			ForceNew:    true,
+			Description: "Created at of the eip",
 		},
 	}
 }

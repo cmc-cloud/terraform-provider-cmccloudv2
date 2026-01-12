@@ -23,9 +23,10 @@ func datasourceVolumeTypeSchema() map[string]*schema.Schema {
 			Description: "Id of the server that volumetype attached (case-insensitive), match exactly",
 		},
 		"multi_attach": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			Default:  false,
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Filter by multi_attach of volume type",
 		},
 		"description": {
 			Type:        schema.TypeString,

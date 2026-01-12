@@ -13,9 +13,10 @@ import (
 func datasourceContainerRegistryRepositorySchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"devops_project_id": {
-			Type:     schema.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:        schema.TypeString,
+			Required:    true,
+			ForceNew:    true,
+			Description: "Id of the devops project",
 		},
 		"container_registry_id": {
 			Type:        schema.TypeString,
@@ -23,14 +24,16 @@ func datasourceContainerRegistryRepositorySchema() map[string]*schema.Schema {
 			Description: "Id of the container registry",
 		},
 		"name": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Type:        schema.TypeString,
+			Optional:    true,
+			ForceNew:    true,
+			Description: "Filter by name of container registry repository (case-insensitive)",
 		},
 		"created_at": {
-			Type:     schema.TypeString,
-			Computed: true,
-			ForceNew: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			ForceNew:    true,
+			Description: "Created at of the container registry repository",
 		},
 	}
 }

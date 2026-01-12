@@ -35,5 +35,5 @@ data "cmccloudv2_keymanagement_container" "container_1" {
 
 ### Read-Only
 
-- `created_at` (String)
+- `created_at` (String) Created time of container
 - `id` (String) The ID of this resource.

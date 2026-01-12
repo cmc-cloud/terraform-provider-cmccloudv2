@@ -45,28 +45,28 @@ resource "cmccloudv2_autoscaling_configuration" "as_configuration1" {
 
 ### Required
 
-- `flavor_id` (String)
-- `name` (String)
-- `source_id` (String)
-- `source_type` (String)
-- `subnet_ids` (List of String)
-- `use_eip` (Boolean)
-- `volumes` (Block List, Min: 1) (see [below for nested schema](#nestedblock--volumes))
+- `flavor_id` (String) Flavor ID
+- `name` (String) Name of the autoscaling configuration
+- `source_id` (String) Image/Snapshot/Volume ID, relate to source_type value
+- `source_type` (String) Source type of server
+- `subnet_ids` (List of String) List of Subnet IDs
+- `use_eip` (Boolean) Whether to use EIP
+- `volumes` (Block List, Min: 1) List of volumes (see [below for nested schema](#nestedblock--volumes))
 
 ### Optional
 
-- `domestic_bandwidth` (Number)
-- `ecs_group_id` (String)
-- `inter_bandwidth` (Number)
-- `key_name` (String)
-- `password` (String, Sensitive)
-- `security_group_names` (Set of String)
+- `domestic_bandwidth` (Number) Domestic bandwidth, required when use_eip is true
+- `ecs_group_id` (String) ECS group ID
+- `inter_bandwidth` (Number) Inter bandwidth, required when use_eip is true
+- `key_name` (String) Key name
+- `password` (String, Sensitive) Password of the server
+- `security_group_names` (Set of String) List of security group names
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
-- `user_data` (String)
+- `user_data` (String) User script to run after server created
 
 ### Read-Only
 
-- `created` (String)
+- `created` (String) Created time of the autoscaling configuration
 - `id` (String) The ID of this resource.
 
 <a id="nestedblock--volumes"></a>
@@ -74,12 +74,12 @@ resource "cmccloudv2_autoscaling_configuration" "as_configuration1" {
 
 Required:
 
-- `size` (Number)
+- `size` (Number) Volume size in GB
 - `type` (String) Volume type, eg: highio/commonio
 
 Optional:
 
-- `delete_on_termination` (Boolean)
+- `delete_on_termination` (Boolean) If set to true, delete the volume when the instance is terminated
 
 
 <a id="nestedblock--timeouts"></a>

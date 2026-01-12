@@ -73,11 +73,11 @@ resource "cmccloudv2_dns_record" "record2" {
 
 Required:
 
-- `ip` (String)
+- `ip` (String) The IP of the DNS record
 
 Optional:
 
-- `weight` (Number)
+- `weight` (Number) The weight of the DNS record
 
 
 <a id="nestedblock--timeouts"></a>

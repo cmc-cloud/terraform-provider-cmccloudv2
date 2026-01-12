@@ -30,8 +30,8 @@ data "cmccloudv2_iam_role" "ec_full" {
 ### Optional
 
 - `name` (String) Filter by name
-- `region_id` (String) filter by region id
-- `title` (String) filter by title
+- `region_id` (String) Filter by region id
+- `title` (String) Filter by title
 
 ### Read-Only
 

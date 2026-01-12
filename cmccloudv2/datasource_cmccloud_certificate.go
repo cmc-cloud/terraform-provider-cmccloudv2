@@ -22,12 +22,14 @@ func datasourceCertificateSchema() map[string]*schema.Schema {
 			ForceNew:    true,
 		},
 		"created_at": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Created at of the certificate",
 		},
 		"secret_ref": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Secret reference of the certificate",
 		},
 	}
 }

@@ -27,8 +27,9 @@ func datasourceELBSchema() map[string]*schema.Schema {
 			ForceNew:    true,
 		},
 		"created_at": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Created at of the elb",
 		},
 	}
 }

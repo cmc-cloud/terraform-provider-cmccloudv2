@@ -28,6 +28,6 @@ data "cmccloudv2_keypair" "keypair1" {
 
 ### Read-Only
 
-- `created_at` (String)
-- `fingerprint` (String)
+- `created_at` (String) Created time of keypair
+- `fingerprint` (String) The fingerprint of the keypair
 - `id` (String) The ID of this resource.

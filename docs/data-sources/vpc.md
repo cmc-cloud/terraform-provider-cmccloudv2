@@ -42,5 +42,5 @@ data "cmccloudv2_vpc" "vpc_2" {
 
 ### Read-Only
 
-- `created_at` (String)
+- `created_at` (String) Created time of vpc
 - `id` (String) The ID of this resource.

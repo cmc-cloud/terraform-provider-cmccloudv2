@@ -63,15 +63,17 @@ func dnsRecordSchema() map[string]*schema.Schema {
 func createDnsRecordIpSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"ip": {
-			Type:     schema.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:        schema.TypeString,
+			Required:    true,
+			ForceNew:    true,
+			Description: "The IP of the DNS record",
 		},
 		"weight": {
 			Type:     schema.TypeInt,
 			Optional: true,
 			// Default:  1,
-			ForceNew: true,
+			ForceNew:    true,
+			Description: "The weight of the DNS record",
 		},
 	}
 }

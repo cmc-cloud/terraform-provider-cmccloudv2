@@ -5,26 +5,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
-
-func ecsgroupSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		"name": {
-			Type:         schema.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validateName,
-		},
-		"policy": {
-			Type:         schema.TypeString,
-			ValidateFunc: validation.StringInSlice([]string{"soft-anti-affinity", "soft-affinity"}, true),
-			Optional:     true,
-			Default:      "soft-anti-affinity",
-			ForceNew:     true,
-		},
-	}
-}
 
 func resourceEcsGroup() *schema.Resource {
 	return &schema.Resource{

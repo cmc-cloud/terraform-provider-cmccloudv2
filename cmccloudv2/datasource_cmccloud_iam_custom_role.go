@@ -16,12 +16,14 @@ func datasourceIamCustomRoleSchema() map[string]*schema.Schema {
 			ForceNew:    true,
 		},
 		"description": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Description of role",
 		},
 		"created": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Created time of role",
 		},
 	}
 }

@@ -8,29 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func devopsProjectSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		"name": {
-			Type:         schema.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validateName,
-		},
-		"description": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"is_default": {
-			Type:     schema.TypeBool,
-			Computed: true,
-		},
-		"created_at": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-	}
-}
-
 func resourceDevopsProject() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceDevopsProjectCreate,

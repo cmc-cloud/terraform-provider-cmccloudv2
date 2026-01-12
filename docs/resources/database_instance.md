@@ -43,27 +43,27 @@ resource "cmccloudv2_database_instance" "database_instance_1" {
 
 ### Required
 
-- `admin_password` (String, Sensitive)
-- `datastore_type` (String)
-- `datastore_version` (String)
-- `flavor_id` (String)
-- `name` (String)
-- `source_type` (String)
-- `subnets` (Block List, Min: 1) (see [below for nested schema](#nestedblock--subnets))
-- `volume_size` (Number)
-- `volume_type` (String)
-- `zone` (String)
+- `admin_password` (String, Sensitive) Password of the admin user
+- `datastore_type` (String) The type of the datastore
+- `datastore_version` (String) The version of the datastore
+- `flavor_id` (String) The ID of the flavor
+- `name` (String) The name of the database instance
+- `source_type` (String) The source type of the database instance
+- `subnets` (Block List, Min: 1) The subnets of the database instance (see [below for nested schema](#nestedblock--subnets))
+- `volume_size` (Number) The size of the volume in GB
+- `volume_type` (String) The type of the volume
+- `zone` (String) The zone of the database instance
 
 ### Optional
 
 - `admin_user` (String)
 - `allowed_cidrs` (List of String) A list of IPv4, IPv6 or mix of both CIDRs that restrict access to the database service
 - `allowed_host` (String) User allowed host
-- `billing_mode` (String)
+- `billing_mode` (String) The billing mode of the database instance, can be monthly or hourly
 - `enable_public_ip` (Boolean) Enable public ip on the database instance
 - `is_public` (Boolean) Whether the database service is exposed to the public
 - `replicate_count` (Number) Only use when source_type = instance
-- `source_id` (String)
+- `source_id` (String) The ID of the source
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
@@ -75,11 +75,11 @@ resource "cmccloudv2_database_instance" "database_instance_1" {
 
 Required:
 
-- `subnet_id` (String)
+- `subnet_id` (String) The ID of the subnet
 
 Optional:
 
-- `ip_address` (String)
+- `ip_address` (String) Specific IP address for the server interface
 
 
 <a id="nestedblock--timeouts"></a>

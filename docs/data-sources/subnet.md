@@ -36,7 +36,7 @@ data "cmccloudv2_subnet" "subnet3" {
 
 ### Optional
 
-- `cidr` (String)
+- `cidr` (String) Filter by cidr of subnet
 - `gateway_ip` (String) Filter by gateway_ip
 - `name` (String) Filter by ip address of subnet
 - `subnet_id` (String) Id of the subnet
@@ -44,5 +44,5 @@ data "cmccloudv2_subnet" "subnet3" {
 
 ### Read-Only
 
-- `created_at` (String)
+- `created_at` (String) Created time of subnet
 - `id` (String) The ID of this resource.
