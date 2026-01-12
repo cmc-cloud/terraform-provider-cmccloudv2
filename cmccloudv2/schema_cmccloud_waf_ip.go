@@ -12,20 +12,24 @@ func wafipSchema() map[string]*schema.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validateUUID,
+			Description:  "The ID of the WAF",
 		},
 		"ip": {
 			Type:         schema.TypeString,
 			Required:     true,
 			ValidateFunc: validateIPAddress,
+			Description:  "The IP address to add to the WAF",
 		},
 		"type": {
 			Type:         schema.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice([]string{"ignore", "deny"}, false),
+			Description:  "The type of the IP address, ignore or deny",
 		},
 		"description": {
-			Type:     schema.TypeString,
-			Optional: true,
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The description of the IP address",
 		},
 	}
 }

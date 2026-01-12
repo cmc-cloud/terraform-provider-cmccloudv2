@@ -17,8 +17,8 @@ description: |-
 
 ### Required
 
-- `devops_project_id` (String)
-- `name` (String)
+- `devops_project_id` (String) The ID of the DevOps project
+- `name` (String) The name of the container registry
 
 ### Optional
 
@@ -26,9 +26,9 @@ description: |-
 
 ### Read-Only
 
-- `created_at` (String)
+- `created_at` (String) The created time of the container registry
 - `id` (String) The ID of this resource.
-- `uri` (String)
+- `uri` (String) The URI of the container registry
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

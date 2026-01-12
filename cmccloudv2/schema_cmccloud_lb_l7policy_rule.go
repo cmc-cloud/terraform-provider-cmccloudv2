@@ -9,6 +9,12 @@ import (
 
 func lbL7policyRuleSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
+		"l7policy_id": {
+			Type:        schema.TypeString,
+			Required:    true,
+			ForceNew:    true,
+			Description: "The ID of the L7 policy to attach the L7 policy rule to",
+		},
 		"type": {
 			Type:     schema.TypeString,
 			Required: true,
@@ -18,6 +24,7 @@ func lbL7policyRuleSchema() map[string]*schema.Schema {
 				//"SSL_CONN_HAS_CERT", "SSL_VERIFY_RESULT",
 				//"SSL_DN_FIELD",
 			}, true),
+			Description: "The type of the L7 policy rule",
 		},
 		"compare_type": {
 			Type:     schema.TypeString,
@@ -25,25 +32,7 @@ func lbL7policyRuleSchema() map[string]*schema.Schema {
 			ValidateFunc: validation.StringInSlice([]string{
 				"CONTAINS", "STARTS_WITH", "ENDS_WITH", "EQUAL_TO", "REGEX",
 			}, true),
-		},
-		"l7policy_id": {
-			Type:     schema.TypeString,
-			Required: true,
-			ForceNew: true,
-		},
-
-		"created": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-
-		"provisioning_status": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"operating_status": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Description: "The compare type of the L7 policy rule",
 		},
 
 		"value": {
@@ -55,17 +44,37 @@ func lbL7policyRuleSchema() map[string]*schema.Schema {
 				}
 				return
 			},
+			Description: "The value of the L7 policy rule",
 		},
 
 		"key": {
-			Type:     schema.TypeString,
-			Optional: true,
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The key of the L7 policy rule",
 		},
 
 		"invert": {
-			Type:     schema.TypeBool,
-			Default:  false,
-			Optional: true,
+			Type:        schema.TypeBool,
+			Default:     false,
+			Optional:    true,
+			Description: "The invert of the L7 policy rule",
+		},
+
+		"created": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "The created time of the L7 policy rule",
+		},
+
+		"provisioning_status": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "The provisioning status of the L7 policy rule",
+		},
+		"operating_status": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "The operating status of the L7 policy rule",
 		},
 	}
 }

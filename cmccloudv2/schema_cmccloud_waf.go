@@ -11,11 +11,13 @@ func wafSchema() map[string]*schema.Schema {
 			Type:         schema.TypeString,
 			Required:     true,
 			ValidateFunc: validateDomainName,
+			Description:  "Domain name",
 		},
 		"mode": {
 			Type:         schema.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice([]string{"DETECT", "BLOCK"}, false),
+			Description:  "Mode",
 		},
 		// "type": {
 		// 	Type:         schema.TypeString,
@@ -27,6 +29,7 @@ func wafSchema() map[string]*schema.Schema {
 			Type:         schema.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice([]string{"HTTP", "HTTPS"}, false),
+			Description:  "Protocol",
 		},
 		"real_server": {
 			Type:        schema.TypeString,

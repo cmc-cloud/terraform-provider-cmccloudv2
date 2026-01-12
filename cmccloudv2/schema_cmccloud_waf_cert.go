@@ -12,11 +12,13 @@ func wafcertSchema() map[string]*schema.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.NoZeroValues,
+			Description:  "The name of the WAF certificate",
 		},
 		"cert_name": {
-			Type:     schema.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:        schema.TypeString,
+			Required:    true,
+			ForceNew:    true,
+			Description: "The name of the certificate",
 		},
 		"cert_data": {
 			Type:        schema.TypeString,
@@ -26,9 +28,10 @@ func wafcertSchema() map[string]*schema.Schema {
 			Sensitive:   true,
 		},
 		"key_name": {
-			Type:     schema.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:        schema.TypeString,
+			Required:    true,
+			ForceNew:    true,
+			Description: "The name of the private key",
 		},
 		"key_data": {
 			Type:        schema.TypeString,
@@ -38,13 +41,15 @@ func wafcertSchema() map[string]*schema.Schema {
 			Sensitive:   true,
 		},
 		"description": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Type:        schema.TypeString,
+			Optional:    true,
+			ForceNew:    true,
+			Description: "The description of the WAF certificate",
 		},
 		"created_at": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "The created time of the WAF certificate",
 		},
 	}
 }

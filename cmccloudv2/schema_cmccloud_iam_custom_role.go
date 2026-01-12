@@ -25,8 +25,9 @@ func iamCustomRoleSchema() map[string]*schema.Schema {
 			ValidateFunc: validation.StringIsJSON,
 		},
 		"created": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "The created time of the custom role",
 		},
 	}
 }

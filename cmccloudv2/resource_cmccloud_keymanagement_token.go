@@ -5,45 +5,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
-
-func keymanagementtokenSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		"container_ids": {
-			Type:     schema.TypeList,
-			Required: true,
-			ForceNew: true,
-			MinItems: 1,
-			Elem: &schema.Schema{
-				Type:         schema.TypeString,
-				ValidateFunc: validateUUID,
-			},
-		},
-
-		"description": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
-		},
-
-		"expiration": {
-			Type:         schema.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.IsRFC3339Time,
-		},
-
-		"token": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-
-		"created_at": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-	}
-}
 
 func resourceKeyManagementToken() *schema.Resource {
 	return &schema.Resource{

@@ -17,17 +17,17 @@ description: |-
 
 ### Required
 
-- `action` (String)
-- `listener_id` (String)
-- `name` (String)
+- `action` (String) The action of the L7 policy
+- `listener_id` (String) The ID of the listener to attach the L7 policy to
+- `name` (String) The name of the L7 policy
 
 ### Optional
 
-- `position` (Number)
-- `redirect_http_code` (Number)
-- `redirect_pool_id` (String)
-- `redirect_prefix` (String)
-- `redirect_url` (String)
+- `position` (Number) The position of this policy on the listener. Positions start at 1.
+- `redirect_http_code` (Number) Requests matching this policy will be redirected to the specified URL or Prefix URL with the HTTP response code. Valid if action is REDIRECT_TO_URL or REDIRECT_PREFIX. Valid options are: 301, 302, 303, 307, or 308.
+- `redirect_pool_id` (String) Requests matching this policy will be redirected to the pool with this ID. Only valid if action is REDIRECT_TO_POOL. The pool has some restrictions
+- `redirect_prefix` (String) Requests matching this policy will be redirected to this Prefix URL. Only valid if action is REDIRECT_PREFIX.
+- `redirect_url` (String) Requests matching this policy will be redirected to this URL. Only valid if action is REDIRECT_TO_URL.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only

@@ -12,17 +12,20 @@ func elbhealthmonitorSchema() map[string]*schema.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validateUUID,
+			Description:  "The ID of the pool to attach the health monitor to",
 		},
 		"name": {
 			Type:         schema.TypeString,
 			Required:     true,
 			ValidateFunc: validateName,
+			Description:  "The name of the health monitor",
 		},
 		"type": {
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice([]string{"HTTP", "HTTPS", "PING", "TCP", "TLS-HELLO", "UDP-CONNECT", "SCTP"}, false),
+			Description:  "The type of health monitor. A valid value is HTTP, HTTPS, PING, TCP, TLS-HELLO, UDP-CONNECT, or SCTP.",
 		},
 		"http_method": {
 			Type:     schema.TypeString,
@@ -69,16 +72,19 @@ func elbhealthmonitorSchema() map[string]*schema.Schema {
 			Description: "The domain name, which be injected into the HTTP Host Header to the backend server for HTTP health check.",
 		},
 		"created_at": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "The creation time of the health monitor",
 		},
 		"provisioning_status": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "The state of the operation — in other words, whether health monitor is still creating, updating, or deleting the resource.",
 		},
 		"operating_status": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Shows the real runtime health of the health monitor.",
 		},
 	}
 }

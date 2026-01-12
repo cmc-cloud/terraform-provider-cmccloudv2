@@ -11,12 +11,14 @@ func tagSchema() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"key": {
-					Type:     schema.TypeString,
-					Required: true,
+					Type:        schema.TypeString,
+					Required:    true,
+					Description: "The key of the tag",
 				},
 				"value": {
-					Type:     schema.TypeString,
-					Required: true,
+					Type:        schema.TypeString,
+					Required:    true,
+					Description: "The value of the tag",
 				},
 			},
 		},

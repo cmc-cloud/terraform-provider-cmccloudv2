@@ -130,13 +130,13 @@ func resourceRedisInstanceCreate(d *schema.ResourceData, meta interface{}) error
 		// "region":               client.Configs.RegionId,
 		"billingMode": d.Get("billing_mode").(string),
 
-		"name":             d.Get("name").(string),
-		"securityGroupIds": strings.Join(getStringArrayFromTypeSet(d.Get("security_group_ids").(*schema.Set)), ","),
-		"flavorId":         d.Get("flavor_id").(string),
-		"password":         d.Get("password").(string),
-		"backupId":         d.Get("backup_id").(string),
-		"volumeSize":       d.Get("volume_size").(int),
-		"volumeType":       d.Get("volume_type").(string),
+		"name": d.Get("name").(string),
+		// "securityGroupIds": strings.Join(getStringArrayFromTypeSet(d.Get("security_group_ids").(*schema.Set)), ","),
+		"flavorId":   d.Get("flavor_id").(string),
+		"password":   d.Get("password").(string),
+		"backupId":   d.Get("backup_id").(string),
+		"volumeSize": d.Get("volume_size").(int),
+		"volumeType": d.Get("volume_type").(string),
 		// "volumeType":           d.Get("volume_type").(string),
 		"groupConfigurationId": d.Get("redis_configuration_id").(string),
 		"networkId":            subnet.NetworkID,
@@ -196,22 +196,22 @@ func resourceRedisInstanceCreate(d *schema.ResourceData, meta interface{}) error
 }
 
 func checkSecurityGroupConflict(d *schema.ResourceData, meta interface{}) error {
-	security_group_ids := getStringArrayFromTypeSet(d.Get("security_group_ids").(*schema.Set))
-	if len(security_group_ids) > 1 {
-		firstValue := ""
-		for _, security_group_id := range security_group_ids {
-			group, err := meta.(*CombinedConfig).goCMCClient().SecurityGroup.Get(security_group_id)
-			if err != nil {
-				return err
-			}
-			if firstValue == "" {
-				firstValue = fmt.Sprintf("%t", group.Stateful)
-			}
-			if firstValue != fmt.Sprintf("%t", group.Stateful) {
-				return fmt.Errorf("invalid security_group_ids, all security groups must have the same stateful")
-			}
-		}
-	}
+	// security_group_ids := getStringArrayFromTypeSet(d.Get("security_group_ids").(*schema.Set))
+	// if len(security_group_ids) > 1 {
+	// 	firstValue := ""
+	// 	for _, security_group_id := range security_group_ids {
+	// 		group, err := meta.(*CombinedConfig).goCMCClient().SecurityGroup.Get(security_group_id)
+	// 		if err != nil {
+	// 			return err
+	// 		}
+	// 		if firstValue == "" {
+	// 			firstValue = fmt.Sprintf("%t", group.Stateful)
+	// 		}
+	// 		if firstValue != fmt.Sprintf("%t", group.Stateful) {
+	// 			return fmt.Errorf("invalid security_group_ids, all security groups must have the same stateful")
+	// 		}
+	// 	}
+	// }
 	return nil
 }
 
@@ -233,13 +233,12 @@ func resourceRedisInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("database_version", instance.DatastoreVersion)
 	_ = d.Set("database_mode", instance.DatastoreMode)
 
-	var security_group_ids []string
-	err = json.Unmarshal([]byte(instance.SecurityClientIds), &security_group_ids)
-	if err != nil {
-		return fmt.Errorf("error when get info of Redis Database Instance [%s]: %v", d.Id(), err)
-	}
-
-	_ = d.Set("security_group_ids", security_group_ids)
+	// var security_group_ids []string
+	// err = json.Unmarshal([]byte(instance.SecurityClientIds), &security_group_ids)
+	// if err != nil {
+	// 	return fmt.Errorf("error when get info of Redis Database Instance [%s]: %v", d.Id(), err)
+	// }
+	// _ = d.Set("security_group_ids", security_group_ids)
 	_ = d.Set("flavor_id", instance.FlavorID)
 	// _ = d.Set("volume_type",           instance.)
 
@@ -319,35 +318,35 @@ func resourceRedisInstanceUpdate(d *schema.ResourceData, meta interface{}) error
 			return fmt.Errorf("error when set configuration group to %s of redis database instance %s: %v", d.Get("redis_configuration_id").(string), id, err)
 		}
 	}
-	if d.HasChange("security_group_ids") {
-		err := checkSecurityGroupConflict(d, meta)
-		if err != nil {
-			return err
-		}
+	// if d.HasChange("security_group_ids") {
+	// 	err := checkSecurityGroupConflict(d, meta)
+	// 	if err != nil {
+	// 		return err
+	// 	}
 
-		removes, adds := getDiffSet(d.GetChange("security_group_ids"))
+	// 	removes, adds := getDiffSet(d.GetChange("security_group_ids"))
 
-		for _, security_group_id := range removes.List() {
-			_, err := client.RedisInstance.DetachSecurityGroupId(d.Id(), security_group_id.(string))
-			if err != nil {
-				return fmt.Errorf("error detach security group %s from %s: %v", security_group_id, d.Id(), err)
-			}
-			_, err = waitUntilRedisInstanceDetachFinished(d, meta, security_group_id.(string))
-			if err != nil {
-				return fmt.Errorf("error detach security group %s from %s: %v", security_group_id, d.Id(), err)
-			}
-		}
-		for _, security_group_id := range adds.List() {
-			_, err := client.RedisInstance.AttachSecurityGroupId(d.Id(), security_group_id.(string))
-			if err != nil {
-				return fmt.Errorf("error attach security group %s from %s: %v", security_group_id, d.Id(), err)
-			}
-			_, err = waitUntilRedisInstanceAttachFinished(d, meta, security_group_id.(string))
-			if err != nil {
-				return fmt.Errorf("error attach security group %s from %s: %v", security_group_id, d.Id(), err)
-			}
-		}
-	}
+	// 	for _, security_group_id := range removes.List() {
+	// 		_, err := client.RedisInstance.DetachSecurityGroupId(d.Id(), security_group_id.(string))
+	// 		if err != nil {
+	// 			return fmt.Errorf("error detach security group %s from %s: %v", security_group_id, d.Id(), err)
+	// 		}
+	// 		_, err = waitUntilRedisInstanceDetachFinished(d, meta, security_group_id.(string))
+	// 		if err != nil {
+	// 			return fmt.Errorf("error detach security group %s from %s: %v", security_group_id, d.Id(), err)
+	// 		}
+	// 	}
+	// 	for _, security_group_id := range adds.List() {
+	// 		_, err := client.RedisInstance.AttachSecurityGroupId(d.Id(), security_group_id.(string))
+	// 		if err != nil {
+	// 			return fmt.Errorf("error attach security group %s from %s: %v", security_group_id, d.Id(), err)
+	// 		}
+	// 		_, err = waitUntilRedisInstanceAttachFinished(d, meta, security_group_id.(string))
+	// 		if err != nil {
+	// 			return fmt.Errorf("error attach security group %s from %s: %v", security_group_id, d.Id(), err)
+	// 		}
+	// 	}
+	// }
 
 	return resourceRedisInstanceRead(d, meta)
 }

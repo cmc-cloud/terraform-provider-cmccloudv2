@@ -11,11 +11,13 @@ func autoscalingGroupV2ScaleTriggerSchema() map[string]*schema.Schema {
 			Type:         schema.TypeString,
 			Required:     true,
 			ValidateFunc: validateUUID,
+			Description:  "The ID of the autoscaling group",
 		},
 		"name": {
 			Type:         schema.TypeString,
 			Required:     true,
 			ValidateFunc: validateName,
+			Description:  "The name of the scale trigger",
 		},
 		"action": {
 			Type:         schema.TypeString,

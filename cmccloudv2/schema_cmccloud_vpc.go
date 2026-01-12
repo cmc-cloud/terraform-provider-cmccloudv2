@@ -12,16 +12,19 @@ func vpcSchema() map[string]*schema.Schema {
 			Type:         schema.TypeString,
 			Required:     true,
 			ValidateFunc: validateName,
+			Description:  "The name of the VPC",
 		},
 		"description": {
-			Type:     schema.TypeString,
-			Optional: true,
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The description of the VPC",
 		},
 		"billing_mode": {
 			Type:         schema.TypeString,
 			ValidateFunc: validateBillingMode,
 			Default:      "monthly",
 			Optional:     true,
+			Description:  "Name of billing mode, monthly or hourly",
 		},
 		"tags": tagSchema(),
 		"cidr": {
@@ -32,6 +35,7 @@ func vpcSchema() map[string]*schema.Schema {
 				return strings.TrimSpace(val.(string))
 			},
 			ValidateFunc: validateIPCidrRange,
+			Description:  "CIDR representing IP range for this VPC",
 		},
 	}
 }

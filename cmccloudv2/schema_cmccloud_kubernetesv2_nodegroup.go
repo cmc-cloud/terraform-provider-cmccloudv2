@@ -12,12 +12,14 @@ func kubernetesv2NodeGroupSchema() map[string]*schema.Schema {
 			Required:     true,
 			ValidateFunc: validateUUID,
 			ForceNew:     true,
+			Description:  "The ID of the Kubernetes cluster to attach the node group to",
 		},
 		"billing_mode": {
 			Type:         schema.TypeString,
 			ValidateFunc: validateBillingMode,
 			Default:      "monthly",
 			Optional:     true,
+			Description:  "The billing mode of the node group. A valid value is monthly or hourly.",
 		},
 		"name": { // nameNodeGroup
 			Type:         schema.TypeString,
@@ -31,27 +33,32 @@ func kubernetesv2NodeGroupSchema() map[string]*schema.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.NoZeroValues,
+			Description:  "The zone of the node group",
 		},
 		"flavor_id": { // flavorId
 			Type:         schema.TypeString,
 			Required:     true,
 			ValidateFunc: validation.NoZeroValues,
 			ForceNew:     true,
+			Description:  "The flavor ID of the node group",
 		},
 		"key_name": { // sshKeyName
-			Type:     schema.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:        schema.TypeString,
+			Required:    true,
+			ForceNew:    true,
+			Description: "The SSH key name of the node group",
 		},
 		"volume_type": {
-			Type:     schema.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:        schema.TypeString,
+			Required:    true,
+			ForceNew:    true,
+			Description: "The volume type of the node group",
 		},
 		"volume_size": {
-			Type:     schema.TypeInt,
-			Required: true,
-			ForceNew: true,
+			Type:        schema.TypeInt,
+			Required:    true,
+			ForceNew:    true,
+			Description: "The volume size of the node group",
 		},
 		"security_group_ids": { // securityGroups
 			Type: schema.TypeList,
@@ -60,22 +67,26 @@ func kubernetesv2NodeGroupSchema() map[string]*schema.Schema {
 				Type:         schema.TypeString,
 				ValidateFunc: validateUUID,
 			},
-			Optional: true,
-			ForceNew: true,
+			Optional:    true,
+			ForceNew:    true,
+			Description: "The security group IDs of the node group",
 		},
 		"enable_autoscale": { // isAutoscale
-			Type:     schema.TypeBool,
-			Required: true,
+			Type:        schema.TypeBool,
+			Required:    true,
+			Description: "The enable autoscale of the node group",
 		},
 		"min_node": {
 			Type:         schema.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntAtLeast(1),
+			Description:  "The min node of the node group, if enable_autoscale is true, this is required",
 		},
 		"max_node": {
 			Type:         schema.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntAtLeast(1),
+			Description:  "The max node of the node group, if enable_autoscale is true, this is required",
 		},
 		"max_pods": {
 			Type:         schema.TypeInt,
@@ -83,6 +94,7 @@ func kubernetesv2NodeGroupSchema() map[string]*schema.Schema {
 			Default:      110,
 			ForceNew:     true,
 			ValidateFunc: validation.IntBetween(0, 256),
+			Description:  "The max pods of the node group, if enable_autoscale is true, this is required",
 		},
 		"init_current_node": {
 			Type:        schema.TypeInt,
@@ -97,20 +109,24 @@ func kubernetesv2NodeGroupSchema() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"key": {
-						Type:     schema.TypeString,
-						Optional: true,
+						Type:        schema.TypeString,
+						Optional:    true,
+						Description: "The key of the node metadata",
 					},
 					"value": {
-						Type:     schema.TypeString,
-						Optional: true,
+						Type:        schema.TypeString,
+						Optional:    true,
+						Description: "The value of the node metadata",
 					},
 					"type": {
-						Type:     schema.TypeString,
-						Optional: true,
+						Type:        schema.TypeString,
+						Optional:    true,
+						Description: "The type of the node metadata",
 					},
 					"effect": {
-						Type:     schema.TypeString,
-						Optional: true,
+						Type:        schema.TypeString,
+						Optional:    true,
+						Description: "The effect of the node metadata",
 					},
 				},
 			},
@@ -155,112 +171,41 @@ func kubernetesv2NodeGroupSchema() map[string]*schema.Schema {
 				},
 			},
 		},
-		// "node_metadatas": {
-		// 	Type:     schema.TypeList,
-		// 	Optional: true,
-		// 	Description: "List of metadata objects for nodes. Each object can have arbitrary key-value pairs, e.g. [{\"key\": \"group\", \"value\": \"cmccloud\", \"type\": \"label\"}, {\"key\": \"thotd\", \"value\": \"thotd123\", \"effect\": \"NoSchedule\", \"type\": \"taint\"}]",
-		// 	Elem: &schema.Schema{
-		// 		Type: schema.TypeMap,
-		// 		Elem: &schema.Schema{Type: schema.TypeString},
-		// 	},
-		// },
 		"image_gpu_tag": { // sshKeyName
-			Type:     schema.TypeString,
-			Optional: true,
-			Default:  "default",
-			ForceNew: true,
+			Type:        schema.TypeString,
+			Optional:    true,
+			Default:     "default",
+			ForceNew:    true,
+			Description: "The image GPU tag of the node group",
 		},
 		"enable_autohealing": { // isAutoscale
-			Type:     schema.TypeBool,
-			Required: true,
+			Type:        schema.TypeBool,
+			Required:    true,
+			Description: "The enable autohealing of the node group",
 		},
 		"max_unhealthy_percent": {
 			Type:         schema.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntBetween(1, 100),
+			Description:  "The max unhealthy percent of the node group, if enable_autohealing is true, this is required",
 		},
 		"node_startup_timeout_minutes": {
 			Type:         schema.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntBetween(1, 100),
+			Description:  "The node startup timeout minutes of the node group, if enable_autohealing is true, this is required",
 		},
 		"subnet_id": {
 			Type:         schema.TypeString,
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validateUUID,
+			Description:  "The ID of the subnet to attach the node group to",
 		},
 		"status": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "The status of the node group",
 		},
-		// "gpu_config": {
-		// 	Type:     schema.TypeList,
-		// 	Optional: true,
-		// 	MaxItems: 1,
-		// 	Elem: &schema.Resource{
-		// 		Schema: map[string]*schema.Schema{
-		// 			// "gpu_model": {
-		// 			// 	Type:     schema.TypeString,
-		// 			// 	Required: true,
-		// 			// },
-		// 			"driver": {
-		// 				Type:     schema.TypeString,
-		// 				Required: true,
-		// 			},
-		// 			"strategy": {
-		// 				Type:         schema.TypeString,
-		// 				Optional:     true,
-		// 				Default:      "single",
-		// 				ValidateFunc: validation.StringInSlice([]string{"single", "mixed"}, false),
-		// 			},
-		// 			// "mig_supported": {
-		// 			// 	Type:     schema.TypeBool,
-		// 			// 	Optional: true,
-		// 			// 	Default:  false,
-		// 			// },
-		// 			"mig_profile": {
-		// 				Type:     schema.TypeString,
-		// 				Optional: true,
-		// 				Default:  "",
-		// 			},
-		// 			// "time_slicing": {
-		// 			// 	Type:     schema.TypeBool,
-		// 			// 	Optional: true,
-		// 			// 	Default:  false,
-		// 			// },
-		// 			"gpu_profiles": {
-		// 				Type:     schema.TypeSet,
-		// 				Optional: true,
-		// 				Elem: &schema.Resource{
-		// 					Schema: map[string]*schema.Schema{
-		// 						"name": {
-		// 							Type:     schema.TypeString,
-		// 							Required: true,
-		// 						},
-		// 						"replicas": {
-		// 							Type:     schema.TypeInt,
-		// 							Required: true,
-		// 						},
-		// 					},
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// 	Description: "GPU configuration block for the node group.",
-		// },
-		// "labels": {
-		// 	Type:     schema.TypeMap,
-		// 	Optional: true,
-		// },
-		// "taint": {
-		// 	Type:     schema.TypeMap,
-		// 	Optional: true,
-		// },
-		// "kubernetes_labels": {
-		// 	Type:     schema.TypeMap,
-		// 	Optional: true,
-		// },
-
 	}
 }

@@ -259,3 +259,34 @@ func validateEmail(val interface{}, key string) (warns []string, errs []error) {
 	}
 	return
 }
+func validatePassword(val interface{}, key string) (warns []string, errs []error) {
+	// Minimum Length 8, Require at least one uppercase character, one lowercase character, one number, one special character
+	v, ok := val.(string)
+	if !ok || v == "" {
+		errs = append(errs, fmt.Errorf("%q must be a non-empty string", key))
+		return
+	}
+	if len(v) < 8 {
+		errs = append(errs, fmt.Errorf("%q must be at least 8 characters long", key))
+	}
+	upper, _ := regexp.MatchString(`[A-Z]`, v)
+	if !upper {
+		errs = append(errs, fmt.Errorf("%q must contain at least one uppercase letter", key))
+	}
+	lower, _ := regexp.MatchString(`[a-z]`, v)
+	if !lower {
+		errs = append(errs, fmt.Errorf("%q must contain at least one lowercase letter", key))
+	}
+	number, _ := regexp.MatchString(`[0-9]`, v)
+	if !number {
+		errs = append(errs, fmt.Errorf("%q must contain at least one digit", key))
+	}
+	special, _ := regexp.MatchString(`[@$!%*?&]`, v)
+	if !special {
+		errs = append(errs, fmt.Errorf("%q must contain at least one special character (@$!%%*?&)", key))
+	}
+	if len(errs) > 0 {
+		return
+	}
+	return
+}

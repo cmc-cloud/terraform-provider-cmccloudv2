@@ -7,8 +7,9 @@ import (
 func cdnCertSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"cert_name": {
-			Type:     schema.TypeString,
-			Required: true,
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "The name of the CDN certificate",
 		},
 		"cert_data": {
 			Type:        schema.TypeString,
@@ -17,8 +18,9 @@ func cdnCertSchema() map[string]*schema.Schema {
 			Sensitive:   true,
 		},
 		"key_name": {
-			Type:     schema.TypeString,
-			Required: true,
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "The name of the private key",
 		},
 		"key_data": {
 			Type:        schema.TypeString,
@@ -27,20 +29,24 @@ func cdnCertSchema() map[string]*schema.Schema {
 			Sensitive:   true,
 		},
 		"certificate_type": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "The type of the CDN certificate, `SSL`, `WARP`",
 		},
 		"common_name": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "The common name of the CDN certificate",
 		},
 		"expiration_date": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "The expiration date of the CDN certificate",
 		},
 		"status": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "The status of the CDN certificate",
 		},
 	}
 }

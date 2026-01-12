@@ -11,6 +11,7 @@ func keymanagementcontainerSchema() map[string]*schema.Schema {
 			Required:     true,
 			ValidateFunc: validateName,
 			ForceNew:     true,
+			Description:  "The name of the key management container",
 		},
 		// "type": {
 		// 	Type:         schema.TypeString,
@@ -19,8 +20,9 @@ func keymanagementcontainerSchema() map[string]*schema.Schema {
 		// 	ValidateFunc: validation.StringInSlice([]string{"generic", "rsa", "certificate"}, true),
 		// },
 		"container_ref": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "The reference of the key management container",
 		},
 		"created_at": {
 			Type:     schema.TypeString,

@@ -17,23 +17,23 @@ description: |-
 
 ### Required
 
-- `compare_type` (String)
-- `l7policy_id` (String)
-- `type` (String)
-- `value` (String)
+- `compare_type` (String) The compare type of the L7 policy rule
+- `l7policy_id` (String) The ID of the L7 policy to attach the L7 policy rule to
+- `type` (String) The type of the L7 policy rule
+- `value` (String) The value of the L7 policy rule
 
 ### Optional
 
-- `invert` (Boolean)
-- `key` (String)
+- `invert` (Boolean) The invert of the L7 policy rule
+- `key` (String) The key of the L7 policy rule
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
 
-- `created` (String)
+- `created` (String) The created time of the L7 policy rule
 - `id` (String) The ID of this resource.
-- `operating_status` (String)
-- `provisioning_status` (String)
+- `operating_status` (String) The operating status of the L7 policy rule
+- `provisioning_status` (String) The provisioning status of the L7 policy rule
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

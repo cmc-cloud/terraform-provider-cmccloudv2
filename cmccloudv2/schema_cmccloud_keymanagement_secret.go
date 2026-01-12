@@ -14,6 +14,7 @@ func keymanagementsecretSchema() map[string]*schema.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.NoZeroValues,
+			Description:  "The ID of the key management container",
 		},
 
 		"name": {
@@ -21,6 +22,7 @@ func keymanagementsecretSchema() map[string]*schema.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validateName,
+			Description:  "The name of the key management secret",
 		},
 
 		"type": {
@@ -30,6 +32,7 @@ func keymanagementsecretSchema() map[string]*schema.Schema {
 			ValidateFunc: validation.StringInSlice([]string{
 				"symmetric", "public", "private", "passphrase", "certificate",
 			}, false),
+			Description: "The type of the key management secret",
 		},
 
 		"content": {
@@ -40,6 +43,7 @@ func keymanagementsecretSchema() map[string]*schema.Schema {
 			DiffSuppressFunc: func(k, o, n string, d *schema.ResourceData) bool {
 				return strings.TrimSpace(o) == strings.TrimSpace(n)
 			},
+			Description: "The content of the key management secret",
 		},
 
 		"expiration": {
@@ -47,16 +51,19 @@ func keymanagementsecretSchema() map[string]*schema.Schema {
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.IsRFC3339Time,
+			Description:  "The expiration time of the key management secret",
 		},
 
 		"secret_ref": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "The reference of the key management secret",
 		},
 
 		"created_at": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "The created time of the key management secret",
 		},
 	}
 }

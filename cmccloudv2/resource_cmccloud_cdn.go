@@ -24,6 +24,33 @@ func resourceCDN() *schema.Resource {
 		},
 		SchemaVersion: 1,
 		Schema:        cdnSchema(),
+		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+			originType := diff.Get("origin_type").(string)
+			vod := diff.Get("vod").(bool)
+			switch originType {
+			case "s3":
+				if !isSet(diff, "s3_access_key") || !isSet(diff, "s3_secret_key") || !isSet(diff, "s3_bucket_name") || !isSet(diff, "s3_region") || !isSet(diff, "s3_endpoint") {
+					return fmt.Errorf("when `origin_type` is 's3', `s3_access_key, s3_secret_key, s3_bucket_name, s3_region, s3_endpoint must be set")
+				}
+				if !isSet(diff, "domain_or_ip") || !isSet(diff, "protocol") || !isSet(diff, "port") || !isSet(diff, "origin_path") {
+					return fmt.Errorf("when `origin_type` is 's3', `domain_or_ip, protocol, port, origin_path must not be set")
+				}
+			case "host":
+				if isSet(diff, "s3_access_key") || isSet(diff, "s3_secret_key") || isSet(diff, "s3_bucket_name") || isSet(diff, "s3_region") || isSet(diff, "s3_endpoint") {
+					return fmt.Errorf("when `origin_type` is 'host', `s3_access_key, s3_secret_key, s3_bucket_name, s3_region, s3_endpoint must not be set")
+				}
+				if !isSet(diff, "domain_or_ip") || !isSet(diff, "protocol") || !isSet(diff, "port") || !isSet(diff, "origin_path") {
+					return fmt.Errorf("when `origin_type` is 'host', `domain_or_ip, protocol, port, origin_path must be set")
+				}
+			}
+			if vod {
+				if isSet(diff, "origin_path") {
+					return fmt.Errorf("when `vod` is 'true', `origin_path must not be set")
+				}
+			}
+
+			return nil
+		},
 	}
 }
 
@@ -35,16 +62,16 @@ func resourceCDNCreate(d *schema.ResourceData, meta interface{}) error {
 		"protocol": d.Get("protocol").(string),
 		"vod":      "false",
 	}
-	cdn_id, err := getClient(meta).CDN.Create(params)
+	cdnID, err := getClient(meta).CDN.Create(params)
 
 	if err != nil {
 		return fmt.Errorf("error creating cdn site: %s", err)
 	}
 
-	if cdn_id == "" {
+	if cdnID == "" {
 		return fmt.Errorf("error creating cdn site")
 	}
-	d.SetId(cdn_id)
+	d.SetId(cdnID)
 
 	return resourceCDNRead(d, meta)
 }

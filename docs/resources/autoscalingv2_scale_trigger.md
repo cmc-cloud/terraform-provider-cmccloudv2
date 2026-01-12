@@ -20,10 +20,10 @@ description: |-
 - `action` (String) The scaling action to perform. Allowed values: scale_up, scale_down.
 - `comparator` (String) Comparator for threshold. Allowed values: >, >=, <, <=
 - `function` (String) The aggregation function to use. Allowed values: min, max, sum, count, avg, last.
-- `group_id` (String)
+- `group_id` (String) The ID of the autoscaling group
 - `interval` (Number) Interval in seconds to evaluate the metric. Must be >= 1.
 - `metric` (String) The metric to monitor. Allowed values: cpu, memory, net_in, net_out, io_read, io_write, io_read_ops, io_write_ops.
-- `name` (String)
+- `name` (String) The name of the scale trigger
 - `threadhold` (Number) Threshold value for the metric. Must be >= 0.
 - `times` (Number) Number of evaluation periods. Must be >= 1.
 
