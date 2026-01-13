@@ -260,14 +260,14 @@ func validateEmail(val interface{}, key string) (warns []string, errs []error) {
 	return
 }
 func validatePassword(val interface{}, key string) (warns []string, errs []error) {
-	// Minimum Length 8, Require at least one uppercase character, one lowercase character, one number, one special character
+	// Minimum Length 12, Require at least one uppercase character, one lowercase character, one number, one special character
 	v, ok := val.(string)
 	if !ok || v == "" {
 		errs = append(errs, fmt.Errorf("%q must be a non-empty string", key))
 		return
 	}
-	if len(v) < 8 {
-		errs = append(errs, fmt.Errorf("%q must be at least 8 characters long", key))
+	if len(v) < 12 {
+		errs = append(errs, fmt.Errorf("%q must be at least 12 characters long", key))
 	}
 	upper, _ := regexp.MatchString(`[A-Z]`, v)
 	if !upper {

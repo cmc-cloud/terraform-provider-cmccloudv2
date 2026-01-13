@@ -28,7 +28,7 @@ func iamUserSchema() map[string]*schema.Schema {
 			Required:     true,
 			Sensitive:    true,
 			ValidateFunc: validatePassword,
-			Description:  "The password for the IAM user. Minimum Length 8, Require at least one uppercase character, one lowercase character, one number, one special character",
+			Description:  "The password for the IAM user. Minimum Length 12, Require at least one uppercase character, one lowercase character, one number, one special character",
 		},
 		"email": {
 			Type:         schema.TypeString,
