@@ -391,34 +391,34 @@ func waitUntilRedisInstanceDeleted(d *schema.ResourceData, meta interface{}) (in
 	})
 }
 
-func waitUntilRedisInstanceAttachFinished(d *schema.ResourceData, meta interface{}, security_group_id string) (interface{}, error) {
-	return waitUntilResourceStatusChanged(d, meta, []string{"true"}, []string{"error"}, WaitConf{
-		Timeout:    40 * time.Second,
-		Delay:      5 * time.Second,
-		MinTimeout: 5 * time.Second,
-	}, func(id string) (any, error) {
-		return getClient(meta).RedisInstance.Get(id)
-	}, func(obj interface{}) string {
-		instance := obj.(gocmcapiv2.RedisInstance)
-		if strings.Contains(instance.SecurityClientIds, security_group_id) {
-			return "true"
-		}
-		return ""
-	})
-}
+// func waitUntilRedisInstanceAttachFinished(d *schema.ResourceData, meta interface{}, security_group_id string) (interface{}, error) {
+// 	return waitUntilResourceStatusChanged(d, meta, []string{"true"}, []string{"error"}, WaitConf{
+// 		Timeout:    40 * time.Second,
+// 		Delay:      5 * time.Second,
+// 		MinTimeout: 5 * time.Second,
+// 	}, func(id string) (any, error) {
+// 		return getClient(meta).RedisInstance.Get(id)
+// 	}, func(obj interface{}) string {
+// 		instance := obj.(gocmcapiv2.RedisInstance)
+// 		if strings.Contains(instance.SecurityClientIds, security_group_id) {
+// 			return "true"
+// 		}
+// 		return ""
+// 	})
+// }
 
-func waitUntilRedisInstanceDetachFinished(d *schema.ResourceData, meta interface{}, security_group_id string) (interface{}, error) {
-	return waitUntilResourceStatusChanged(d, meta, []string{"true"}, []string{"error"}, WaitConf{
-		Timeout:    40 * time.Second,
-		Delay:      5 * time.Second,
-		MinTimeout: 5 * time.Second,
-	}, func(id string) (any, error) {
-		return getClient(meta).RedisInstance.Get(id)
-	}, func(obj interface{}) string {
-		instance := obj.(gocmcapiv2.RedisInstance)
-		if !strings.Contains(instance.SecurityClientIds, security_group_id) {
-			return "true"
-		}
-		return ""
-	})
-}
+// func waitUntilRedisInstanceDetachFinished(d *schema.ResourceData, meta interface{}, security_group_id string) (interface{}, error) {
+// 	return waitUntilResourceStatusChanged(d, meta, []string{"true"}, []string{"error"}, WaitConf{
+// 		Timeout:    40 * time.Second,
+// 		Delay:      5 * time.Second,
+// 		MinTimeout: 5 * time.Second,
+// 	}, func(id string) (any, error) {
+// 		return getClient(meta).RedisInstance.Get(id)
+// 	}, func(obj interface{}) string {
+// 		instance := obj.(gocmcapiv2.RedisInstance)
+// 		if !strings.Contains(instance.SecurityClientIds, security_group_id) {
+// 			return "true"
+// 		}
+// 		return ""
+// 	})
+// }
