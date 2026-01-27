@@ -100,6 +100,10 @@ func dataSourceFlavorDBRead(d *schema.ResourceData, meta interface{}) error {
 func dataSourceFlavorK8sRead(d *schema.ResourceData, meta interface{}) error {
 	return dataSourceFlavorRead(d, meta, "K8s")
 }
+
+//	func dataSourceFlavorKafkaRead(d *schema.ResourceData, meta interface{}) error {
+//		return dataSourceFlavorRead(d, meta, "Kafka")
+//	}
 func dataSourceFlavorRead(d *schema.ResourceData, meta interface{}, flavor_type string) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 
@@ -127,6 +131,23 @@ func dataSourceFlavorRead(d *schema.ResourceData, meta interface{}, flavor_type 
 		if v, ok := d.GetOk("disk"); ok && v.(int) != 0 {
 			params["disk"] = strconv.Itoa(d.Get("disk").(int))
 		}
+
+		if flavor_type == "EC" {
+			params["for_ec"] = "true"
+		}
+
+		if flavor_type == "DBaas" {
+			params["for_database"] = "true"
+		}
+
+		if flavor_type == "K8s" {
+			params["for_k8s"] = "true"
+		}
+
+		if flavor_type == "Kafka" {
+			params["for_kafka"] = "true"
+		}
+
 		flavors, err := client.Flavor.List(params)
 		if err != nil {
 			return fmt.Errorf("error when get flavors %v", err)
@@ -137,15 +158,15 @@ func dataSourceFlavorRead(d *schema.ResourceData, meta interface{}, flavor_type 
 		var filteredFlavors []gocmcapiv2.Flavor
 		for _, flavor := range allFlavors {
 			// check type
-			if flavor_type == "DBaas" && !flavor.ExtraSpecs.IsDatabaseFlavor {
-				continue
-			}
-			if flavor_type == "K8s" && !flavor.ExtraSpecs.IsK8sFlavor {
-				continue
-			}
-			if flavor_type == "EC" && (flavor.ExtraSpecs.IsK8sFlavor || flavor.ExtraSpecs.IsDatabaseFlavor) {
-				continue
-			}
+			// if flavor_type == "DBaas" && !flavor.ExtraSpecs.IsDatabaseFlavor {
+			// 	continue
+			// }
+			// if flavor_type == "K8s" && !flavor.ExtraSpecs.IsK8sFlavor {
+			// 	continue
+			// }
+			// if flavor_type == "EC" && (flavor.ExtraSpecs.IsK8sFlavor || flavor.ExtraSpecs.IsDatabaseFlavor) {
+			// 	continue
+			// }
 			if v := d.Get("name").(string); v != "" {
 				if !strings.EqualFold(flavor.Name, v) {
 					continue
