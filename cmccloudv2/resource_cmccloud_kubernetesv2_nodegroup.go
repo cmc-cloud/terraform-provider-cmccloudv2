@@ -64,9 +64,9 @@ func getAutoScaleConfig(d *schema.ResourceData, meta interface{}) (map[string]in
 		return nil, flavor, fmt.Errorf("error receiving flavor %s: %v", d.Get("flavor_id").(string), err)
 	}
 
-	if !flavor.ExtraSpecs.IsK8sFlavor {
-		return nil, flavor, fmt.Errorf("flavor %s is not a valid kubernetes flavor", d.Get("flavor_id").(string))
-	}
+	// if !flavor.ExtraSpecs.IsK8sFlavor {
+	// 	return nil, flavor, fmt.Errorf("flavor %s is not a valid kubernetes flavor", d.Get("flavor_id").(string))
+	// }
 
 	// cpuThreshold := (float64(d.Get("cpu_threshold_percent").(int)) / 100.0) * float64(flavor.Vcpus)
 	// memoryThreshold := (float64(d.Get("memory_threshold_percent").(int)) / 100.0) * float64(flavor.RAM)
