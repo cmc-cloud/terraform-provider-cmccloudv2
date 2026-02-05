@@ -46,6 +46,13 @@ func elbSchema() map[string]*schema.Schema {
 			Optional:      true,
 			ConflictsWith: []string{"bandwidth_mbps"},
 		},
+		"vip_address": {
+			Type:          schema.TypeString,
+			Description:   "Only available when network_type is private",
+			ForceNew:      true,
+			Optional:      true,
+			ConflictsWith: []string{"bandwidth_mbps"},
+		},
 		"bandwidth_mbps": {
 			Type:          schema.TypeInt,
 			Description:   "Used when network_type = public",

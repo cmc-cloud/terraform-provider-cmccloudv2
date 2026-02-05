@@ -27,6 +27,7 @@ func resourceELB() *schema.Resource {
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
 			networkType := diff.Get("network_type").(string)
 			subnetID, subnetIDSet := diff.GetOk("subnet_id")
+			vipAddress, vipAddressSet := diff.GetOk("vip_address")
 			bandwidthMbps, bandwidthMbpsSet := diff.GetOk("bandwidth_mbps")
 
 			if networkType == "public" {
@@ -35,6 +36,9 @@ func resourceELB() *schema.Resource {
 				}
 				if subnetIDSet && len(subnetID.(string)) > 0 {
 					return fmt.Errorf("when network_type is 'public', 'subnet_id' must be not be set")
+				}
+				if vipAddressSet && len(vipAddress.(string)) > 0 {
+					return fmt.Errorf("when network_type is 'public', 'vip_address' must be not be set")
 				}
 			}
 
@@ -117,6 +121,7 @@ func resourceELBCreate(d *schema.ResourceData, meta interface{}) error {
 		"zone":           d.Get("zone").(string),
 		"network_type":   d.Get("network_type").(string),
 		"subnet_id":      d.Get("subnet_id").(string),
+		"vip_address":    d.Get("vip_address").(string),
 		"tags":           d.Get("tags").(*schema.Set).List(),
 		"billing_mode":   d.Get("billing_mode").(string),
 		"bandwidth_mbps": d.Get("bandwidth_mbps").(int),
@@ -153,6 +158,7 @@ func resourceELBRead(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("description", elb.Description)
 	_ = d.Set("operating_status", elb.OperatingStatus)
 	_ = d.Set("provisioning_status", elb.ProvisioningStatus)
+	setString(d, "vip_address", elb.VipAddress)
 	if network_type == "public" {
 		_ = d.Set("bandwidth_mbps", elb.DomesticBandwidthMbps)
 	} else {
