@@ -115,7 +115,6 @@ func resourceELBListenerCreate(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	elblistener, err := getClient(meta).ELB.CreateListener(d.Get("elb_id").(string), params)
 	if v, ok := d.GetOk("connection_limit"); ok {
 		params["connection_limit"] = v.(int)
 	}
@@ -135,6 +134,7 @@ func resourceELBListenerCreate(d *schema.ResourceData, meta interface{}) error {
 	if v, ok := d.GetOk("timeout_tcp_inspect"); ok {
 		params["timeout_tcp_inspect"] = v.(int)
 	}
+	elblistener, err := getClient(meta).ELB.CreateListener(d.Get("elb_id").(string), params)
 	if err != nil {
 		return fmt.Errorf("error creating ELB Listener: %s", err)
 	}
