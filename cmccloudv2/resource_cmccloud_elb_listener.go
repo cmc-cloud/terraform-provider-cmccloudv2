@@ -74,6 +74,25 @@ func resourceELBListenerUpdate(d *schema.ResourceData, meta interface{}) error {
 		// "timeout_client_data":       d.Get("timeout_client_data").(int),
 	}
 
+	if v, ok := d.GetOk("connection_limit"); ok {
+		params["connection_limit"] = v.(int)
+	}
+
+	if v, ok := d.GetOk("timeout_client_data"); ok {
+		params["timeout_client_data"] = v.(int)
+	}
+
+	if v, ok := d.GetOk("timeout_member_connect"); ok {
+		params["timeout_member_connect"] = v.(int)
+	}
+
+	if v, ok := d.GetOk("timeout_member_data"); ok {
+		params["timeout_member_data"] = v.(int)
+	}
+
+	if v, ok := d.GetOk("timeout_tcp_inspect"); ok {
+		params["timeout_tcp_inspect"] = v.(int)
+	}
 	err := waitUntilELBEditable(d.Get("elb_id").(string), d, meta)
 	if err != nil {
 		return err
