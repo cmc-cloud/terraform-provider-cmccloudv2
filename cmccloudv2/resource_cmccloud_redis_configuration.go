@@ -2,7 +2,6 @@ package cmccloudv2
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/cmc-cloud/terraform-provider-cmccloudv2/gocmcapiv2"
@@ -31,43 +30,47 @@ func resourceRedisConfiguration() *schema.Resource {
 func resourceRedisConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	datastores, _ := client.RedisInstance.ListDatastore(map[string]string{})
-	database_engine := d.Get("database_engine").(string)
+	// database_engine := d.Get("database_engine").(string)
 	database_version := d.Get("database_version").(string)
 	database_mode := d.Get("database_mode").(string)
 
-	datastoreEngine := ""
-	datastoreModeId := ""
-	datastoreVersionId := ""
-	for _, datastore := range datastores {
-		if database_engine == datastore.Name {
-			datastoreEngine = datastore.ID
-
-			versions := make([]string, len(datastore.VersionInfos))
-			for index, version := range datastore.VersionInfos {
-				versions[index] = version.VersionName
-				if version.VersionName == database_version {
-					datastoreVersionId = version.ID
-					modes := make([]string, len(version.ModeInfo))
-					for i, mode := range version.ModeInfo {
-						modes[i] = mode.Name
-						if strings.Contains(mode.Name, database_mode) {
-							datastoreModeId = mode.ID
-						}
-					}
-					if datastoreModeId == "" {
-						return fmt.Errorf("not found database_mode `%s`, must be one of %v", database_mode, modes)
-					}
-				}
-			}
-			if datastoreVersionId == "" {
-				return fmt.Errorf("not found database_version `%s`, must be one of %v", database_version, versions)
-			}
-		}
+	datastoreVersionId, datastoreModeId, _, _, _, err := findPostgresDatastoreInfo(datastores, database_version, database_mode)
+	if err != nil {
+		return err
 	}
+	// datastoreEngine := ""
+	// datastoreModeId := ""
+	// datastoreVersionId := ""
+	// for _, datastore := range datastores {
+	// 	if database_engine == datastore.Name {
+	// 		datastoreEngine = datastore.ID
 
-	if datastoreEngine == "" {
-		return fmt.Errorf("not found database_engine `%s`", database_engine)
-	}
+	// 		versions := make([]string, len(datastore.VersionInfos))
+	// 		for index, version := range datastore.VersionInfos {
+	// 			versions[index] = version.VersionName
+	// 			if version.VersionName == database_version {
+	// 				datastoreVersionId = version.ID
+	// 				modes := make([]string, len(version.ModeInfo))
+	// 				for i, mode := range version.ModeInfo {
+	// 					modes[i] = mode.Name
+	// 					if strings.Contains(mode.Name, database_mode) {
+	// 						datastoreModeId = mode.ID
+	// 					}
+	// 				}
+	// 				if datastoreModeId == "" {
+	// 					return fmt.Errorf("not found database_mode `%s`, must be one of %v", database_mode, modes)
+	// 				}
+	// 			}
+	// 		}
+	// 		if datastoreVersionId == "" {
+	// 			return fmt.Errorf("not found database_version `%s`, must be one of %v", database_version, versions)
+	// 		}
+	// 	}
+	// }
+
+	// if datastoreEngine == "" {
+	// 	return fmt.Errorf("not found database_engine `%s`", database_engine)
+	// }
 	configuration, err := client.RedisConfiguration.Create(map[string]interface{}{
 		"name":            d.Get("name").(string),
 		"description":     d.Get("description").(string),

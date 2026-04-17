@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strconv"
 	"strings"
 	"time"
 
@@ -19,6 +20,57 @@ type WaitConf struct {
 	Timeout    time.Duration // The amount of time to wait before timeout
 }
 
+// findPostgresDatastoreInfo searches datastore info for Postgres to match version and mode,
+func findPostgresDatastoreInfo(datastores []gocmcapiv2.Datastore, version, mode string) (string, string, string, string, string, error) {
+	datastoreVersionId := ""
+	datastoreModeId := ""
+	datastoreCode := ""
+	datastoreStoreId := ""
+	modeCode := ""
+
+	for _, datastore := range datastores {
+		for _, info := range datastore.VersionInfos {
+			if strings.EqualFold(version, info.VersionName) {
+				datastoreVersionId = info.ID
+				datastoreCode = datastore.Code
+				datastoreStoreId = datastore.ID
+				for _, modeInfo := range info.ModeInfo {
+					if strings.EqualFold(mode, modeInfo.Name) || strings.EqualFold(mode, modeInfo.Code) {
+						// if caseInsensitiveContains(modeInfo.Name, mode) || caseInsensitiveContains(modeInfo.Code, mode) {
+						datastoreModeId = modeInfo.ID
+						modeCode = modeInfo.Code
+					}
+				}
+			}
+		}
+	}
+	if datastoreVersionId == "" || datastoreModeId == "" {
+		return "", "", "", "", "", fmt.Errorf("invalid version %s or invalid mode %s", version, mode)
+	}
+	return datastoreVersionId, datastoreModeId, datastoreCode, datastoreStoreId, modeCode, nil
+}
+func getHourAndMinuteFromConfig(d *schema.ResourceData) (int, int, error) {
+	scheduleTime := d.Get("schedule_time").(string)
+	parts := strings.Split(scheduleTime, ":")
+	if len(parts) != 2 {
+		return 0, 0, fmt.Errorf("invalid schedule time [%s], correct format is HH:mm (24-h format), eg: 19:05", scheduleTime)
+	}
+	hour, err := strconv.Atoi(parts[0])
+	if err != nil {
+		return 0, 0, fmt.Errorf("invalid hour value in schedule time [%s]: %v", scheduleTime, err)
+	}
+	minute, err := strconv.Atoi(parts[1])
+	if err != nil {
+		return 0, 0, fmt.Errorf("invalid minute value in schedule time [%s]: %v", scheduleTime, err)
+	}
+	if hour < 0 || hour > 23 {
+		return 0, 0, fmt.Errorf("hour value [%d] must be between 0 and 23", hour)
+	}
+	if minute < 0 || minute > 59 {
+		return 0, 0, fmt.Errorf("minute value [%d] must be between 0 and 59", minute)
+	}
+	return hour, minute, nil
+}
 func isSet(diff *schema.ResourceDiff, key string) bool {
 	// if v, ok := diff.GetOk(key); ok {
 	// 	// user explicitly set trong .tf (true hoặc false)

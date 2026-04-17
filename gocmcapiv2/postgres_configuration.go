@@ -28,20 +28,7 @@ type PostgresConfigurationListWrapper struct {
 		TotalPage int                     `json:"totalPage"`
 	} `json:"data"`
 }
-type PostgresDatastore struct {
-	ID           string `json:"id"`
-	Name         string `json:"name"`
-	Code         string `json:"code"`
-	VersionInfos []struct {
-		ID          string `json:"id"`
-		VersionName string `json:"versionName"`
-		ModeInfo    []struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-			Code string `json:"code"`
-		} `json:"modeInfo"`
-	} `json:"versionInfos"`
-}
+
 type PostgresConfigurationParameter struct {
 	ID           string `json:"id"`
 	Name         string `json:"paramName"`
@@ -70,12 +57,12 @@ type PostgresConfiguration struct {
 	Parameters         []PostgresConfigurationParameter `json:"configurations"`
 }
 
-type Postgresconfiguration struct {
+type postgresconfiguration struct {
 	client *Client
 }
 
-// Get Postgresconfiguration detail
-func (v *Postgresconfiguration) Get(id string) (PostgresConfiguration, error) {
+// Get postgresconfiguration detail
+func (v *postgresconfiguration) Get(id string) (PostgresConfiguration, error) {
 	jsonStr, err := v.client.Get("cloudops-core/api/v1/dbaas/group-configuration/"+id, map[string]string{})
 	var response PostgresConfigurationWrapper
 	var nilres PostgresConfiguration
@@ -89,7 +76,7 @@ func (v *Postgresconfiguration) Get(id string) (PostgresConfiguration, error) {
 	return response.Data, nil
 }
 
-func (v *Postgresconfiguration) GetDefaultConfiguration(id string) (PostgresConfiguration, error) {
+func (v *postgresconfiguration) GetDefaultConfiguration(id string) (PostgresConfiguration, error) {
 	jsonStr, err := v.client.Get("cloudops-core/api/v1/dbaas/configurations-default/"+id, map[string]string{})
 	var response PostgresConfigurationWrapper
 	var nilres PostgresConfiguration
@@ -102,7 +89,7 @@ func (v *Postgresconfiguration) GetDefaultConfiguration(id string) (PostgresConf
 	}
 	return response.Data, nil
 }
-func (s *Postgresconfiguration) List(params map[string]string) ([]PostgresConfiguration, error) {
+func (s *postgresconfiguration) List(params map[string]string) ([]PostgresConfiguration, error) {
 	jsonStr, err := s.client.Get("cloudops-core/api/v1/dbaas/group-configuration", params)
 	var response PostgresConfigurationListWrapper
 	var nilres []PostgresConfiguration
@@ -116,20 +103,21 @@ func (s *Postgresconfiguration) List(params map[string]string) ([]PostgresConfig
 	return response.Data.Docs, nil
 }
 
-// Delete a Postgresconfiguration
-func (v *Postgresconfiguration) Delete(id string) (ActionResponse, error) {
-	return v.client.PerformDelete("cloudops-core/api/v1/dbaas/group-configuration/" + id)
+// Delete a postgresconfiguration
+func (v *postgresconfiguration) Delete(id string) (ActionResponse, error) {
+	return v.client.PerformDeleteWithBody("cloudops-core/api/v1/dbaas/group-configuration", map[string]interface{}{"groupConfigIds": []string{id}})
+
 }
-func (v *Postgresconfiguration) Update(id string, params map[string]interface{}) (ActionResponse, error) {
-	return v.client.PerformUpdate("cloudops-core/api/v1/dbaas/group-configuration/"+id, params)
+func (v *postgresconfiguration) Update(id string, params map[string]interface{}) (ActionResponse, error) {
+	return v.client.PerformUpdate("cloudops-core/api/v1/dbaas/configurations/"+id, params)
 }
-func (v *Postgresconfiguration) UpdateParameters(id string, params map[string]interface{}) (ActionResponse, error) {
-	return v.client.PerformUpdate("cloudops-core/api/v1/dbaas/group-configuration/"+id+"/parameter", map[string]interface{}{
+func (v *postgresconfiguration) UpdateParameters(id string, params map[string]interface{}) (ActionResponse, error) {
+	return v.client.PerformUpdate("cloudops-core/api/v1/dbaas/configurations/"+id, map[string]interface{}{
 		"configurations": params,
 	})
 }
 
-func (s *Postgresconfiguration) Create(params map[string]interface{}) (PostgresConfiguration, error) {
+func (s *postgresconfiguration) Create(params map[string]interface{}) (PostgresConfiguration, error) {
 	jsonStr, err := s.client.Post("cloudops-core/api/v1/dbaas/group-configuration", params)
 	var response PostgresConfiguration
 	if err != nil {

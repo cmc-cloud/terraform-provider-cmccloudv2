@@ -9,7 +9,7 @@ import (
 type RedisInstanceService interface {
 	Get(id string) (RedisInstance, error)
 	List(params map[string]string) ([]RedisInstance, error)
-	ListDatastore(params map[string]string) ([]RedisDatastore, error)
+	ListDatastore(params map[string]string) ([]Datastore, error)
 	Create(params map[string]interface{}) (RedisInstanceCreateResponse, error)
 	Delete(id string) (ActionResponse, error)
 	Update(id string, params map[string]interface{}) (ActionResponse, error)
@@ -122,9 +122,6 @@ type RedisDataDetail struct {
 	} `json:"slavesInfo"`
 }
 
-type RedisDatastoreWrapper struct {
-	Data RedisDatastore `json:"data"`
-}
 type RedisInstanceListWrapper struct {
 	Data struct {
 		Docs      []RedisInstance `json:"docs"`
@@ -132,15 +129,6 @@ type RedisInstanceListWrapper struct {
 		Size      int             `json:"size"`
 		Total     int             `json:"total"`
 		TotalPage int             `json:"totalPage"`
-	} `json:"data"`
-}
-type RedisDatastoreListWrapper struct {
-	Data struct {
-		Docs      []RedisDatastore `json:"docs"`
-		Page      int              `json:"page"`
-		Size      int              `json:"size"`
-		Total     int              `json:"total"`
-		TotalPage int              `json:"totalPage"`
 	} `json:"data"`
 }
 type redisinstance struct {
@@ -174,17 +162,17 @@ func (v *redisinstance) List(params map[string]string) ([]RedisInstance, error) 
 	}
 	return obj.Data.Docs, err
 }
-func (v *redisinstance) ListDatastore(params map[string]string) ([]RedisDatastore, error) {
+func (v *redisinstance) ListDatastore(params map[string]string) ([]Datastore, error) {
 	jsonStr, err := v.client.Get("cloudops-core/api/v1/dbaas/datastore?datastoreCode=redis", params)
-	var obj RedisDatastoreListWrapper
+	var obj DatastoreListWrapper
 
 	if err != nil {
-		return []RedisDatastore{}, err
+		return []Datastore{}, err
 	}
 	err = json.Unmarshal([]byte(jsonStr), &obj)
 
 	if err != nil {
-		return []RedisDatastore{}, err
+		return []Datastore{}, err
 	}
 	return obj.Data.Docs, err
 }

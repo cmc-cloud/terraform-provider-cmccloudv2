@@ -84,10 +84,21 @@ func datasourceFlavorForDB() *schema.Resource {
 		Schema: datasourceFlavorDBSchema(),
 	}
 }
-
+func datasourceFlavorForDBProxy() *schema.Resource {
+	return &schema.Resource{
+		Read:   dataSourceFlavorDBProxyRead,
+		Schema: datasourceFlavorDBSchema(),
+	}
+}
 func datasourceFlavorForK8s() *schema.Resource {
 	return &schema.Resource{
 		Read:   dataSourceFlavorK8sRead,
+		Schema: datasourceFlavorDBSchema(),
+	}
+}
+func datasourceFlavorForKafka() *schema.Resource {
+	return &schema.Resource{
+		Read:   dataSourceFlavorKafkaRead,
 		Schema: datasourceFlavorDBSchema(),
 	}
 }
@@ -97,13 +108,16 @@ func dataSourceFlavorECRead(d *schema.ResourceData, meta interface{}) error {
 func dataSourceFlavorDBRead(d *schema.ResourceData, meta interface{}) error {
 	return dataSourceFlavorRead(d, meta, "DBaas")
 }
+func dataSourceFlavorDBProxyRead(d *schema.ResourceData, meta interface{}) error {
+	return dataSourceFlavorRead(d, meta, "DBProxy")
+}
 func dataSourceFlavorK8sRead(d *schema.ResourceData, meta interface{}) error {
 	return dataSourceFlavorRead(d, meta, "K8s")
 }
+func dataSourceFlavorKafkaRead(d *schema.ResourceData, meta interface{}) error {
+	return dataSourceFlavorRead(d, meta, "Kafka")
+}
 
-//	func dataSourceFlavorKafkaRead(d *schema.ResourceData, meta interface{}) error {
-//		return dataSourceFlavorRead(d, meta, "Kafka")
-//	}
 func dataSourceFlavorRead(d *schema.ResourceData, meta interface{}, flavor_type string) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 
@@ -138,6 +152,10 @@ func dataSourceFlavorRead(d *schema.ResourceData, meta interface{}, flavor_type 
 
 		if flavor_type == "DBaas" {
 			params["for_database"] = "true"
+		}
+
+		if flavor_type == "DBProxy" {
+			params["for_dbproxy"] = "true"
 		}
 
 		if flavor_type == "K8s" {

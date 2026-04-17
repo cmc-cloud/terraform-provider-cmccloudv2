@@ -59,61 +59,65 @@ func resourceRedisInstanceCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("can't get list of datastore %v", err)
 	}
 
-	database_engine := d.Get("database_engine").(string)
+	// database_engine := d.Get("database_engine").(string)
 	database_version := d.Get("database_version").(string)
 	database_mode := d.Get("database_mode").(string)
 
-	redisMode := ""
-	datastoreId := ""
-	datastoreCode := ""
-	datastoreVersionId := ""
-	datastoreModeId := ""
-	for _, datastore := range datastores {
-		// gocmcapiv2.Logo("datastore", datastore)
-		if strings.EqualFold(database_engine, datastore.Name) {
-			// gocmcapiv2.Logs("found datastore " + database_engine + " & " + datastore.Name)
-			datastoreCode = datastore.Code
-			datastoreId = datastore.ID
-			for _, version := range datastore.VersionInfos {
-				if strings.EqualFold(database_version, version.VersionName) {
-					datastoreVersionId = version.ID
-					for _, mode := range version.ModeInfo {
-						if caseInsensitiveContains(mode.Name, database_mode) {
-							datastoreModeId = mode.ID
-							redisMode = mode.Code
-						}
-					}
-				}
-			}
-			if datastoreVersionId == "" {
-				return fmt.Errorf("not found database_version %s", database_version)
-			}
-
-			if datastoreModeId == "" {
-				return fmt.Errorf("not found database_mode %s", database_mode)
-			}
-		}
+	datastoreVersionId, datastoreModeId, datastoreCode, datastoreId, redisMode, err := findPostgresDatastoreInfo(datastores, database_version, database_mode)
+	if err != nil {
+		return err
 	}
+	// redisMode := ""
+	// datastoreId := ""
+	// datastoreCode := ""
+	// datastoreVersionId := ""
+	// datastoreModeId := ""
+	// for _, datastore := range datastores {
+	// 	// gocmcapiv2.Logo("datastore", datastore)
+	// 	if strings.EqualFold(database_engine, datastore.Name) {
+	// 		// gocmcapiv2.Logs("found datastore " + database_engine + " & " + datastore.Name)
+	// 		datastoreCode = datastore.Code
+	// 		datastoreId = datastore.ID
+	// 		for _, version := range datastore.VersionInfos {
+	// 			if strings.EqualFold(database_version, version.VersionName) {
+	// 				datastoreVersionId = version.ID
+	// 				for _, mode := range version.ModeInfo {
+	// 					if caseInsensitiveContains(mode.Name, database_mode) {
+	// 						datastoreModeId = mode.ID
+	// 						redisMode = mode.Code
+	// 					}
+	// 				}
+	// 			}
+	// 		}
+	// 		if datastoreVersionId == "" {
+	// 			return fmt.Errorf("not found database_version %s", database_version)
+	// 		}
 
-	if datastoreCode == "" {
-		return fmt.Errorf("not found database_engine %s", database_engine)
-	}
+	// 		if datastoreModeId == "" {
+	// 			return fmt.Errorf("not found database_mode %s", database_mode)
+	// 		}
+	// 	}
+	// }
+
+	// if datastoreCode == "" {
+	// 	return fmt.Errorf("not found database_engine %s", database_engine)
+	// }
 
 	_, replicasSet := d.GetOk("replicas")
 	if redisMode == "cluster" {
 		if !replicasSet {
-			return fmt.Errorf("when `mode` is 'cluster', 'replicas' must be set")
+			return fmt.Errorf("when `mode` is 'cluster', 'replicas' field must be set")
 		}
 	} else {
 		if replicasSet {
-			return fmt.Errorf("when `mode` is not 'cluster', 'replicas' must not be set")
+			return fmt.Errorf("when `mode` is not 'cluster', 'replicas' field must not be set")
 		}
 	}
 
-	err = checkSecurityGroupConflict(d, meta)
-	if err != nil {
-		return err
-	}
+	// err = checkSecurityGroupConflict(d, meta)
+	// if err != nil {
+	// 	return err
+	// }
 	// if d.Get("redis_configuration_id").(string) != "" {
 	// 	configuration, err := client.RedisConfiguration.Get(d.Get("redis_configuration_id").(string))
 	// 	if err != nil {
@@ -156,7 +160,7 @@ func resourceRedisInstanceCreate(d *schema.ResourceData, meta interface{}) error
 
 	switch redisMode {
 	case "standalone":
-		zone := getStringArrayFromTypeSet(d.Get("zones").(*schema.Set))[0]
+		zone := zones[0]
 		requestMetadata["zone"] = zone
 
 	case "master_slave":
@@ -165,7 +169,7 @@ func resourceRedisInstanceCreate(d *schema.ResourceData, meta interface{}) error
 		params["zones"] = zones
 
 	case "cluster":
-		zones := getStringArrayFromTypeSet(d.Get("zones").(*schema.Set))
+		zones := zones
 		requestMetadata["zones"] = zones
 		requestMetadata["numOfMasterServer"] = 3
 		requestMetadata["replicas"] = d.Get("replicas").(int)
@@ -174,8 +178,6 @@ func resourceRedisInstanceCreate(d *schema.ResourceData, meta interface{}) error
 		// nếu redisMode không khớp case nào
 		// có thể log cảnh báo hoặc bỏ qua
 	}
-
-	// params["zone"] = requestMetadata["zone"]
 
 	jsonData, err := json.Marshal(requestMetadata)
 	if err != nil {
@@ -193,26 +195,6 @@ func resourceRedisInstanceCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error creating RedisDatabase Instance: %s", err)
 	}
 	return resourceRedisInstanceRead(d, meta)
-}
-
-func checkSecurityGroupConflict(d *schema.ResourceData, meta interface{}) error {
-	// security_group_ids := getStringArrayFromTypeSet(d.Get("security_group_ids").(*schema.Set))
-	// if len(security_group_ids) > 1 {
-	// 	firstValue := ""
-	// 	for _, security_group_id := range security_group_ids {
-	// 		group, err := meta.(*CombinedConfig).goCMCClient().SecurityGroup.Get(security_group_id)
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 		if firstValue == "" {
-	// 			firstValue = fmt.Sprintf("%t", group.Stateful)
-	// 		}
-	// 		if firstValue != fmt.Sprintf("%t", group.Stateful) {
-	// 			return fmt.Errorf("invalid security_group_ids, all security groups must have the same stateful")
-	// 		}
-	// 	}
-	// }
-	return nil
 }
 
 func resourceRedisInstanceRead(d *schema.ResourceData, meta interface{}) error {

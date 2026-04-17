@@ -83,6 +83,15 @@ type Client struct {
 	AutoScalingPolicy          AutoScalingPolicyService
 	BillingMode                BillingModeService
 	DatabaseBackup             DatabaseBackupService
+	PostgresInstance           PostgresInstanceService
+	PostgresConfiguration      PostgresConfigurationService
+	PostgresAutoBackup         PostgresAutoBackupService
+	MongoInstance              MongoInstanceService
+	MongoConfiguration         MongoConfigurationService
+	MongoAutoBackup            MongoAutoBackupService
+	KafkaInstance              KafkaInstanceService
+	OpenSearch                 OpenSearchService
+	RdsCluster                 RdsClusterService
 }
 
 // APIError is return when there are an error when call api
@@ -149,6 +158,15 @@ func NewClient(configs ClientConfigs) (*Client, error) {
 	c.RedisInstance = &redisinstance{client: c}
 	c.DatabaseInstance = &databaseinstance{client: c}
 	c.DatabaseBackup = &databasebackup{client: c}
+	c.PostgresInstance = &postgresinstance{client: c}
+	c.PostgresConfiguration = &postgresconfiguration{client: c}
+	c.PostgresAutoBackup = &postgresautobackup{client: c}
+	c.MongoInstance = &mongoinstance{client: c}
+	c.MongoConfiguration = &mongoconfiguration{client: c}
+	c.MongoAutoBackup = &mongoautobackup{client: c}
+	c.KafkaInstance = &kafkainstance{client: c}
+	c.OpenSearch = &opensearch{client: c}
+	c.RdsCluster = &rdscluster{client: c}
 	c.DatabaseAutoBackup = &databaseautobackup{client: c}
 	c.DatabaseConfiguration = &databaseconfiguration{client: c}
 	c.SecurityGroup = &securitygroup{client: c}
@@ -363,6 +381,7 @@ func (c *Client) PerformDeleteWithBody(path string, params map[string]interface{
 	}
 	return res, err
 }
+
 func (c *Client) PerformDelete(path string) (ActionResponse, error) {
 	jsonStr, err := c.Delete(path, map[string]interface{}{})
 	var res ActionResponse
@@ -376,6 +395,18 @@ func (c *Client) PerformDelete(path string) (ActionResponse, error) {
 	return res, err
 }
 
+func (c *Client) PerformCreate(path string, params map[string]interface{}) (CreateResponse, error) {
+	jsonStr, err := c.Post(path, params)
+	var res CreateResponse
+	if err != nil {
+		return res, err
+	}
+	err = json.Unmarshal([]byte(jsonStr), &res)
+	if err != nil {
+		return res, err
+	}
+	return res, err
+}
 func (c *Client) PerformAction(path string, params map[string]interface{}) (ActionResponse, error) {
 	jsonStr, err := c.Post(path, params)
 	var res ActionResponse

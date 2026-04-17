@@ -4,38 +4,44 @@ import (
 	"encoding/json"
 )
 
-// RedisConfigurationService interface
-type RedisConfigurationService interface {
-	Get(id string) (RedisConfiguration, error)
-	GetDefaultConfiguration(id string) (RedisConfiguration, error)
-	List(params map[string]string) ([]RedisConfiguration, error)
-	Create(params map[string]interface{}) (RedisConfiguration, error)
+// MongoConfigurationService interface
+type MongoConfigurationService interface {
+	Get(id string) (MongoConfiguration, error)
+	GetDefaultConfiguration(id string) (MongoConfiguration, error)
+	List(params map[string]string) ([]MongoConfiguration, error)
+	Create(params map[string]interface{}) (MongoConfiguration, error)
 	Delete(id string) (ActionResponse, error)
 	Update(id string, params map[string]interface{}) (ActionResponse, error)
 	UpdateParameters(id string, params map[string]interface{}) (ActionResponse, error)
 }
 
-type RedisConfigurationWrapper struct {
-	Data RedisConfiguration `json:"data"`
+type MongoConfigurationWrapper struct {
+	Data MongoConfiguration `json:"data"`
 }
 
-type RedisConfigurationListWrapper struct {
+type MongoConfigurationListWrapper struct {
 	Data struct {
-		Docs      []RedisConfiguration `json:"docs"`
+		Docs      []MongoConfiguration `json:"docs"`
 		Page      int                  `json:"page"`
 		Size      int                  `json:"size"`
 		Total     int                  `json:"total"`
 		TotalPage int                  `json:"totalPage"`
 	} `json:"data"`
 }
-
-type RedisConfigurationParameter struct {
-	Name  string `json:"paramName"`
-	Value string `json:"paramValue"`
+type MongoConfigurationParameter struct {
+	ID           string `json:"id"`
+	Name         string `json:"paramName"`
+	Value        string `json:"paramValue"`
+	DefaultValue string `json:"defaultValue"`
+	ValueRange   string `json:"valueRange"`
+	ValueType    string `json:"valueType"`
+	Description  string `json:"description"`
+	CreatedAt    string `json:"createdAt"`
+	UpdatedAt    string `json:"updatedAt"`
 }
 
-// RedisConfiguration object
-type RedisConfiguration struct {
+// MongoConfiguration object
+type MongoConfiguration struct {
 	ID                 string                        `json:"id"`
 	ID2                string                        `json:"groupConfigId"`
 	Name               string                        `json:"name"`
@@ -47,18 +53,18 @@ type RedisConfiguration struct {
 	DatastoreModeID    string                        `json:"datastoreModeId"`
 	CreatedAt          string                        `json:"createdAt"`
 	IsGroupDefault     bool                          `json:"isGroupDefault"`
-	Parameters         []RedisConfigurationParameter `json:"parameters"`
+	Parameters         []MongoConfigurationParameter `json:"configurations"`
 }
 
-type redisconfiguration struct {
+type mongoconfiguration struct {
 	client *Client
 }
 
-// Get redisconfiguration detail
-func (v *redisconfiguration) Get(id string) (RedisConfiguration, error) {
+// Get mongoconfiguration detail
+func (v *mongoconfiguration) Get(id string) (MongoConfiguration, error) {
 	jsonStr, err := v.client.Get("cloudops-core/api/v1/dbaas/group-configuration/"+id, map[string]string{})
-	var response RedisConfigurationWrapper
-	var nilres RedisConfiguration
+	var response MongoConfigurationWrapper
+	var nilres MongoConfiguration
 	if err != nil {
 		return nilres, err
 	}
@@ -69,10 +75,10 @@ func (v *redisconfiguration) Get(id string) (RedisConfiguration, error) {
 	return response.Data, nil
 }
 
-func (v *redisconfiguration) GetDefaultConfiguration(id string) (RedisConfiguration, error) {
+func (v *mongoconfiguration) GetDefaultConfiguration(id string) (MongoConfiguration, error) {
 	jsonStr, err := v.client.Get("cloudops-core/api/v1/dbaas/configurations-default/"+id, map[string]string{})
-	var response RedisConfigurationWrapper
-	var nilres RedisConfiguration
+	var response MongoConfigurationWrapper
+	var nilres MongoConfiguration
 	if err != nil {
 		return nilres, err
 	}
@@ -82,10 +88,10 @@ func (v *redisconfiguration) GetDefaultConfiguration(id string) (RedisConfigurat
 	}
 	return response.Data, nil
 }
-func (s *redisconfiguration) List(params map[string]string) ([]RedisConfiguration, error) {
+func (s *mongoconfiguration) List(params map[string]string) ([]MongoConfiguration, error) {
 	jsonStr, err := s.client.Get("cloudops-core/api/v1/dbaas/group-configuration", params)
-	var response RedisConfigurationListWrapper
-	var nilres []RedisConfiguration
+	var response MongoConfigurationListWrapper
+	var nilres []MongoConfiguration
 	if err != nil {
 		return nilres, err
 	}
@@ -96,22 +102,23 @@ func (s *redisconfiguration) List(params map[string]string) ([]RedisConfiguratio
 	return response.Data.Docs, nil
 }
 
-// Delete a redisconfiguration
-func (v *redisconfiguration) Delete(id string) (ActionResponse, error) {
+// Delete a mongoconfiguration
+func (v *mongoconfiguration) Delete(id string) (ActionResponse, error) {
 	return v.client.PerformDeleteWithBody("cloudops-core/api/v1/dbaas/group-configuration", map[string]interface{}{"groupConfigIds": []string{id}})
+
 }
-func (v *redisconfiguration) Update(id string, params map[string]interface{}) (ActionResponse, error) {
-	return v.client.PerformUpdate("cloudops-core/api/v1/dbaas/group-configuration/"+id, params)
+func (v *mongoconfiguration) Update(id string, params map[string]interface{}) (ActionResponse, error) {
+	return v.client.PerformUpdate("cloudops-core/api/v1/dbaas/configurations/"+id, params)
 }
-func (v *redisconfiguration) UpdateParameters(id string, params map[string]interface{}) (ActionResponse, error) {
+func (v *mongoconfiguration) UpdateParameters(id string, params map[string]interface{}) (ActionResponse, error) {
 	return v.client.PerformUpdate("cloudops-core/api/v1/dbaas/configurations/"+id, map[string]interface{}{
 		"configurations": params,
 	})
 }
 
-func (s *redisconfiguration) Create(params map[string]interface{}) (RedisConfiguration, error) {
+func (s *mongoconfiguration) Create(params map[string]interface{}) (MongoConfiguration, error) {
 	jsonStr, err := s.client.Post("cloudops-core/api/v1/dbaas/group-configuration", params)
-	var response RedisConfiguration
+	var response MongoConfiguration
 	if err != nil {
 		return response, err
 	}
