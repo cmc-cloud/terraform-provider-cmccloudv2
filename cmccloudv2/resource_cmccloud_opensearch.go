@@ -91,6 +91,7 @@ func resourceOpenSearchCreate(d *schema.ResourceData, meta interface{}) error {
 		"api_domain":                    d.Get("api_domain").(string),
 		"dashboard_domain":              d.Get("dashboard_domain").(string),
 		"enable_lb_internal":            true, // d.Get("enable_lb_internal").(bool),
+		"tags":                          d.Get("tags").(*schema.Set).List(),
 		// "snapshot_deletion_cron":       d.Get("snapshot_deletion_cron").(string),
 	}
 	instance, err := client.OpenSearch.Create(params)
@@ -131,6 +132,7 @@ func resourceOpenSearchRead(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("volume_size", instance.VolumeSize)
 	_ = d.Set("api_domain", instance.ApiDomain)
 	_ = d.Set("dashboard_domain", instance.DashboardDomain)
+	_ = d.Set("tags", convertTagsToSet(instance.Tags))
 	_ = d.Set("status", instance.Status)
 	_ = d.Set("created_at", instance.Created)
 	// _ = d.Set("enable_lb_internal", instance.EnableLbInternal)
@@ -141,6 +143,14 @@ func resourceOpenSearchRead(d *schema.ResourceData, meta interface{}) error {
 func resourceOpenSearchUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	id := d.Id()
+
+	if d.HasChange("tags") {
+		_, err := client.Tag.UpdateTag(id, "OpenSearch", d)
+		if err != nil {
+			return fmt.Errorf("error when set opensearch tags [%s]: %v", id, err)
+		}
+	}
+
 	if d.HasChange("flavor_id") ||
 		d.HasChange("dashboard_flavor_id") ||
 		d.HasChange("node_count") ||

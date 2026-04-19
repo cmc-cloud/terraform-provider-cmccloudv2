@@ -20,8 +20,14 @@ type WaitConf struct {
 	Timeout    time.Duration // The amount of time to wait before timeout
 }
 
-// findPostgresDatastoreInfo searches datastore info for Postgres to match version and mode,
-func findPostgresDatastoreInfo(datastores []gocmcapiv2.Datastore, version, mode string) (string, string, string, string, string, error) {
+// func caseInsensitiveContains(str, substr string) bool {
+// 	strLower := strings.ToLower(str)
+// 	substrLower := strings.ToLower(substr)
+// 	return strings.Contains(strLower, substrLower)
+// }
+
+// searches datastore info for Postgres to match version and mode,
+func findDatastoreInfo(datastores []gocmcapiv2.Datastore, version, mode string) (string, string, string, string, string, error) {
 	datastoreVersionId := ""
 	datastoreModeId := ""
 	datastoreCode := ""
@@ -199,11 +205,6 @@ func areTypeSetEqual(a, b []string) bool {
 
 	// Kiểm tra xem map counts có trống không
 	return len(counts) == 0
-}
-func caseInsensitiveContains(str, substr string) bool {
-	strLower := strings.ToLower(str)
-	substrLower := strings.ToLower(substr)
-	return strings.Contains(strLower, substrLower)
 }
 func caseInsensitiveDiffSuppress(k, old, new string, d *schema.ResourceData) bool {
 	return strings.EqualFold(old, new)

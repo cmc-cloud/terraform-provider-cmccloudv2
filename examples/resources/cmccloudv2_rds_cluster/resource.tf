@@ -1,4 +1,3 @@
-
 data "cmccloudv2_rds_cluster_flavor" "os_small" {
     name = "db.t1.micro"
 }
@@ -20,5 +19,9 @@ resource "cmccloudv2_rds_cluster" "rds_cluster1" {
     backup_retention              = 3
     enable_storage_autoscaling    = false
     storage_autoscaling_threshold = 70
-    storage_autoscaling_increment = 10
+    storage_autoscaling_increment = 10    
+	tags {
+        key = "env"
+        value = "prod"
+    }
 }

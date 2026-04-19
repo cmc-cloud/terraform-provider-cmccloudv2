@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func redisinstanceSchema() map[string]*schema.Schema {
+func redisInstanceSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
 			Type:         schema.TypeString,
@@ -113,6 +113,7 @@ func redisinstanceSchema() map[string]*schema.Schema {
 		"redis_configuration_id": {
 			Type:        schema.TypeString,
 			Optional:    true,
+			ForceNew:    true,
 			Description: "The ID of the Redis configuration of the Redis instance",
 		},
 		"password": {
@@ -122,6 +123,7 @@ func redisinstanceSchema() map[string]*schema.Schema {
 			Description:  "Password must be 8-32 characters long, include upper and lower case letters and numbers, and contain no special characters.",
 			ValidateFunc: validateRedisPassword,
 		},
+		"tags": tagSchema(),
 		"status": {
 			Type:        schema.TypeString,
 			Computed:    true,

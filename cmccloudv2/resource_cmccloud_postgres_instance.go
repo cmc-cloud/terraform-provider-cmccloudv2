@@ -69,7 +69,7 @@ func resourcePostgresInstanceCreate(d *schema.ResourceData, meta interface{}) er
 	version := d.Get("version").(string)
 	mode := d.Get("mode").(string)
 
-	datastoreVersionId, datastoreModeId, datastoreCode, datastoreTypeId, _, err := findPostgresDatastoreInfo(datastores, version, mode)
+	datastoreVersionId, datastoreModeId, datastoreCode, datastoreTypeId, _, err := findDatastoreInfo(datastores, version, mode)
 	if err != nil {
 		return err
 	}
@@ -150,6 +150,12 @@ func resourcePostgresInstanceCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("error creating PostgresDatabase Instance: %s", err)
 	}
 	d.SetId(instance.Data.InstanceID)
+
+	_, err = client.Tag.UpdateTag(instance.Data.InstanceID, "POSTGRES", d)
+	if err != nil {
+		fmt.Printf("error updating PostgresDatabase tags: %s\n", err)
+	}
+
 	_, err = waitUntilPostgresInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
 		return fmt.Errorf("error creating PostgresDatabase Instance: %s", err)
@@ -191,6 +197,14 @@ func resourcePostgresInstanceRead(d *schema.ResourceData, meta interface{}) erro
 func resourcePostgresInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	id := d.Id()
+
+	if d.HasChange("tags") {
+		_, err := client.Tag.UpdateTag(id, "POSTGRES", d)
+		if err != nil {
+			return fmt.Errorf("error when set redis tags [%s]: %v", id, err)
+		}
+	}
+
 	if d.HasChange("configuration_id") {
 		_, err := client.PostgresInstance.SetConfigurationGroupId(id, d.Get("configuration_id").(string))
 		if err != nil {

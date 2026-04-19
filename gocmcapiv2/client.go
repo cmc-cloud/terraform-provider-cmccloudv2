@@ -65,7 +65,6 @@ type Client struct {
 	DatabaseAutoBackup         DatabaseAutoBackupService
 	ContainerRegistry          ContainerRegistryService
 	DevopsProject              DevopsProjectService
-	RedisConfiguration         RedisConfigurationService
 	RedisInstance              RedisInstanceService
 	Kubernetes                 KubernetesService
 	Kubernetesv2               Kubernetesv2Service
@@ -84,14 +83,17 @@ type Client struct {
 	BillingMode                BillingModeService
 	DatabaseBackup             DatabaseBackupService
 	PostgresInstance           PostgresInstanceService
-	PostgresConfiguration      PostgresConfigurationService
-	PostgresAutoBackup         PostgresAutoBackupService
+	DBaaSConfiguration         DBv2ConfigurationService
 	MongoInstance              MongoInstanceService
-	MongoConfiguration         MongoConfigurationService
-	MongoAutoBackup            MongoAutoBackupService
+	MysqlInstance              MysqlInstanceService
+	DBv2AutoBackup             DBv2AutoBackupService
+	DBv2Backup                 DBv2BackupService
 	KafkaInstance              KafkaInstanceService
 	OpenSearch                 OpenSearchService
 	RdsCluster                 RdsClusterService
+	Tag                        TagService
+	// RedisConfiguration         RedisConfigurationService
+	// PostgresAutoBackup         PostgresAutoBackupService
 }
 
 // APIError is return when there are an error when call api
@@ -154,16 +156,17 @@ func NewClient(configs ClientConfigs) (*Client, error) {
 	c.Kubernetesv2 = &kubernetesv2{client: c}
 	c.DevopsProject = &devopsproject{client: c}
 	c.ContainerRegistry = &containerregistry{client: c}
-	c.RedisConfiguration = &redisconfiguration{client: c}
+	// c.RedisConfiguration = &redisconfiguration{client: c}
 	c.RedisInstance = &redisinstance{client: c}
 	c.DatabaseInstance = &databaseinstance{client: c}
 	c.DatabaseBackup = &databasebackup{client: c}
 	c.PostgresInstance = &postgresinstance{client: c}
-	c.PostgresConfiguration = &postgresconfiguration{client: c}
-	c.PostgresAutoBackup = &postgresautobackup{client: c}
+	c.DBaaSConfiguration = &dbv2configuration{client: c}
+	// c.PostgresAutoBackup = &postgresautobackup{client: c}
 	c.MongoInstance = &mongoinstance{client: c}
-	c.MongoConfiguration = &mongoconfiguration{client: c}
-	c.MongoAutoBackup = &mongoautobackup{client: c}
+	c.MysqlInstance = &mysqlinstance{client: c}
+	c.DBv2AutoBackup = &dbv2autobackup{client: c}
+	c.DBv2Backup = &dbv2backup{client: c}
 	c.KafkaInstance = &kafkainstance{client: c}
 	c.OpenSearch = &opensearch{client: c}
 	c.RdsCluster = &rdscluster{client: c}
@@ -181,6 +184,7 @@ func NewClient(configs ClientConfigs) (*Client, error) {
 	c.AutoScalingV2ScaleTrigger = &asv2scaletrigger{client: c}
 	c.AutoScalingPolicy = &autoscalingpolicy{client: c}
 	c.BillingMode = &billingmode{client: c}
+	c.Tag = &tag{client: c}
 
 	c.IamProject = &iamproject{client: c}
 	c.IamGroup = &iamgroup{client: c}

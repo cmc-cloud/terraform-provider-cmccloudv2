@@ -74,6 +74,7 @@ func resourceRdsClusterCreate(d *schema.ResourceData, meta interface{}) error {
 		"enable_storage_autoscaling":    d.Get("enable_storage_autoscaling").(bool),
 		"storage_autoscaling_threshold": d.Get("storage_autoscaling_threshold").(int),
 		"storage_autoscaling_increment": d.Get("storage_autoscaling_increment").(int),
+		"tags":                          d.Get("tags").(*schema.Set).List(),
 	}
 	instance, err := client.RdsCluster.Create(params)
 	if err != nil {
@@ -113,6 +114,7 @@ func resourceRdsClusterRead(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("storage_autoscaling_threshold", instance.StorageAutoscalingThreshold)
 	_ = d.Set("storage_autoscaling_increment", instance.StorageAutoscalingIncrement)
 
+	_ = d.Set("tags", convertTagsToSet(instance.Tags))
 	_ = d.Set("lb_vip_ipaddress", instance.LbVipIPAddress)
 	_ = d.Set("status", instance.Status)
 	_ = d.Set("created_at", instance.Created)
@@ -122,6 +124,13 @@ func resourceRdsClusterRead(d *schema.ResourceData, meta interface{}) error {
 func resourceRdsClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	id := d.Id()
+
+	if d.HasChange("tags") {
+		_, err := client.Tag.UpdateTag(id, "RDSCluster", d)
+		if err != nil {
+			return fmt.Errorf("error when set rds cluster tags [%s]: %v", id, err)
+		}
+	}
 
 	if d.HasChange("enable_storage_autoscaling") ||
 		d.HasChange("storage_autoscaling_threshold") ||

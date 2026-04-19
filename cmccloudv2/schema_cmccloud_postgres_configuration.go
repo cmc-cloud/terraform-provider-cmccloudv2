@@ -18,14 +18,14 @@ func postgresConfigurationSchema() map[string]*schema.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.NoZeroValues,
-			Description:  "The database version of the Postgres configuration. Example `6.0`",
+			Description:  "The database version of the Postgres configuration. Example `15`, `16`, `17`",
 		},
 		"database_mode": {
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.NoZeroValues,
-			Description:  "The database mode of the Postgres configuration, `Master/Slave`, `Cluster`, `Standalone`",
+			ValidateFunc: validation.StringInSlice([]string{"master_slave", "ha_cluster", "standalone"}, false),
+			Description:  "The database mode of the Postgres configuration, `master_slave`, `ha_cluster`, `standalone`",
 		},
 		"description": {
 			Type:        schema.TypeString,

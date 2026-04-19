@@ -15,6 +15,10 @@ type KafkaInstanceService interface {
 	DetachSecurityGroupId(id string, securityGroupId string) (ActionResponse, error)
 	Resize(id string, flavorId string) (ActionResponse, error)
 	ResizeVolume(id string, volumeSize int) (ActionResponse, error)
+	CreateTopic(id string, params map[string]interface{}) (CreateResponse, error)
+	GetTopic(id string, topicId string) (KafkaTopic, error)
+	ListTopic(id string, params map[string]string) ([]KafkaTopic, error)
+	DeleteTopic(id string, topicId string) (ActionResponse, error)
 }
 
 type KafkaInstanceWrapper struct {
@@ -42,8 +46,18 @@ type KafkaInstance struct {
 	Created         string `json:"created"`
 	Updated         string `json:"updated"`
 	QuantityOfNodes int    `json:"quantityOfNodes"`
+	Tags            []Tag  `json:"tags"`
 }
 
+type KafkaTopicWrapper struct {
+	Data KafkaTopic `json:"data"`
+}
+
+type KafkaTopic struct {
+	ID     string `json:"id"`
+	Name   string `json:"name"`
+	Status string `json:"status"`
+}
 type KafkaInstanceCreateResponse struct {
 	Data struct {
 		InstanceID string `json:"instanceId"`
@@ -57,6 +71,16 @@ type KafkaInstanceListWrapper struct {
 		Size      int             `json:"size"`
 		Total     int             `json:"total"`
 		TotalPage int             `json:"totalPage"`
+	} `json:"data"`
+}
+
+type KafkaTopicListWrapper struct {
+	Data struct {
+		Docs      []KafkaTopic `json:"docs"`
+		Page      int          `json:"page"`
+		Size      int          `json:"size"`
+		Total     int          `json:"total"`
+		TotalPage int          `json:"totalPage"`
 	} `json:"data"`
 }
 type kafkainstance struct {
@@ -87,6 +111,34 @@ func (v *kafkainstance) List(params map[string]string) ([]KafkaInstance, error) 
 
 	if err != nil {
 		return []KafkaInstance{}, err
+	}
+	return obj.Data.Docs, err
+}
+
+// Get kafkainstance detail
+func (v *kafkainstance) GetTopic(id string, topicId string) (KafkaTopic, error) {
+	jsonStr, err := v.client.Get("cloudops-core/api/v1/dbaas/instance/"+id, map[string]string{"v": "2"})
+	var obj KafkaTopicWrapper
+	if err != nil {
+		return KafkaTopic{}, err
+	}
+	err = json.Unmarshal([]byte(jsonStr), &obj)
+	if err != nil {
+		return KafkaTopic{}, err
+	}
+	return obj.Data, err
+}
+
+func (v *kafkainstance) ListTopic(id string, params map[string]string) ([]KafkaTopic, error) {
+	jsonStr, err := v.client.Get("cloudops-core/api/v1/dbaas/instances", params)
+	var obj KafkaTopicListWrapper
+	if err != nil {
+		return []KafkaTopic{}, err
+	}
+	err = json.Unmarshal([]byte(jsonStr), &obj)
+
+	if err != nil {
+		return []KafkaTopic{}, err
 	}
 	return obj.Data.Docs, err
 }
@@ -154,4 +206,12 @@ func (s *kafkainstance) Create(params map[string]interface{}) (KafkaInstanceCrea
 	}
 	err = json.Unmarshal([]byte(jsonStr), &response)
 	return response, err
+}
+
+func (s *kafkainstance) CreateTopic(id string, params map[string]interface{}) (CreateResponse, error) {
+	return s.client.PerformCreate("cloudops-core/api/v1/dbaas/instance/"+id, params)
+}
+
+func (v *kafkainstance) DeleteTopic(id string, topicId string) (ActionResponse, error) {
+	return v.client.PerformDeleteWithBody("cloudops-core/api/v1/dbaas/instances", map[string]interface{}{"instanceIds": []string{id}})
 }

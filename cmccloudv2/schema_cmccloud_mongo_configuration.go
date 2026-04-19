@@ -24,8 +24,8 @@ func mongoConfigurationSchema() map[string]*schema.Schema {
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.NoZeroValues,
-			Description:  "The database mode of the Mongo configuration, `Master/Slave`, `Cluster`, `Standalone`",
+			ValidateFunc: validation.StringInSlice([]string{"replica_set", "standalone"}, false),
+			Description:  "The database mode of the Mongo configuration, `replica_set`, `standalone`",
 		},
 		"description": {
 			Type:        schema.TypeString,

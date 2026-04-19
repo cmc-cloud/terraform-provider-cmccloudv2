@@ -164,6 +164,7 @@ func kubernetesv2Schema() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "The autoscale max core of the Kubernetes cluster",
 		},
+		"tags": tagSchema(),
 		"state": {
 			Type:        schema.TypeString,
 			Computed:    true,

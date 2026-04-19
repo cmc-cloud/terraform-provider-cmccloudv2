@@ -43,14 +43,14 @@ resource "cmccloudv2_redis_configuration" "redis_conf_1" {
 
 ### Required
 
-- `database_engine` (String) The database engine of the Redis configuration, Redis
 - `database_mode` (String) The database mode of the Redis configuration, `Master/Slave`, `Cluster`, `Standalone`
-- `database_version` (String) The database version of the Redis configuration. Example `6.0`
+- `database_version` (String) The database version of the Redis configuration. Example `6.0`, `7.0`
 - `name` (String) The name of the Redis configuration
 - `parameters` (Map of String) List of the parameters for the Redis configuration
 
 ### Optional
 
+- `database_engine` (String) The database engine of the Redis configuration, Redis
 - `description` (String) The description of the Redis configuration
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
@@ -65,4 +65,3 @@ Optional:
 
 - `create` (String)
 - `delete` (String)
-- `update` (String)

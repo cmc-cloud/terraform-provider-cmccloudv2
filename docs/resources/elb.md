@@ -24,8 +24,11 @@ resource "cmccloudv2_elb" "elb_1" {
     flavor_id 		= "${data.cmccloudv2_flavor_elb.elb_flavor1.id}"
     network_type 	= "public"
     bandwidth_mbps 	= 500 
-	tags 	 		= [{"key": "env", "value": "prod"}]
     description 	= "your description" 
+	tags {
+        key = "env"
+        value = "prod"
+    }
 }
 
 # create Private elb with flavor "small-lb"
@@ -36,8 +39,11 @@ resource "cmccloudv2_elb" "elb_2" {
     flavor_id 		= "${data.cmccloudv2_flavor_elb.elb_flavor1.id}"
     network_type 	= "private"
     subnet_id 		= "d32fa7ba-2a02-4327-80d3-9e17274b9fdd"
-	tags 	 		= [{"key": "env", "value": "prod"}]
     description 	= "your description" 
+	tags {
+        key = "env"
+        value = "prod"
+    }
 }
 ```
 
@@ -59,6 +65,7 @@ resource "cmccloudv2_elb" "elb_2" {
 - `subnet_id` (String) Required when network_type is private
 - `tags` (Block Set) (see [below for nested schema](#nestedblock--tags))
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `vip_address` (String) Only available when network_type is private
 
 ### Read-Only
 

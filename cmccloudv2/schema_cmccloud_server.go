@@ -92,6 +92,7 @@ func serverSchema() map[string]*schema.Schema {
 		"ip_address": {
 			Type:        schema.TypeString,
 			Optional:    true,
+			Computed:    true,
 			ForceNew:    true,
 			Description: "IP address of server, if not provided, a new IP address will be assigned",
 		},

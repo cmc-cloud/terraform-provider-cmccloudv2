@@ -24,11 +24,6 @@ type MongoInstanceService interface {
 	CreateDatabase(id string, params map[string]interface{}) (ActionResponse, error)
 	DeleteDatabase(id string, databaseName string) (ActionResponse, error)
 	ListDatabases(id string) ([]MongoDatabase, error)
-
-	GetBackup(id string, backup_id string) (MongoBackup, error)
-	DeleteBackup(id string) (ActionResponse, error)
-	ListBackups(id string) ([]MongoBackup, error)
-	CreateBackup(id string, name string) (ActionResponse, error)
 }
 
 type MongoUser struct {
@@ -71,26 +66,14 @@ type MongoInstance struct {
 	CreatedAt          string `json:"createdAt"`
 	UpdatedAt          string `json:"updatedAt"`
 	GroupConfigID      string `json:"groupConfigId"`
-	Tags               []any  `json:"tags"`
+	Tags               []Tag  `json:"tags"`
 }
 type MongoInstanceCreateResponse struct {
 	Data struct {
 		InstanceID string `json:"instanceId"`
 	} `json:"data"`
 }
-type MongoBackup struct {
-	ID                 string `json:"backupId"`
-	BackupName         string `json:"backupName"`
-	DatastoreName      string `json:"datastoreName"`
-	DatastoreVersion   string `json:"datastoreVersion"`
-	InstanceID         string `json:"instanceId"`
-	InstanceName       string `json:"instanceName"`
-	Size               int    `json:"size"`
-	BackupStrategyType string `json:"backupStrategyType"`
-	Status             string `json:"status"`
-	Created            string `json:"created"`
-	DatastoreCode      string `json:"datastoreCode"`
-}
+
 type MongoInstanceListWrapper struct {
 	Data struct {
 		Docs      []MongoInstance `json:"docs"`
@@ -310,18 +293,6 @@ func (v *mongoinstance) ListDatabases(id string) ([]MongoDatabase, error) {
 	return obj.Data.Docs, nil
 }
 
-func (v *mongoinstance) CreateBackup(id string, name string) (ActionResponse, error) {
-	bytes, _ := json.Marshal(map[string]interface{}{"name": name})
-	return v.client.PerformAction("cloudops-core/api/v1/dbaas/execute-action", map[string]interface{}{
-		"instanceId": id,
-		"action":     "create_backup",
-		"requestData": map[string]interface{}{
-			"backupStrategyType": "S3",
-			"name":               string(bytes),
-		},
-	})
-}
-
 func (v *mongoinstance) DeleteUser(id string, username string) (ActionResponse, error) {
 	params := map[string]interface{}{
 		"command": "drop_user",
@@ -339,30 +310,4 @@ func (v *mongoinstance) DeleteUser(id string, username string) (ActionResponse, 
 		},
 		"requestId": genUUID(),
 	})
-}
-
-func (v *mongoinstance) DeleteBackup(id string) (ActionResponse, error) {
-	return v.client.PerformDeleteWithBody("cloudops-core/api/v1/dbaas/backup", map[string]interface{}{"backupIds": []string{id}})
-}
-
-func (v *mongoinstance) GetBackup(id string, backup_id string) (MongoBackup, error) {
-	databases, err := v.ListBackups(id)
-	if err != nil {
-		return MongoBackup{}, err
-	}
-	for _, db := range databases {
-		if db.ID == backup_id {
-			return db, nil
-		}
-	}
-	return MongoBackup{}, nil
-}
-func (v *mongoinstance) ListBackups(id string) ([]MongoBackup, error) {
-	restext, err := v.client.Get("cloudops-core/api/v1/dbaas/backup-list?page=1&size=15&datastoreCode=mongodb", map[string]string{})
-	items := make([]MongoBackup, 0)
-	if err != nil {
-		return items, err
-	}
-	err = json.Unmarshal([]byte(restext), &items)
-	return items, err
 }

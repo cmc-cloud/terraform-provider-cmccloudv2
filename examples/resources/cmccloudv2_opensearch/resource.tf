@@ -27,4 +27,8 @@ resource "cmccloudv2_opensearch" "opensearch1" {
     storage_autoscaling_threshold = 80
     storage_autoscaling_increment = 10
     storage_autoscaling_max       = 5000
+    tags {
+        key = "env"
+        value = "prod"
+    }
 }

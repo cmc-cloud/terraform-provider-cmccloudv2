@@ -23,14 +23,14 @@ func rdsClusterDatabaseSchema() map[string]*schema.Schema {
 			Optional:    true,
 			Default:     "utf8mb4",
 			ForceNew:    true,
-			Description: "RdsCluster username of owner",
+			Description: "Character set, default is `utf8mb4`",
 		},
 		"collation": {
 			Type:        schema.TypeString,
 			Optional:    true,
 			ForceNew:    true,
 			Default:     "utf8mb4_unicode_ci",
-			Description: "RdsCluster username of owner",
+			Description: "Collation, default is `utf8mb4_unicode_ci`",
 		},
 	}
 }

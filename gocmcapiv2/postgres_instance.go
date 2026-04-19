@@ -25,11 +25,6 @@ type PostgresInstanceService interface {
 	UpdateDatabase(id string, params map[string]interface{}) (ActionResponse, error)
 	DeleteDatabase(id string, databaseName string) (ActionResponse, error)
 	ListDatabases(id string) ([]PostgresDatabase, error)
-
-	GetBackup(id string, backup_id string) (PostgresBackup, error)
-	DeleteBackup(id string) (ActionResponse, error)
-	ListBackups(id string) ([]PostgresBackup, error)
-	CreateBackup(id string, name string) (ActionResponse, error)
 }
 
 type PostgresUser struct {
@@ -89,23 +84,6 @@ type PostgresInstanceCreateResponse struct {
 		InstanceID string `json:"instanceId"`
 	} `json:"data"`
 }
-type PostgresBackup struct {
-	ID                 string `json:"backupId"`
-	BackupName         string `json:"backupName"`
-	DatastoreName      string `json:"datastoreName"`
-	DatastoreVersion   string `json:"datastoreVersion"`
-	InstanceID         string `json:"instanceId"`
-	InstanceName       string `json:"instanceName"`
-	Size               int    `json:"size"`
-	BackupStrategyType string `json:"backupStrategyType"`
-	Status             string `json:"status"`
-	Created            string `json:"created"`
-	DatastoreCode      string `json:"datastoreCode"`
-	Message            string `json:"message"`
-	CreateBy           string `json:"createBy"`
-	Type               string `json:"type"`
-}
-
 type PostgresInstanceListWrapper struct {
 	Data struct {
 		Docs      []PostgresInstance `json:"docs"`
@@ -331,18 +309,6 @@ func (v *postgresinstance) ListDatabases(id string) ([]PostgresDatabase, error) 
 	return obj.Data.Docs, nil
 }
 
-func (v *postgresinstance) CreateBackup(id string, name string) (ActionResponse, error) {
-	bytes, _ := json.Marshal(map[string]interface{}{"name": name})
-	return v.client.PerformAction("cloudops-core/api/v1/dbaas/execute-action", map[string]interface{}{
-		"instanceId": id,
-		"action":     "create_backup",
-		"requestData": map[string]interface{}{
-			"backupStrategyType": "S3",
-			"name":               string(bytes),
-		},
-	})
-}
-
 func (v *postgresinstance) DeleteUser(id string, username string) (ActionResponse, error) {
 	params := map[string]interface{}{
 		"command": "drop_user",
@@ -360,41 +326,4 @@ func (v *postgresinstance) DeleteUser(id string, username string) (ActionRespons
 		},
 		"requestId": genUUID(),
 	})
-}
-
-func (v *postgresinstance) DeleteBackup(id string) (ActionResponse, error) {
-	return v.client.PerformDeleteWithBody("cloudops-core/api/v1/dbaas/backup", map[string]interface{}{"backupIds": []string{id}})
-}
-
-func (v *postgresinstance) GetBackup(id string, backup_id string) (PostgresBackup, error) {
-	databases, err := v.ListBackups(id)
-	if err != nil {
-		return PostgresBackup{}, err
-	}
-	for _, db := range databases {
-		if db.ID == backup_id {
-			return db, nil
-		}
-	}
-	return PostgresBackup{}, nil
-}
-func (v *postgresinstance) ListBackups(id string) ([]PostgresBackup, error) {
-	params := map[string]interface{}{
-		"command": "get_list_database",
-		"body":    map[string]interface{}{},
-	}
-	jsonStr, err := v.postAction(id, "db_action", params)
-	var obj struct {
-		Data struct {
-			Docs []PostgresBackup `json:"docs"`
-		} `json:"data"`
-	}
-	if err != nil {
-		return []PostgresBackup{}, err
-	}
-	err = json.Unmarshal([]byte(jsonStr), &obj)
-	if err != nil {
-		return []PostgresBackup{}, err
-	}
-	return obj.Data.Docs, nil
 }

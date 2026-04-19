@@ -18,11 +18,6 @@ func parameterSchema() map[string]*schema.Schema {
 			Description: "The value of the parameter",
 			// ForceNew: true,
 		},
-		// "string_type": {
-		// 	Type:     schema.TypeBool,
-		// 	Optional: true,
-		// 	// ForceNew: true,
-		// },
 	}
 }
 func databaseConfigurationSchema() map[string]*schema.Schema {

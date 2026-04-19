@@ -1,9 +1,6 @@
 package cmccloudv2
 
 import (
-	"fmt"
-	"regexp"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -38,7 +35,7 @@ func mongoInstanceSchema() map[string]*schema.Schema {
 			ValidateFunc: validation.StringInSlice([]string{
 				"replica_set", "standalone",
 			}, false),
-			Description: "mode of the Mongo instance, allow values are replica_set, standalone",
+			Description: "Mode of the Mongo instance, allow values are replica_set, standalone",
 		},
 		"version": {
 			Type:             schema.TypeString,
@@ -95,6 +92,7 @@ func mongoInstanceSchema() map[string]*schema.Schema {
 			// ForceNew:    true,
 			Description: "The id of configuration group",
 		},
+		"tags": tagSchema(),
 		"status": {
 			Type:        schema.TypeString,
 			Computed:    true,
@@ -106,41 +104,4 @@ func mongoInstanceSchema() map[string]*schema.Schema {
 			Description: "The created time of the Mongo instance",
 		},
 	}
-}
-
-// Custom validation function
-func validateMongoPassword(val interface{}, key string) (warns []string, errs []error) {
-	v := val.(string)
-
-	// Check for valid length
-	if len(v) < 8 || len(v) > 32 {
-		errs = append(errs, fmt.Errorf("%q must be between 8 and 32 characters long, got: %d", key, len(v)))
-		return warns, errs
-	}
-
-	// Check for at least one lowercase letter
-	if matched, _ := regexp.MatchString(`[a-z]`, v); !matched {
-		errs = append(errs, fmt.Errorf("%q must contain at least one lowercase letter", key))
-		return warns, errs
-	}
-
-	// Check for at least one uppercase letter
-	if matched, _ := regexp.MatchString(`[A-Z]`, v); !matched {
-		errs = append(errs, fmt.Errorf("%q must contain at least one uppercase letter", key))
-		return warns, errs
-	}
-
-	// Check for at least one digit
-	if matched, _ := regexp.MatchString(`\d`, v); !matched {
-		errs = append(errs, fmt.Errorf("%q must contain at least one digit", key))
-		return warns, errs
-	}
-
-	// Check for special characters (must not contain any)
-	if matched, _ := regexp.MatchString(`[^A-Za-z0-9]`, v); matched {
-		errs = append(errs, fmt.Errorf("%q must not contain special characters", key))
-		return warns, errs
-	}
-
-	return warns, errs
 }

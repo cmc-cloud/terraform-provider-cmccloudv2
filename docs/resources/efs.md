@@ -21,8 +21,11 @@ resource "cmccloudv2_efs" "efs_1" {
     subnet_id		= "a7d6c281-64d6-44b6-b02c-cfbf8141adfa"
     type 			= "hdd_standard"
     protocol_type 	= "nfs"
-	tags 			= [{"key": "env", "value": "prod"}]
     description 	= "your_description" 
+	tags {
+        key = "env"
+        value = "prod"
+    }
 }
 ```
 

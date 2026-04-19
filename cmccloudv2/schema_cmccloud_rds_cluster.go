@@ -107,6 +107,7 @@ func rdsClusterSchema() map[string]*schema.Schema {
 			Computed:    true,
 			Description: "Load Balancer VIP IP Address",
 		},
+		"tags": tagSchema(),
 		"status": {
 			Type:        schema.TypeString,
 			Computed:    true,

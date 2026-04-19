@@ -159,6 +159,7 @@ func opensearchSchema() map[string]*schema.Schema {
 				return false //old != new
 			},
 		},
+		"tags": tagSchema(),
 		"status": {
 			Type:        schema.TypeString,
 			Computed:    true,

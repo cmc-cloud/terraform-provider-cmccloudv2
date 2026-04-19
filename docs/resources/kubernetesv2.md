@@ -98,6 +98,7 @@ resource "cmccloudv2_kubernetesv2" "k8s_3" {
 - `network_driver_mode` (String) The network driver mode of the Kubernetes cluster
 - `node_mask_cidr` (Number) The node mask CIDR of the Kubernetes cluster
 - `ntp_servers` (Block List) List of NTP servers in the Kubernetes cluster (see [below for nested schema](#nestedblock--ntp_servers))
+- `tags` (Block Set) (see [below for nested schema](#nestedblock--tags))
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
@@ -117,6 +118,15 @@ Optional:
 
 - `port` (Number) NTP server port.
 - `protocol` (String) Protocol used (udp or tcp).
+
+
+<a id="nestedblock--tags"></a>
+### Nested Schema for `tags`
+
+Required:
+
+- `key` (String) The key of the tag
+- `value` (String) The value of the tag
 
 
 <a id="nestedblock--timeouts"></a>

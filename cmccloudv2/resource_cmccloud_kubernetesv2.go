@@ -91,6 +91,11 @@ func resourceKubernetesv2Create(d *schema.ResourceData, meta interface{}) error 
 	}
 	d.SetId(kubernetes.Data.ID)
 
+	_, err = client.Tag.UpdateTag(kubernetes.Data.ID, "CKE", d)
+	if err != nil {
+		fmt.Printf("error updating Kubernetesv2 tags: %s\n", err)
+	}
+
 	_, err = waitUntilKubernetesv2StatusChangedState(d, meta, []string{"HEALTHY", "RUNNING", "active", "Ready", "Running"}, []string{"ERROR", "SHUTDOWN", "FAILURE", "failure", "deleting"}, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
 		return fmt.Errorf("error creating Kubernetesv2: %s", err)
@@ -222,6 +227,14 @@ func updateMonitoringAddon(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 func resourceKubernetesv2Update(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*CombinedConfig).goCMCClient()
+	if d.HasChange("tags") {
+		_, err := client.Tag.UpdateTag(d.Id(), "CKE", d)
+		if err != nil {
+			return fmt.Errorf("error when set kubernetesv2 tags [%s]: %v", d.Id(), err)
+		}
+	}
+
 	if d.HasChange("enable_autohealing") {
 		err := updateAutoHealingAddon(d, meta)
 		if err != nil {

@@ -59,6 +59,7 @@ type RdsCluster struct {
 	VpcID                       string `json:"vpc_id"`
 	BillingMode                 string `json:"billing_mode"`
 	TaskState                   string `json:"task_state"`
+	Tags                        []Tag  `json:"tags"`
 }
 type RdsClusterFlavor struct {
 	ID          string `json:"id"`

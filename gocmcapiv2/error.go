@@ -24,7 +24,7 @@ func (e *NotFoundError) Error() string {
 		return fmt.Sprintf("couldn't find resource (%d retries)", e.Retries)
 	}
 
-	return "couldn't find resource"
+	return "resource not found"
 }
 
 // UnexpectedStateError is returned when Refresh returns a state that's neither in Target nor Pending

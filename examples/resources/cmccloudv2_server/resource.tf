@@ -61,6 +61,9 @@ resource "cmccloudv2_server" "example_04" {
     ecs_group_id 			= "bfdcd02a-1ffe-4e24-9cc5-09a0a6689923"
     user_data 				= ""
 	delete_on_termination 	= false
-	tags 					= [{"key": "env", "value": "prod"}]
     security_group_names 	= [ "sg-cv8g", "default" ]
+	tags {
+        key = "env"
+        value = "prod"
+    }
 }

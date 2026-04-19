@@ -15,8 +15,7 @@ func redisconfigurationSchema() map[string]*schema.Schema {
 		},
 		"database_engine": {
 			Type:         schema.TypeString,
-			Required:     true,
-			ForceNew:     true,
+			Optional:     true,
 			ValidateFunc: validation.NoZeroValues,
 			Description:  "The database engine of the Redis configuration, Redis",
 		},
@@ -25,14 +24,14 @@ func redisconfigurationSchema() map[string]*schema.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.NoZeroValues,
-			Description:  "The database version of the Redis configuration. Example `6.0`",
+			Description:  "The database version of the Redis configuration. Example `6.0`, `7.0`",
 		},
 		"database_mode": {
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.NoZeroValues,
-			Description:  "The database mode of the Redis configuration, `Master/Slave`, `Cluster`, `Standalone`",
+			ValidateFunc: validation.StringInSlice([]string{"master_slave", "cluster", "standalone"}, false),
+			Description:  "The database mode of the Redis configuration, `master_slave`, `cluster`, `standalone`",
 		},
 		"description": {
 			Type:        schema.TypeString,

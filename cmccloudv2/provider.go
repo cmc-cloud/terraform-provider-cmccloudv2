@@ -71,24 +71,37 @@ func Provider() terraform.ResourceProvider {
 			"cmccloudv2_database_instance":      resourceDatabaseInstance(),
 			"cmccloudv2_database_autobackup":    resourceDatabaseAutoBackup(),
 
-			"cmccloudv2_postgres_instance":      resourcePostgresInstance(),
-			"cmccloudv2_postgres_user":          resourcePostgresUser(),
-			"cmccloudv2_postgres_database":      resourcePostgresDatabase(),
-			"cmccloudv2_postgres_backup":        resourcePostgresBackup(),
-			"cmccloudv2_postgres_autobackup":    resourcePostgresAutoBackup(),
-			"cmccloudv2_postgres_configuration": resourcePostgresConfiguration(),
+			"cmccloudv2_postgres_instance": resourcePostgresInstance(),
+			"cmccloudv2_postgres_user":     resourcePostgresUser(),
+			"cmccloudv2_postgres_database": resourcePostgresDatabase(),
 
-			"cmccloudv2_mongo_instance":      resourceMongoInstance(),
-			"cmccloudv2_mongo_user":          resourceMongoUser(),
-			"cmccloudv2_mongo_database":      resourceMongoDatabase(),
-			"cmccloudv2_mongo_backup":        resourceMongoBackup(),
-			"cmccloudv2_mongo_autobackup":    resourceMongoAutoBackup(),
-			"cmccloudv2_mongo_configuration": resourceMongoConfiguration(),
+			"cmccloudv2_mongo_instance": resourceMongoInstance(),
+			"cmccloudv2_mongo_user":     resourceMongoUser(),
+			"cmccloudv2_mongo_database": resourceMongoDatabase(),
+
+			"cmccloudv2_redis_instance": resourceRedisInstance(),
+
+			"cmccloudv2_mysql_instance": resourceMysqlInstance(),
+			"cmccloudv2_mysql_user":     resourceMysqlUser(),
+			"cmccloudv2_mysql_database": resourceMysqlDatabase(),
+
+			"cmccloudv2_mysql_configuration":    resourceDBv2Configuration("Mysql"),
+			"cmccloudv2_redis_configuration":    resourceDBv2Configuration("Redis"),
+			"cmccloudv2_postgres_configuration": resourceDBv2Configuration("Postgres"),
+			"cmccloudv2_mongo_configuration":    resourceDBv2Configuration("Mongo"),
+
+			"cmccloudv2_mysql_backup":    resourceDBv2Backup("mysql"),
+			"cmccloudv2_redis_backup":    resourceDBv2Backup("redis"),
+			"cmccloudv2_postgres_backup": resourceDBv2Backup("postgres"),
+			"cmccloudv2_mongo_backup":    resourceDBv2Backup("mongo"),
+
+			"cmccloudv2_mongo_autobackup":    resourceDBv2AutoBackup("Mongo"),
+			"cmccloudv2_postgres_autobackup": resourceDBv2AutoBackup("Postgres"),
+			"cmccloudv2_redis_autobackup":    resourceDBv2AutoBackup("Redis"),
+			"cmccloudv2_mysql_autobackup":    resourceDBv2AutoBackup("Mysql"),
 
 			"cmccloudv2_kafka_instance": resourceKafkaInstance(),
-
-			"cmccloudv2_redis_instance":      resourceRedisInstance(),
-			"cmccloudv2_redis_configuration": resourceRedisConfiguration(),
+			"cmccloudv2_kafka_topic":    resourceKafkaTopic(),
 
 			"cmccloudv2_opensearch":           resourceOpenSearch(),
 			"cmccloudv2_opensearch_snapshot":  resourceOpenSearchSnapshot(),
@@ -168,6 +181,8 @@ func Provider() terraform.ResourceProvider {
 			"cmccloudv2_autoscaling_group":           datasourceAutoScalingGroup(),
 			"cmccloudv2_redis_configuration":         datasourceRedisConfiguration(),
 			"cmccloudv2_postgres_configuration":      datasourcePostgresConfiguration(),
+			"cmccloudv2_mongo_configuration":         datasourceMongoConfiguration(),
+			"cmccloudv2_mysql_configuration":         datasourceMysqlConfiguration(),
 			"cmccloudv2_security_group":              datasourceSecurityGroup(),
 			"cmccloudv2_keymanagement_container":     datasourceKeyManagementContainer(),
 			"cmccloudv2_keymanagement_secret":        datasourceKeyManagementSecret(),

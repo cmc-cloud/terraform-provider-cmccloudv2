@@ -65,7 +65,7 @@ func resourceKafkaInstanceCreate(d *schema.ResourceData, meta interface{}) error
 	version := d.Get("version").(string)
 	mode := d.Get("mode").(string)
 
-	datastoreVersionId, datastoreModeId, datastoreCode, _, _, err := findPostgresDatastoreInfo(datastores, version, mode)
+	datastoreVersionId, datastoreModeId, datastoreCode, _, _, err := findDatastoreInfo(datastores, version, mode)
 	if err != nil {
 		return err
 	}
@@ -134,6 +134,11 @@ func resourceKafkaInstanceCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error creating Kafka Instance: %s", err)
 	}
 	d.SetId(instance.Data.InstanceID)
+
+	_, err = client.Tag.UpdateTag(instance.Data.InstanceID, "KAFKA", d)
+	if err != nil {
+		fmt.Printf("error updating RedisDatabase tags: %s\n", err)
+	}
 	_, err = waitUntilKafkaInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
 		return fmt.Errorf("error creating Kafka Instance: %s", err)
@@ -175,6 +180,7 @@ func resourceKafkaInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("volume_size", instance.VolumeSize)
 	_ = d.Set("subnet_id", instance.SubnetID)
 	_ = d.Set("broker_quantity", instance.QuantityOfNodes)
+	_ = d.Set("tags", convertTagsToSet(instance.Tags))
 	_ = d.Set("status", instance.Status)
 	_ = d.Set("created_at", instance.Created)
 	return nil
@@ -184,6 +190,12 @@ func resourceKafkaInstanceUpdate(d *schema.ResourceData, meta interface{}) error
 	client := meta.(*CombinedConfig).goCMCClient()
 	id := d.Id()
 
+	if d.HasChange("tags") {
+		_, err := client.Tag.UpdateTag(id, "KAFKA", d)
+		if err != nil {
+			return fmt.Errorf("error when set kafka tags [%s]: %v", id, err)
+		}
+	}
 	if d.HasChange("security_group_ids") {
 		err := checkSecurityGroupConflict(d, meta)
 		if err != nil {

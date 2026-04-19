@@ -2,7 +2,6 @@ package gocmcapiv2
 
 import (
 	"encoding/json"
-	"strings"
 )
 
 // RedisInstanceService interface
@@ -53,22 +52,23 @@ type RedisInstanceWrapper struct {
 }
 
 type RedisInstance struct {
-	ID                string                    `json:"id"`
-	Name              string                    `json:"name"`
-	DatastoreName     string                    `json:"datastoreName"`
-	DatastoreVersion  string                    `json:"datastoreVersion"`
-	DatastoreMode     string                    `json:"datastoreMode"`
-	GroupConfigID     string                    `json:"groupConfigId"`
-	SecurityClientIds string                    `json:"securityClientIds"`
-	SubnetID          string                    `json:"subnetId"`
-	Status            string                    `json:"status"`
-	FlavorID          string                    `json:"flavorId"`
-	SubnetName        string                    `json:"subnetName"`
-	FlavorName        string                    `json:"flavorName"`
-	VolumeSize        int                       `json:"volumeSize"`
-	Created           string                    `json:"created"`
-	Updated           string                    `json:"updated"`
-	DataDetail        RedisDataDetailFromString `json:"dataDetail"`
+	ID                string `json:"id"`
+	Name              string `json:"name"`
+	DatastoreName     string `json:"datastoreName"`
+	DatastoreVersion  string `json:"datastoreVersion"`
+	DatastoreMode     string `json:"datastoreMode"`
+	GroupConfigID     string `json:"groupConfigId"`
+	SecurityClientIds string `json:"securityClientIds"`
+	SubnetID          string `json:"subnetId"`
+	Status            string `json:"status"`
+	FlavorID          string `json:"flavorId"`
+	SubnetName        string `json:"subnetName"`
+	FlavorName        string `json:"flavorName"`
+	VolumeSize        int    `json:"volumeSize"`
+	Created           string `json:"created"`
+	Updated           string `json:"updated"`
+	// DataDetail        RedisDataDetailFromString `json:"dataDetail"`
+	Tags []Tag `json:"tags"`
 }
 
 type RedisInstanceCreateResponse struct {
@@ -76,51 +76,51 @@ type RedisInstanceCreateResponse struct {
 		InstanceID string `json:"instanceId"`
 	} `json:"data"`
 }
-type RedisDataDetailFromString RedisDataDetail
 
-func (b *RedisDataDetailFromString) UnmarshalJSON(data []byte) error {
-	var val RedisDataDetail
-	input := string(data)
-	input = strings.Trim(input, `"`)
-	input = strings.ReplaceAll(input, `\`, ``)
-	if err := json.Unmarshal([]byte(input), &val); err != nil {
-		Logo("RedisDataDetailFromString Unmarshal err =", err)
-		return err
-	}
-	// Logo("AutoScalev2Config after Unmarshal = ", val)
-	*b = RedisDataDetailFromString(val)
-	return nil
-}
+// type RedisDataDetailFromString RedisDataDetail
 
-type RedisDataDetail struct {
-	MasterInfo struct {
-		ID                string `json:"id"`
-		OsServerID        string `json:"osServerId"`
-		Role              string `json:"role"`
-		IPAddress         string `json:"ipAddress"`
-		RAM               int    `json:"ram"`
-		Disk              int    `json:"disk"`
-		VolumeSize        int    `json:"volumeSize"`
-		ZoneName          string `json:"zoneName"`
-		Status            string `json:"status"`
-		MonitorResourceID string `json:"monitorResourceId"`
-		Vcpus             int    `json:"vcpus"`
-	} `json:"masterInfo"`
-	SlavesInfo []struct {
-		ID                 string `json:"id"`
-		OsServerID         string `json:"osServerId"`
-		Role               string `json:"role"`
-		IPAddress          string `json:"ipAddress"`
-		RAM                int    `json:"ram"`
-		Disk               int    `json:"disk"`
-		VolumeSize         int    `json:"volumeSize"`
-		ZoneName           string `json:"zoneName"`
-		Status             string `json:"status"`
-		MonitorResourceID  string `json:"monitorResourceId"`
-		StatusAgentMonitor string `json:"statusAgentMonitor"`
-		Vcpus              int    `json:"vcpus"`
-	} `json:"slavesInfo"`
-}
+// func (b *RedisDataDetailFromString) UnmarshalJSON(data []byte) error {
+// 	var val RedisDataDetail
+// 	input := string(data)
+// 	input = strings.Trim(input, `"`)
+// 	input = strings.ReplaceAll(input, `\`, ``)
+// 	if err := json.Unmarshal([]byte(input), &val); err != nil {
+// 		Logo("RedisDataDetailFromString Unmarshal err =", err)
+// 		return err
+// 	}
+// 	// Logo("AutoScalev2Config after Unmarshal = ", val)
+// 	*b = RedisDataDetailFromString(val)
+// 	return nil
+// }
+
+// type RedisDataDetail struct {
+// 	MastersInfo []struct {
+// 		ID                string `json:"id"`
+// 		OsServerID        string `json:"osServerId"`
+// 		Role              string `json:"role"`
+// 		IPAddress         string `json:"ipAddress"`
+// 		RAM               int    `json:"ram"`
+// 		Disk              int    `json:"disk"`
+// 		VolumeSize        int    `json:"volumeSize"`
+// 		ZoneName          string `json:"zoneName"`
+// 		Status            string `json:"status"`
+// 		MonitorResourceID string `json:"monitorResourceId"`
+// 		Vcpus             int    `json:"vcpus"`
+// 	} `json:"mastersInfo"`
+// 	SlavesInfo []struct {
+// 		ID                string `json:"id"`
+// 		OsServerID        string `json:"osServerId"`
+// 		Role              string `json:"role"`
+// 		IPAddress         string `json:"ipAddress"`
+// 		RAM               int    `json:"ram"`
+// 		Disk              int    `json:"disk"`
+// 		VolumeSize        int    `json:"volumeSize"`
+// 		ZoneName          string `json:"zoneName"`
+// 		Status            string `json:"status"`
+// 		MonitorResourceID string `json:"monitorResourceId"`
+// 		Vcpus int `json:"vcpus"`
+// 	} `json:"slavesInfo"`
+// }
 
 type RedisInstanceListWrapper struct {
 	Data struct {

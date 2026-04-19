@@ -114,6 +114,7 @@ func kafkaInstanceSchema() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "Set of security group IDs that you want to attach to the kafka",
 		},
+		"tags": tagSchema(),
 		"status": {
 			Type:        schema.TypeString,
 			Computed:    true,

@@ -142,9 +142,9 @@ func readOrImport(d *schema.ResourceData, meta interface{}, isImport bool) error
 					_ = d.Set("interface_id", nic.ID)
 				}
 				// chua set thi moi set
-				if d.Get("ip_address").(string) == "" || d.Get("ip_address").(string) == nic.FixedIps[0].IPAddress {
-					setString(d, "ip_address", nic.FixedIps[0].IPAddress)
-				}
+				// if d.Get("ip_address").(string) == "" || d.Get("ip_address").(string) == nic.FixedIps[0].IPAddress {
+				// }
+				setString(d, "ip_address", nic.FixedIps[0].IPAddress)
 				break
 			}
 		}

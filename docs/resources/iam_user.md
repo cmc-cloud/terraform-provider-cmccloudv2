@@ -30,7 +30,7 @@ resource "cmccloudv2_iam_user" "user" {
 
 - `first_name` (String) The first name of the IAM user.
 - `last_name` (String) The last name of the IAM user.
-- `password` (String, Sensitive) The password for the IAM user. Minimum Length 8, Require at least one uppercase character, one lowercase character, one number, one special character
+- `password` (String, Sensitive) The password for the IAM user. Minimum Length 12, Require at least one uppercase character, one lowercase character, one number, one special character
 - `short_name` (String) The short name of the IAM user. The full name of the IAM user is `domain_name` + `_` + `short_name`, example: `3hr4enae2tvg_dev`
 
 ### Optional

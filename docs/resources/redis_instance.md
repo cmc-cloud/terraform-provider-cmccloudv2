@@ -22,17 +22,20 @@ data "cmccloudv2_redis_configuration" "config_master_slave" {
 } 
 # create redis in Cluster mode
 resource "cmccloudv2_redis_instance" "redis_instance_masterslave" {
-    name               = "redis-2bdr"
-    billing_mode       = "monthly"
-    database_engine    = "Redis"
-    database_version   = "6.0"
-    zones              = ["AZ3", "AZ2"]
-    flavor_id          = "${data.cmccloudv2_flavor_dbaas.flavor_dbaas.id}"
-    volume_size        = 20
-    subnet_id          = "036f3b55-2ff8-4350-9fc0-4baf12deca03"
-    password           = "5k9DJoK1FqDQShwgocmqkZ23DIlFOaa"
-    security_group_ids = [ "2465c8f5-1aa5-4fcd-9ea0-0713d6a1f685" ]
-	
+    name                   = "redis-2bdr"
+    billing_mode           = "monthly"
+    database_engine        = "Redis"
+    database_version       = "6.0"
+    zones                  = ["AZ3", "AZ2"]
+    flavor_id              = "${data.cmccloudv2_flavor_dbaas.flavor_dbaas.id}"
+    volume_size            = 20
+    subnet_id              = "036f3b55-2ff8-4350-9fc0-4baf12deca03"
+    password               = "5k9DJoK1FqDQShwgocmqkZ23DIlFOaa"
+    security_group_ids     = [ "2465c8f5-1aa5-4fcd-9ea0-0713d6a1f685" ]	
+	tags {
+        key = "env"
+        value = "prod"
+    }
 	database_mode          = "Cluster"
 	replicas               = 1
 	redis_configuration_id = "${data.cmccloudv2_redis_configuration.config_master_slave.id}"
@@ -49,9 +52,12 @@ resource "cmccloudv2_redis_instance" "redis_instance_masterslave" {
     volume_size        = 20
     subnet_id          = "036f3b55-2ff8-4350-9fc0-4baf12deca03"
     password           = "5k9DJoK1FqDQShwgocmqkZ23DIlFOaa"
-    security_group_ids = [ "2465c8f5-1aa5-4fcd-9ea0-0713d6a1f685" ]
-	
-    database_mode = "Master/Slave"
+    security_group_ids = [ "2465c8f5-1aa5-4fcd-9ea0-0713d6a1f685" ]	
+	tags {
+        key = "env"
+        value = "prod"
+    }
+    database_mode      = "Master/Slave"
 }
 
 # create redis in Standalone mode & using backup
@@ -65,10 +71,13 @@ resource "cmccloudv2_redis_instance" "redis_instance_masterslave" {
     volume_size        = 20
     subnet_id          = "036f3b55-2ff8-4350-9fc0-4baf12deca03"
     password           = "5k9DJoK1FqDQShwgocmqkZ23DIlFOaa"
-    security_group_ids = [ "2465c8f5-1aa5-4fcd-9ea0-0713d6a1f685" ]
-	
-	database_mode = "Standalone"
-	backup_id     = "162efde6-caf4-4e5f-b0aa-24fa27c17bfc"
+    security_group_ids = [ "2465c8f5-1aa5-4fcd-9ea0-0713d6a1f685" ]	
+	database_mode      = "Standalone"
+	backup_id          = "162efde6-caf4-4e5f-b0aa-24fa27c17bfc"
+	tags {
+        key = "env"
+        value = "prod"
+    }
 }
 ```
 
@@ -94,6 +103,7 @@ resource "cmccloudv2_redis_instance" "redis_instance_masterslave" {
 - `backup_id` (String) The ID of the redis backup
 - `redis_configuration_id` (String) The ID of the Redis configuration of the Redis instance
 - `replicas` (Number) The number of replicas of the Redis instance, required for Redis Cluster mode
+- `tags` (Block Set) (see [below for nested schema](#nestedblock--tags))
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
@@ -101,6 +111,15 @@ resource "cmccloudv2_redis_instance" "redis_instance_masterslave" {
 - `created_at` (String) The created time of the Redis instance
 - `id` (String) The ID of this resource.
 - `status` (String) The status of the Redis instance
+
+<a id="nestedblock--tags"></a>
+### Nested Schema for `tags`
+
+Required:
+
+- `key` (String) The key of the tag
+- `value` (String) The value of the tag
+
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

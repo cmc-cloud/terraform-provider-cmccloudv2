@@ -131,6 +131,7 @@ func postgresInstanceSchema() map[string]*schema.Schema {
 			ForceNew:     true,
 			Description:  "Retention period in days, default is 3",
 		},
+		"tags": tagSchema(),
 		"status": {
 			Type:        schema.TypeString,
 			Computed:    true,

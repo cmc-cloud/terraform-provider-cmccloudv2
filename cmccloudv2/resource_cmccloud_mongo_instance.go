@@ -56,7 +56,7 @@ func resourceMongoInstanceCreate(d *schema.ResourceData, meta interface{}) error
 	version := d.Get("version").(string)
 	mode := d.Get("mode").(string)
 
-	datastoreVersionId, datastoreModeId, datastoreCode, datastoreTypeId, _, err := findPostgresDatastoreInfo(datastores, version, mode)
+	datastoreVersionId, datastoreModeId, datastoreCode, datastoreTypeId, _, err := findDatastoreInfo(datastores, version, mode)
 	if err != nil {
 		return err
 	}
@@ -105,6 +105,12 @@ func resourceMongoInstanceCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error creating MongoDatabase Instance: %s", err)
 	}
 	d.SetId(instance.Data.InstanceID)
+
+	_, err = client.Tag.UpdateTag(instance.Data.InstanceID, "MONGO", d)
+	if err != nil {
+		fmt.Printf("error updating RedisDatabase tags: %s\n", err)
+	}
+
 	_, err = waitUntilMongoInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
 		return fmt.Errorf("error creating Mongo Database Instance: %s", err)
@@ -129,6 +135,7 @@ func resourceMongoInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("volume_size", instance.VolumeSize)
 	// _ = d.Set("subnet_id", instance.SubnetID)
 	_ = d.Set("configuration_id", instance.GroupConfigID)
+	_ = d.Set("tags", convertTagsToSet(instance.Tags))
 	_ = d.Set("status", instance.Status)
 	_ = d.Set("created_at", instance.CreatedAt)
 	return nil
@@ -137,6 +144,12 @@ func resourceMongoInstanceRead(d *schema.ResourceData, meta interface{}) error {
 func resourceMongoInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	id := d.Id()
+	if d.HasChange("tags") {
+		_, err := client.Tag.UpdateTag(id, "MONGO", d)
+		if err != nil {
+			return fmt.Errorf("error when set mongo tags [%s]: %v", id, err)
+		}
+	}
 	if d.HasChange("configuration_id") {
 		_, err := client.MongoInstance.SetConfigurationGroupId(id, d.Get("configuration_id").(string))
 		if err != nil {
