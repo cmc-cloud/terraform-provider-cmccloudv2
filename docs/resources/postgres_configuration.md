@@ -13,20 +13,35 @@ description: |-
 ## Example Usage
 
 ```terraform
+# create Master Slave postgres configuration
 resource "cmccloudv2_postgres_configuration" "postgres_conf_1" {   
-    name             = "postgres-config-5sac"
-    database_version = "17"
-    database_mode    = "standalone" 
-    description      = "default template for standalone postgres database"
+    name             = "postgres-config-terraform1"
+    database_version = "15"
+    database_mode    = "master_slave" 
+    description      = "template for Master Slave postgres database"
     parameters       = {
-        "join_collapse_limit"= "8"
-        "enable_incremental_sort"= "on"
-        "wal_log_hints"= "off"
-        "logical_decoding_work_mem"= "65536"
-        "wal_keep_size"= "4096"
-        "hot_standby_feedback"= "off"
-		"max_parallel_workers_per_gather" = "2"
-		"synchronous_commit" = "on"
+        "max_stack_depth" = "6200"
+    }
+}
+# create Ha Cluster postgres configuration
+resource "cmccloudv2_postgres_configuration" "postgres_conf_2" {   
+    name             = "postgres-config-terraform2"
+    database_version = "15"
+    database_mode    = "ha_cluster" 
+    description      = "template for Ha Cluster postgres database"
+    parameters       = {
+        "wal_writer_flush_after" = "1280"
+    }
+}
+
+# create standalone postgres configuration
+resource "cmccloudv2_postgres_configuration" "postgres_conf_3" {   
+    name             = "postgres-config-terraform2"
+    database_version = "15"
+    database_mode    = "standalone" 
+    description      = "template for standalone postgres database"
+    parameters       = {
+        "autovacuum_vacuum_threshold" = "1000"
     }
 }
 ```
@@ -36,7 +51,7 @@ resource "cmccloudv2_postgres_configuration" "postgres_conf_1" {
 
 ### Required
 
-- `database_mode` (String) The database mode of the Postgres configuration, `Master Slave`, `Ha Cluster`, `Standalone`
+- `database_mode` (String) The database mode of the Postgres configuration, `master_slave`, `ha_cluster`, `standalone`
 - `database_version` (String) The database version of the Postgres configuration. Example `15`, `16`, `17`
 - `name` (String) The name of the Postgres configuration
 - `parameters` (Map of String) List of the parameters for the Postgres configuration

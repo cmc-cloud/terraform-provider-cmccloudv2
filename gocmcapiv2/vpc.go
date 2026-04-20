@@ -39,8 +39,8 @@ func (v *vpc) Get(id string) (VPC, error) {
 	}
 	return obj, err
 }
-func (s *vpc) List(params map[string]string) ([]VPC, error) {
-	restext, err := s.client.Get("network/vpc", params)
+func (v *vpc) List(params map[string]string) ([]VPC, error) {
+	restext, err := v.client.Get("network/vpc", params)
 	items := make([]VPC, 0)
 	if err != nil {
 		return items, err
@@ -57,8 +57,8 @@ func (v *vpc) Update(id string, params map[string]interface{}) (ActionResponse, 
 	return v.client.PerformUpdate("network/vpc/"+id, params)
 }
 
-func (s *vpc) Create(params map[string]interface{}) (VPC, error) {
-	jsonStr, err := s.client.Post("network/vpc", params)
+func (v *vpc) Create(params map[string]interface{}) (VPC, error) {
+	jsonStr, err := v.client.Post("network/vpc", params)
 	var response VPC
 	if err != nil {
 		return response, err
@@ -67,8 +67,8 @@ func (s *vpc) Create(params map[string]interface{}) (VPC, error) {
 	return response, err
 }
 
-func (s *vpc) CreateSubnet(id string, params map[string]interface{}) (Subnet, error) {
-	jsonStr, err := s.client.Post("network/vpc/"+id+"/subnet", params)
+func (v *vpc) CreateSubnet(id string, params map[string]interface{}) (Subnet, error) {
+	jsonStr, err := v.client.Post("network/vpc/"+id+"/subnet", params)
 	var response Subnet
 	if err != nil {
 		return response, err

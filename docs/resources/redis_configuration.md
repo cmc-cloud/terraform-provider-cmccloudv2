@@ -13,27 +13,43 @@ description: |-
 ## Example Usage
 
 ```terraform
-# create redis configuration
+# create master_slave redis configuration
 resource "cmccloudv2_redis_configuration" "redis_conf_1" {   
     name             = "redis-config-5sac"
     database_engine  = "Redis"
     database_version = "6.0"
-    database_mode    = "Master/Slave"
-    description      = "default template for master/slave redis database"
+    database_mode    = "master_slave"
+    description      = "template for Master/Slave redis database"
     parameters       = {
-        zset-max-ziplist-value    = "64"
-        zset-max-ziplist-entries  = "128"
-        slowlog-log-slower-than   = "10000"
-        lua-time-limit            = "5000"
-        latency-monitor-threshold = "0"
-        hash-max-ziplist-value    = "64"
-        hash-max-ziplist-entries  = "512"
-        timeout                   = "0"
-        slowlog-max-len           = "128"
-        notify-keyspace-events    = "Ex"
-        set-max-intset-entries    = "512"
-        repl-timeout              = "80"
-        repl-backlog-size         = "16384"
+        "repl-timeout"    = "64"
+        "repl-backlog-size"  = "128"
+        "slowlog-log-slower-than"   = "10000"
+    }
+}
+# create cluster redis configuration
+resource "cmccloudv2_redis_configuration" "redis_conf_1" {   
+    name             = "redis-config-5sac"
+    database_engine  = "Redis"
+    database_version = "6.0"
+    database_mode    = "cluster"
+    description      = "template for Cluster redis database"
+    parameters       = {
+        "set-max-intset-entries"    = "512"
+        "repl-backlog-ttl"  = "3600"
+        "repl-timeout"   = "60"
+    }
+}
+# create standalone redis configuration
+resource "cmccloudv2_redis_configuration" "redis_conf_1" {   
+    name             = "redis-config-5sac"
+    database_engine  = "Redis"
+    database_version = "6.0"
+    database_mode    = "standalone"
+    description      = "template for Standalone redis database"
+    parameters       = {
+        "set-max-intset-entries"    = "512"
+        "latency-monitor-threshold"  = "0"
+        "hash-max-ziplist-entries"   = "512"
     }
 }
 ```
@@ -43,7 +59,7 @@ resource "cmccloudv2_redis_configuration" "redis_conf_1" {
 
 ### Required
 
-- `database_mode` (String) The database mode of the Redis configuration, `Master/Slave`, `Cluster`, `Standalone`
+- `database_mode` (String) The database mode of the Redis configuration, `master_slave`, `cluster`, `standalone`
 - `database_version` (String) The database version of the Redis configuration. Example `6.0`, `7.0`
 - `name` (String) The name of the Redis configuration
 - `parameters` (Map of String) List of the parameters for the Redis configuration

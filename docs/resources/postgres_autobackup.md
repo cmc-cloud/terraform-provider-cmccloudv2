@@ -26,19 +26,20 @@ resource "cmccloudv2_postgres_autobackup" "autobackup1" {
 
 ### Required
 
-- `database_mode` (String) The database mode of the Postgres configuration, `Replica Set`, `Standalone`
-- `database_version` (String) The database version of the Postgres configuration. Example `8.0`
-- `name` (String) The name of the Postgres configuration
-- `parameters` (Map of String) List of the parameters for the Postgres configuration
+- `instance_id` (String) The ID of the database instance
+- `schedule_time` (String) The schedule time in HH:mm format, eg: 19:05
 
 ### Optional
 
-- `description` (String) The description of the Postgres configuration
+- `interval` (Number) The interval of the auto backup
+- `max_keep` (Number) The maximum number of backups to keep
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
 
+- `created_at` (String) The creation time of the auto backup
 - `id` (String) The ID of this resource.
+- `next_run` (String) The next run time of the auto backup
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

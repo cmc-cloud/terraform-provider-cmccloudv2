@@ -92,6 +92,7 @@ type Client struct {
 	OpenSearch                 OpenSearchService
 	RdsCluster                 RdsClusterService
 	Tag                        TagService
+	StorageGateway             StorageGatewayService
 	// RedisConfiguration         RedisConfigurationService
 	// PostgresAutoBackup         PostgresAutoBackupService
 }
@@ -185,6 +186,7 @@ func NewClient(configs ClientConfigs) (*Client, error) {
 	c.AutoScalingPolicy = &autoscalingpolicy{client: c}
 	c.BillingMode = &billingmode{client: c}
 	c.Tag = &tag{client: c}
+	c.StorageGateway = &storagegateway{client: c}
 
 	c.IamProject = &iamproject{client: c}
 	c.IamGroup = &iamgroup{client: c}
