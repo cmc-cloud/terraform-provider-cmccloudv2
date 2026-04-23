@@ -54,10 +54,17 @@ func opensearchSchema() map[string]*schema.Schema {
 			Required:    true,
 			Description: "Number of data nodes in the OpenSearch cluster",
 		},
+
+		"enable_isolate_master": {
+			Type:        schema.TypeBool,
+			Required:    true,
+			Description: "Configuring master nodes to only manage the cluster, without handling data or user requests",
+		},
+
 		"master_count": {
 			Type:        schema.TypeInt,
-			Required:    true,
-			Description: "Number of master nodes in the OpenSearch cluster",
+			Optional:    true,
+			Description: "Number of master nodes in the OpenSearch cluster. Required if enable_isolate_master is true",
 		},
 		// "enable_drain_nodes": {
 		// 	Type:        schema.TypeBool,
@@ -144,6 +151,7 @@ func opensearchSchema() map[string]*schema.Schema {
 		"api_domain": {
 			Type:        schema.TypeString,
 			Optional:    true,
+			Computed:    true,
 			Description: "API domain name. Changes to this field do NOT trigger resource update. If not set, it will be api-<name>.internal",
 			ForceNew:    false, // explicitly mark no update on change
 			DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
@@ -153,6 +161,7 @@ func opensearchSchema() map[string]*schema.Schema {
 		"dashboard_domain": {
 			Type:        schema.TypeString,
 			Optional:    true,
+			Computed:    true,
 			Description: "Dashboard domain name. Changes to this field do NOT trigger resource update. If not set, it will be dashboard-<name>.internal",
 			ForceNew:    false,
 			DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {

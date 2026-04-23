@@ -29,6 +29,7 @@ resource "cmccloudv2_opensearch" "opensearch1" {
     volume_size                   = 20   
     admin_password                = "SV<9wsb7rhhbapb" 
     node_count                    = 2
+    enable_isolate_master         = true
     master_count                  = 3
     dashboard_replicas            = 1
     enable_snapshot               = true
@@ -58,9 +59,9 @@ resource "cmccloudv2_opensearch" "opensearch1" {
 - `billing_mode` (String) The billing mode of the OpenSearch instance
 - `dashboard_flavor_id` (String) The ID of the dashboard node flavor
 - `dashboard_replicas` (Number) Number of dashboard replicas
+- `enable_isolate_master` (Boolean) Configuring master nodes to only manage the cluster, without handling data or user requests
 - `flavor_id` (String) The ID of the OpenSearch node flavor
 - `lb_subnet_id` (String) Subnet ID for the Load Balancer
-- `master_count` (Number) Number of master nodes in the OpenSearch cluster
 - `name` (String) The name of the OpenSearch cluster
 - `node_count` (Number) Number of data nodes in the OpenSearch cluster
 - `version` (String) The version of OpenSearch
@@ -72,6 +73,7 @@ resource "cmccloudv2_opensearch" "opensearch1" {
 - `dashboard_domain` (String) Dashboard domain name. Changes to this field do NOT trigger resource update. If not set, it will be dashboard-<name>.internal
 - `enable_snapshot` (Boolean) Whether to enable automatic snapshots
 - `enable_storage_autoscaling` (Boolean) Enable storage autoscaling
+- `master_count` (Number) Number of master nodes in the OpenSearch cluster. Required if enable_isolate_master is true
 - `rentation_max_age` (Number) Maximum retention age for snapshots (days)
 - `rentation_max_count` (Number) Maximum number of snapshots to retain
 - `rentation_min_count` (Number) Minimum number of snapshots to retain

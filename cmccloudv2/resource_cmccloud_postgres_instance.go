@@ -147,18 +147,18 @@ func resourcePostgresInstanceCreate(d *schema.ResourceData, meta interface{}) er
 
 	instance, err := client.PostgresInstance.Create(params)
 	if err != nil {
-		return fmt.Errorf("error creating PostgresDatabase Instance: %s", err)
+		return fmt.Errorf("error creating Postgres Instance: %s", err)
 	}
 	d.SetId(instance.Data.InstanceID)
 
 	_, err = client.Tag.UpdateTag(instance.Data.InstanceID, "POSTGRES", d)
 	if err != nil {
-		fmt.Printf("error updating PostgresDatabase tags: %s\n", err)
+		fmt.Printf("error updating Postgres tags: %s\n", err)
 	}
 
 	_, err = waitUntilPostgresInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return fmt.Errorf("error creating PostgresDatabase Instance: %s", err)
+		return fmt.Errorf("error creating Postgres Instance: %s", err)
 	}
 	return resourcePostgresInstanceRead(d, meta)
 }
@@ -167,7 +167,7 @@ func resourcePostgresInstanceRead(d *schema.ResourceData, meta interface{}) erro
 	client := meta.(*CombinedConfig).goCMCClient()
 	instance, err := client.PostgresInstance.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("error retrieving PostgresDatabase Instance %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving Postgres Instance %s: %v", d.Id(), err)
 	}
 	_ = d.Set("name", instance.Name)
 	_ = d.Set("version", instance.DatastoreVersion)
@@ -201,40 +201,40 @@ func resourcePostgresInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 	if d.HasChange("tags") {
 		_, err := client.Tag.UpdateTag(id, "POSTGRES", d)
 		if err != nil {
-			return fmt.Errorf("error when set redis tags [%s]: %v", id, err)
+			return fmt.Errorf("error when set postgres tags [%s]: %v", id, err)
 		}
 	}
 
 	if d.HasChange("configuration_id") {
 		_, err := client.PostgresInstance.SetConfigurationGroupId(id, d.Get("configuration_id").(string))
 		if err != nil {
-			return fmt.Errorf("error when set configuration group to %s of postgres database instance %s: %v", d.Get("configuration_id").(string), id, err)
+			return fmt.Errorf("error when set configuration group to %s of Postgres instance %s: %v", d.Get("configuration_id").(string), id, err)
 		}
 		_, err = waitUntilPostgresInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
-			return fmt.Errorf("error when set configuration group to %s of postgres database instance %s: %v", d.Get("configuration_id").(string), id, err)
+			return fmt.Errorf("error when set configuration group to %s of Postgres instance %s: %v", d.Get("configuration_id").(string), id, err)
 		}
 	}
 
 	if d.HasChange("volume_size") {
 		_, err := client.PostgresInstance.ResizeVolume(id, d.Get("volume_size").(int))
 		if err != nil {
-			return fmt.Errorf("error when resize volume to %s of postgres database instance %s: %v", d.Get("volume_size").(string), id, err)
+			return fmt.Errorf("error when resize volume to %s of Postgres instance %s: %v", d.Get("volume_size").(string), id, err)
 		}
 		_, err = waitUntilPostgresInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
-			return fmt.Errorf("error when resize volume to %s of postgres database instance %s: %v", d.Get("volume_size").(string), id, err)
+			return fmt.Errorf("error when resize volume to %s of Postgres instance %s: %v", d.Get("volume_size").(string), id, err)
 		}
 	}
 
 	if d.HasChange("flavor_id") {
 		_, err := client.PostgresInstance.Resize(id, d.Get("flavor_id").(string))
 		if err != nil {
-			return fmt.Errorf("error when resize flavor to %s of postgres database instance %s: %v", d.Get("flavor_id").(string), id, err)
+			return fmt.Errorf("error when resize flavor to %s of Postgres instance %s: %v", d.Get("flavor_id").(string), id, err)
 		}
 		_, err = waitUntilPostgresInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
-			return fmt.Errorf("error when resize flavor to %s of postgres database instance %s: %v", d.Get("flavor_id").(string), id, err)
+			return fmt.Errorf("error when resize flavor to %s of Postgres instance %s: %v", d.Get("flavor_id").(string), id, err)
 		}
 	}
 	return resourcePostgresInstanceRead(d, meta)
@@ -245,11 +245,11 @@ func resourcePostgresInstanceDelete(d *schema.ResourceData, meta interface{}) er
 	_, err := client.PostgresInstance.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("error delete postgres database instance: %v", err)
+		return fmt.Errorf("error delete Postgres instance: %v", err)
 	}
 	_, err = waitUntilPostgresInstanceDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("error delete postgres database instance: %v", err)
+		return fmt.Errorf("error delete Postgres instance: %v", err)
 	}
 	return nil
 }

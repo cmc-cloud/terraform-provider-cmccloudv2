@@ -15,15 +15,15 @@ description: |-
 ```terraform
 # create storage gateway 
 resource "cmccloudv2_storage_gateway" "storage_gateway1" {
-    name          = "sg-55ys"
-    description   = "storage gateway for production"
-    protocol_type = "NFS"
-    subnet_id     = "7f0dca91-6e37-4d41-820a-e32faec487d3"
-    bucket        = "mybucket"
-    tags {
-        key   = "env"
-        value = "prod"
-    }
+   name          = "sg-55ys1"
+   description   = "storage1 gateway for production"
+   protocol_type = "nfs"
+   subnet_id     = "0899fb16-f32a-416f-8618-ebe8a5af725d"
+   bucket        = "mybucket1"
+   tags {
+       key   = "env"
+       value = "test"
+   }
 }
 ```
 
@@ -33,7 +33,7 @@ resource "cmccloudv2_storage_gateway" "storage_gateway1" {
 ### Required
 
 - `name` (String) Name of the storage gateway
-- `protocol_type` (String) Protocol type of the storage gateway. Only `NFS` is currently supported
+- `protocol_type` (String) Protocol type of the storage gateway. Only `nfs` is currently supported
 - `subnet_id` (String) ID of subnet
 
 ### Optional

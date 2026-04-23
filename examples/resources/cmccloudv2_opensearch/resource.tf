@@ -14,6 +14,7 @@ resource "cmccloudv2_opensearch" "opensearch1" {
     volume_size                   = 20   
     admin_password                = "SV<9wsb7rhhbapb" 
     node_count                    = 2
+    enable_isolate_master         = true
     master_count                  = 3
     dashboard_replicas            = 1
     enable_snapshot               = true

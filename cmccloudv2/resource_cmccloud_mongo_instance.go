@@ -102,18 +102,18 @@ func resourceMongoInstanceCreate(d *schema.ResourceData, meta interface{}) error
 
 	instance, err := client.MongoInstance.Create(params)
 	if err != nil {
-		return fmt.Errorf("error creating MongoDatabase Instance: %s", err)
+		return fmt.Errorf("error creating Mongo Instance: %s", err)
 	}
 	d.SetId(instance.Data.InstanceID)
 
 	_, err = client.Tag.UpdateTag(instance.Data.InstanceID, "MONGO", d)
 	if err != nil {
-		fmt.Printf("error updating RedisDatabase tags: %s\n", err)
+		fmt.Printf("error updating Mongo tags: %s\n", err)
 	}
 
 	_, err = waitUntilMongoInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return fmt.Errorf("error creating Mongo Database Instance: %s", err)
+		return fmt.Errorf("error creating Mongo Instance: %s", err)
 	}
 	return resourceMongoInstanceRead(d, meta)
 }
@@ -122,7 +122,7 @@ func resourceMongoInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	instance, err := client.MongoInstance.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("error retrieving MongoDatabase Instance %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving Mongo Instance %s: %v", d.Id(), err)
 	}
 	_ = d.Set("name", instance.Name)
 	_ = d.Set("version", instance.DatastoreVersion)
@@ -153,33 +153,33 @@ func resourceMongoInstanceUpdate(d *schema.ResourceData, meta interface{}) error
 	if d.HasChange("configuration_id") {
 		_, err := client.MongoInstance.SetConfigurationGroupId(id, d.Get("configuration_id").(string))
 		if err != nil {
-			return fmt.Errorf("error when set configuration group to %s of mongo database instance %s: %v", d.Get("configuration_id").(string), id, err)
+			return fmt.Errorf("error when set configuration group to %s of mongo instance %s: %v", d.Get("configuration_id").(string), id, err)
 		}
 		_, err = waitUntilMongoInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
-			return fmt.Errorf("error when set configuration group to %s of mongo database instance %s: %v", d.Get("configuration_id").(string), id, err)
+			return fmt.Errorf("error when set configuration group to %s of mongo instance %s: %v", d.Get("configuration_id").(string), id, err)
 		}
 	}
 
 	if d.HasChange("volume_size") {
 		_, err := client.MongoInstance.ResizeVolume(id, d.Get("volume_size").(int))
 		if err != nil {
-			return fmt.Errorf("error when resize volume to %s of mongo database instance %s: %v", d.Get("volume_size").(string), id, err)
+			return fmt.Errorf("error when resize volume to %s of mongo instance %s: %v", d.Get("volume_size").(string), id, err)
 		}
 		_, err = waitUntilMongoInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
-			return fmt.Errorf("error when resize volume to %s of mongo database instance %s: %v", d.Get("volume_size").(string), id, err)
+			return fmt.Errorf("error when resize volume to %s of mongo instance %s: %v", d.Get("volume_size").(string), id, err)
 		}
 	}
 
 	if d.HasChange("flavor_id") {
 		_, err := client.MongoInstance.Resize(id, d.Get("flavor_id").(string))
 		if err != nil {
-			return fmt.Errorf("error when resize flavor to %s of mongo database instance %s: %v", d.Get("flavor_id").(string), id, err)
+			return fmt.Errorf("error when resize flavor to %s of mongo instance %s: %v", d.Get("flavor_id").(string), id, err)
 		}
 		_, err = waitUntilMongoInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
-			return fmt.Errorf("error when resize flavor to %s of mongo database instance %s: %v", d.Get("flavor_id").(string), id, err)
+			return fmt.Errorf("error when resize flavor to %s of mongo instance %s: %v", d.Get("flavor_id").(string), id, err)
 		}
 	}
 	return resourceMongoInstanceRead(d, meta)
@@ -190,11 +190,11 @@ func resourceMongoInstanceDelete(d *schema.ResourceData, meta interface{}) error
 	_, err := client.MongoInstance.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("error delete mongo database instance: %v", err)
+		return fmt.Errorf("error delete mongo instance: %v", err)
 	}
 	_, err = waitUntilMongoInstanceDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("error delete mongo database instance: %v", err)
+		return fmt.Errorf("error delete mongo instance: %v", err)
 	}
 	return nil
 }

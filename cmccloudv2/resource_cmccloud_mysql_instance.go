@@ -102,18 +102,18 @@ func resourceMysqlInstanceCreate(d *schema.ResourceData, meta interface{}) error
 
 	instance, err := client.MysqlInstance.Create(params)
 	if err != nil {
-		return fmt.Errorf("error creating MysqlDatabase Instance: %s", err)
+		return fmt.Errorf("error creating Mysql Instance: %s", err)
 	}
 	d.SetId(instance.Data.InstanceID)
 
 	_, err = client.Tag.UpdateTag(instance.Data.InstanceID, "MYSQL", d)
 	if err != nil {
-		fmt.Printf("error updating Mysql Database tags: %s\n", err)
+		fmt.Printf("error updating Mysql Instance tags: %s\n", err)
 	}
 
 	_, err = waitUntilMysqlInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return fmt.Errorf("error creating Mysql Database Instance: %s", err)
+		return fmt.Errorf("error creating Mysql Instance: %s", err)
 	}
 	return resourceMysqlInstanceRead(d, meta)
 }
@@ -122,7 +122,7 @@ func resourceMysqlInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	instance, err := client.MysqlInstance.Get(d.Id())
 	if err != nil {
-		return fmt.Errorf("error retrieving Mysql Database Instance %s: %v", d.Id(), err)
+		return fmt.Errorf("error retrieving Mysql Instance %s: %v", d.Id(), err)
 	}
 	_ = d.Set("name", instance.Name)
 	_ = d.Set("version", instance.DatastoreVersion)
@@ -153,33 +153,33 @@ func resourceMysqlInstanceUpdate(d *schema.ResourceData, meta interface{}) error
 	if d.HasChange("configuration_id") {
 		_, err := client.MysqlInstance.SetConfigurationGroupId(id, d.Get("configuration_id").(string))
 		if err != nil {
-			return fmt.Errorf("error when set configuration group to %s of mysql database instance %s: %v", d.Get("configuration_id").(string), id, err)
+			return fmt.Errorf("error when set configuration group to %s of mysql instance %s: %v", d.Get("configuration_id").(string), id, err)
 		}
 		_, err = waitUntilMysqlInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
-			return fmt.Errorf("error when set configuration group to %s of mysql database instance %s: %v", d.Get("configuration_id").(string), id, err)
+			return fmt.Errorf("error when set configuration group to %s of mysql instance %s: %v", d.Get("configuration_id").(string), id, err)
 		}
 	}
 
 	if d.HasChange("volume_size") {
 		_, err := client.MysqlInstance.ResizeVolume(id, d.Get("volume_size").(int))
 		if err != nil {
-			return fmt.Errorf("error when resize volume to %s of mysql database instance %s: %v", d.Get("volume_size").(string), id, err)
+			return fmt.Errorf("error when resize volume to %s of mysql instance %s: %v", d.Get("volume_size").(string), id, err)
 		}
 		_, err = waitUntilMysqlInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
-			return fmt.Errorf("error when resize volume to %s of mysql database instance %s: %v", d.Get("volume_size").(string), id, err)
+			return fmt.Errorf("error when resize volume to %s of mysql instance %s: %v", d.Get("volume_size").(string), id, err)
 		}
 	}
 
 	if d.HasChange("flavor_id") {
 		_, err := client.MysqlInstance.Resize(id, d.Get("flavor_id").(string))
 		if err != nil {
-			return fmt.Errorf("error when resize flavor to %s of mysql database instance %s: %v", d.Get("flavor_id").(string), id, err)
+			return fmt.Errorf("error when resize flavor to %s of mysql instance %s: %v", d.Get("flavor_id").(string), id, err)
 		}
 		_, err = waitUntilMysqlInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
-			return fmt.Errorf("error when resize flavor to %s of mysql database instance %s: %v", d.Get("flavor_id").(string), id, err)
+			return fmt.Errorf("error when resize flavor to %s of mysql instance %s: %v", d.Get("flavor_id").(string), id, err)
 		}
 	}
 	return resourceMysqlInstanceRead(d, meta)
@@ -190,11 +190,11 @@ func resourceMysqlInstanceDelete(d *schema.ResourceData, meta interface{}) error
 	_, err := client.MysqlInstance.Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("error delete mysql database instance: %v", err)
+		return fmt.Errorf("error delete mysql instance: %v", err)
 	}
 	_, err = waitUntilMysqlInstanceDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("error delete mysql database instance: %v", err)
+		return fmt.Errorf("error delete mysql instance: %v", err)
 	}
 	return nil
 }

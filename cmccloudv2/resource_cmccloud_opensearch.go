@@ -57,6 +57,21 @@ func resourceOpenSearch() *schema.Resource {
 				}
 			}
 
+			if diff.Get("enable_isolate_master").(bool) {
+				requiredFields := []string{"master_count"}
+				for _, field := range requiredFields {
+					val, ok := diff.GetOk(field)
+					if !ok || val == nil || (val == 0 && diff.Get(field) == 0) {
+						return fmt.Errorf("%s is required when enable_isolate_master is true", field)
+					}
+				}
+			} else {
+				val, ok := diff.GetOk("master_count")
+				if ok && val != nil && (val != 0 || diff.Get("master_count") != 0) {
+					return fmt.Errorf("master_count must not be set when enable_isolate_master is false")
+				}
+			}
+
 			return nil
 		},
 	}
@@ -114,7 +129,12 @@ func resourceOpenSearchRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	_ = d.Set("dashboard_flavor_id", instance.DashboardFlavorID)
 	_ = d.Set("node_count", instance.NodeCount)
-	_ = d.Set("master_count", instance.MasterCount)
+	if !d.Get("enable_isolate_master").(bool) {
+		// user không dùng master riêng → bỏ qua giá trị API trả về
+		_ = d.Set("master_count", nil)
+	} else {
+		_ = d.Set("master_count", instance.MasterCount)
+	}
 	_ = d.Set("dashboard_replicas", instance.DashboardReplicas)
 	_ = d.Set("enable_snapshot", instance.EnableSnapshot)
 	_ = d.Set("snapshot_creation_cron", instance.SnapshotCreationCron)
