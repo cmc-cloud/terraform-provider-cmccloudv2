@@ -84,6 +84,7 @@ type Client struct {
 	DatabaseBackup             DatabaseBackupService
 	PostgresInstance           PostgresInstanceService
 	KeyVault                   KeyVaultService
+	ApiGateway                 ApiGatewayService
 	DBaaSConfiguration         DBv2ConfigurationService
 	MongoInstance              MongoInstanceService
 	MysqlInstance              MysqlInstanceService
@@ -165,6 +166,7 @@ func NewClient(configs ClientConfigs) (*Client, error) {
 	c.PostgresInstance = &postgresinstance{client: c}
 	c.DBaaSConfiguration = &dbv2configuration{client: c}
 	c.KeyVault = &keyvault{client: c}
+	c.ApiGateway = &apigateway{client: c}
 	c.MongoInstance = &mongoinstance{client: c}
 	c.MysqlInstance = &mysqlinstance{client: c}
 	c.DBv2AutoBackup = &dbv2autobackup{client: c}

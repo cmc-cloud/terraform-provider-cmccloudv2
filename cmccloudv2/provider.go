@@ -110,8 +110,10 @@ func Provider() terraform.ResourceProvider {
 			"cmccloudv2_rds_cluster_database": resourceRdsClusterDatabase(),
 			"cmccloudv2_rds_cluster_user":     resourceRdsClusterUser(),
 
-			"cmccloudv2_storage_gateway": resourceStorageGateway(),
-			"cmccloudv2_keyvault":        resourceKeyVault(),
+			"cmccloudv2_storage_gateway":   resourceStorageGateway(),
+			"cmccloudv2_keyvault":          resourceKeyVault(),
+			"cmccloudv2_apigateway":        resourceApiGateway(),
+			"cmccloudv2_apigateway_backup": resourceApiGatewayBackup(),
 
 			"cmccloudv2_autoscalingv2_group":         resourceAutoScalingV2Group(),
 			"cmccloudv2_autoscalingv2_configuration": resourceAutoScalingV2Configuration(),

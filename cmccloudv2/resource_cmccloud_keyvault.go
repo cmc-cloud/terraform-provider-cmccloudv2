@@ -136,11 +136,6 @@ func resourceKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	} else {
 		_ = d.Set("mode", "standalone")
 	}
-
-	// _ = d.Set("flavor_id", instance.FlavorInfo.ID)
-	// _ = d.Set("slave_count", instance.QuantityOfSlave)
-	// _ = d.Set("proxy_quantity", instance.ProxyQuantity)
-	// _ = d.Set("proxy_flavor_id", instance.ProxyFlavorID)
 	_ = d.Set("volume_size", instance.VolumeSize)
 	_ = d.Set("subnet_id", instance.SubnetID)
 	_ = d.Set("status", instance.Status)
