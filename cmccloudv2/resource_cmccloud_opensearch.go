@@ -89,7 +89,6 @@ func resourceOpenSearchCreate(d *schema.ResourceData, meta interface{}) error {
 		"admin_password":                d.Get("admin_password").(string),
 		"node_count":                    d.Get("node_count").(int),
 		"master_count":                  d.Get("master_count").(int),
-		"enable_drain_nodes":            true, //d.Get("enable_drain_nodes").(bool),
 		"dashboard_replicas":            d.Get("dashboard_replicas").(int),
 		"enable_snapshot":               d.Get("enable_snapshot").(bool),
 		"snapshot_creation_cron":        d.Get("snapshot_creation_cron").(string),
@@ -107,6 +106,7 @@ func resourceOpenSearchCreate(d *schema.ResourceData, meta interface{}) error {
 		"dashboard_domain":              d.Get("dashboard_domain").(string),
 		"enable_lb_internal":            true, // d.Get("enable_lb_internal").(bool),
 		"tags":                          d.Get("tags").(*schema.Set).List(),
+		// "enable_drain_nodes":            true, //d.Get("enable_drain_nodes").(bool),
 		// "snapshot_deletion_cron":       d.Get("snapshot_deletion_cron").(string),
 	}
 	instance, err := client.OpenSearch.Create(params)
@@ -168,6 +168,17 @@ func resourceOpenSearchUpdate(d *schema.ResourceData, meta interface{}) error {
 		_, err := client.Tag.UpdateTag(id, "OpenSearch", d)
 		if err != nil {
 			return fmt.Errorf("error when set opensearch tags [%s]: %v", id, err)
+		}
+	}
+
+	if d.HasChange("admin_password") {
+		_, err := client.OpenSearch.ChangePassword(id, d.Get("admin_password").(string))
+		if err != nil {
+			return fmt.Errorf("error updating password for OpenSearch %s: %v", id, err)
+		}
+		_, err = waitUntilOpenSearchJobFinished(d, meta, d.Timeout(schema.TimeoutUpdate))
+		if err != nil {
+			return fmt.Errorf("error waiting for OpenSearch password update job %s: %v", id, err)
 		}
 	}
 
@@ -236,6 +247,7 @@ func resourceOpenSearchUpdate(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("error waiting for OpenSearch snapshot policy update job %s: %v", id, err)
 		}
 	}
+
 	return resourceOpenSearchRead(d, meta)
 }
 
@@ -270,7 +282,7 @@ func waitUntilOpenSearchActive(d *schema.ResourceData, meta interface{}, timeout
 	})
 }
 func waitUntilOpenSearchJobFinished(d *schema.ResourceData, meta interface{}, timeout time.Duration) (interface{}, error) {
-	return waitUntilResourceStatusChanged(d, meta, []string{"done"}, []string{"processing"}, WaitConf{
+	return waitUntilResourceStatusChanged(d, meta, []string{"done"}, []string{}, WaitConf{
 		Timeout:    timeout,
 		Delay:      10 * time.Second,
 		MinTimeout: 20 * time.Second,

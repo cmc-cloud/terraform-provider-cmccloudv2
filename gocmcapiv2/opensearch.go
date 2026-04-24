@@ -31,7 +31,7 @@ type OpenSearch struct {
 	Version                     string `json:"version"`
 	NodeCount                   int    `json:"node_count"`
 	MasterCount                 int    `json:"master_count"`
-	EnableDrainNodes            int    `json:"enable_drain_nodes"`
+	EnableDrainNodes            bool   `json:"enable_drain_nodes"`
 	LbSubnetID                  string `json:"lb_subnet_id"`
 	EnableLbInternal            bool   `json:"enable_lb_internal"`
 	FlavorID                    string `json:"flavor_id"`
@@ -73,7 +73,8 @@ type OpenSearchSnapshot struct {
 	DurationMs   int      `json:"duration_ms"`
 	Indices      []string `json:"indices"`
 	IndicesCount int      `json:"indices_count"`
-	ID           string   `json:"id"`
+	Id           string   `json:"snapshot_id"`
+	// ID           string   `json:"id"`
 }
 
 type opensearch struct {
@@ -147,8 +148,8 @@ func (v *opensearch) DeleteSnapshot(id string, snapshotName string) (ActionRespo
 	return v.client.PerformDelete("opensearch/cluster/" + id + "/snapshot/" + snapshotName)
 }
 
-func (v *opensearch) GetSnapshot(id string, snapshotName string) (OpenSearchSnapshot, error) {
-	jsonStr, err := v.client.Get("opensearch/cluster/"+id+"/snapshot/"+snapshotName, map[string]string{})
+func (v *opensearch) GetSnapshot(id string, snapshotNameOrId string) (OpenSearchSnapshot, error) {
+	jsonStr, err := v.client.Get("opensearch/cluster/"+id+"/snapshot/"+snapshotNameOrId, map[string]string{})
 	var obj OpenSearchSnapshot
 	if err == nil {
 		err = json.Unmarshal([]byte(jsonStr), &obj)

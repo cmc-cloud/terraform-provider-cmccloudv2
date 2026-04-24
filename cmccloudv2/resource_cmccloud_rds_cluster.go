@@ -223,7 +223,7 @@ func waitUntilRdsClusterActive(d *schema.ResourceData, meta interface{}, timeout
 	})
 }
 func waitUntilRdsClusterJobFinished(d *schema.ResourceData, meta interface{}, timeout time.Duration) (interface{}, error) {
-	return waitUntilResourceStatusChanged(d, meta, []string{"done"}, []string{"processing"}, WaitConf{
+	return waitUntilResourceStatusChanged(d, meta, []string{"done"}, []string{}, WaitConf{
 		Timeout:    timeout,
 		Delay:      10 * time.Second,
 		MinTimeout: 20 * time.Second,

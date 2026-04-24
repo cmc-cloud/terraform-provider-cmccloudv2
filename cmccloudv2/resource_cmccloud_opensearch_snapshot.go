@@ -55,7 +55,7 @@ func resourceOpenSearchSnapshotRead(d *schema.ResourceData, meta interface{}) er
 }
 func resourceOpenSearchSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
-	_, err := client.OpenSearch.Delete(d.Id())
+	_, err := client.OpenSearch.DeleteSnapshot(d.Get("cluster_id").(string), d.Id())
 
 	if err != nil {
 		return fmt.Errorf("error delete opensearch snapshot: %v", err)
@@ -89,6 +89,6 @@ func waitUntilOpenSearchSnapshotDeleted(d *schema.ResourceData, meta interface{}
 		Delay:      10 * time.Second,
 		MinTimeout: 20 * time.Second,
 	}, func(id string) (any, error) {
-		return getClient(meta).OpenSearch.Get(id)
+		return getClient(meta).OpenSearch.GetSnapshot(d.Get("cluster_id").(string), d.Id())
 	})
 }
