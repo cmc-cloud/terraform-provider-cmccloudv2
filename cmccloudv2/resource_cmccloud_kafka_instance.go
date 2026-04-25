@@ -166,8 +166,10 @@ func resourceKafkaInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("version", instance.DatastoreVersion)
 	if strings.Contains(strings.ToLower(instance.DatastoreMode), "cluster") {
 		_ = d.Set("mode", "cluster")
+		_ = d.Set("broker_quantity", instance.QuantityOfNodes)
 	} else {
 		_ = d.Set("mode", "single_node")
+		_ = d.Set("broker_quantity", nil)
 	}
 
 	var securityGroupIds []string
@@ -179,7 +181,6 @@ func resourceKafkaInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("flavor_id", instance.FlavorInfo.ID)
 	_ = d.Set("volume_size", instance.VolumeSize)
 	_ = d.Set("subnet_id", instance.SubnetID)
-	_ = d.Set("broker_quantity", instance.QuantityOfNodes)
 	_ = d.Set("tags", convertTagsToSet(instance.Tags))
 	_ = d.Set("status", instance.Status)
 	_ = d.Set("created_at", instance.Created)

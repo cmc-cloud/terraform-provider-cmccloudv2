@@ -197,6 +197,21 @@ func resourceRedisInstanceUpdate(d *schema.ResourceData, meta interface{}) error
 			return fmt.Errorf("error when update info of Redis Database Instance [%s]: %v", id, err)
 		}
 	}
+
+	if d.HasChange("volume_size") {
+		_, err := client.RedisInstance.ResizeVolume(id, d.Get("volume_size").(int))
+		if err != nil {
+			return fmt.Errorf("error when resize volume of Redis Database Instance [%s]: %v", id, err)
+		}
+	}
+
+	if d.HasChange("flavor_id") {
+		_, err := client.RedisInstance.Resize(id, d.Get("flavor_id").(string))
+		if err != nil {
+			return fmt.Errorf("error when resize Redis Database Instance [%s]: %v", id, err)
+		}
+	}
+
 	if d.HasChange("billing_mode") {
 		_, err := client.BillingMode.SetRedisInstanceBilingMode(d.Id(), d.Get("billing_mode").(string))
 		if err != nil {

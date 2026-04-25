@@ -87,7 +87,6 @@ func redisInstanceSchema() map[string]*schema.Schema {
 		"flavor_id": {
 			Type:         schema.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: validateUUID,
 			Description:  "The database flavor ID, using cmccloudv2_flavor_dbaas data source to get the flavor ID from flavor name",
 		},
@@ -100,7 +99,6 @@ func redisInstanceSchema() map[string]*schema.Schema {
 		"volume_size": {
 			Type:        schema.TypeInt,
 			Required:    true,
-			ForceNew:    true,
 			Description: "The size of the volume in GB",
 		},
 		"subnet_id": {

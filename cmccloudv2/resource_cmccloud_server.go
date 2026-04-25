@@ -243,24 +243,63 @@ func resourceServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("flavor_id") {
+		// Kiểm tra trạng thái hiện tại của server, nếu chưa stopped thì stop trước và sau khi resize thành công thì start lại
+		originalServer, err := client.Server.Get(id, false)
+		if err != nil {
+			return fmt.Errorf("error getting server status before resize: %v", err)
+		}
+		wasActive := false
+		if originalServer.Status != "stopped" {
+			wasActive = true
+			_, err := client.Server.Stop(id)
+			if err != nil {
+				return fmt.Errorf("error stopping server before resize: %v", err)
+			}
+			_, err = waitUntilServerStatusChangedState(d, meta, []string{"stopped"}, []string{"error"})
+			if err != nil {
+				return fmt.Errorf("error waiting for server to stop before resize: %v", err)
+			}
+		}
 		// Resize server to new flavor
-		_, err := client.Server.Resize(id, d.Get("flavor_id").(string))
+		_, err = client.Server.Resize(id, d.Get("flavor_id").(string))
 		if err != nil {
 			return fmt.Errorf("error when resize server [%s]: %v", id, err)
 		}
-		time.Sleep(5 * time.Second)
-		// _, err = waitUntilServerStatusChangedState(d, meta, []string{"resized"}, []string{"error"})
-		// if err != nil {
-		// 	return fmt.Errorf("resize server failed: %v", err)
-		// }
+		time.Sleep(20 * time.Second)
 
-		// _, err = client.Server.ConfirmResize(id)
-		// if err != nil {
-		// 	return fmt.Errorf("error when resize server [%s]: %v", id, err)
-		// }
-		_, err = waitUntilServerStatusChangedState(d, meta, []string{"stopped", "active"}, []string{"error"})
+		// sau 20s check status of server
+		_, err = waitUntilServerStatusChangedState(d, meta, []string{"stopped", "active", "resized"}, []string{"error"})
 		if err != nil {
 			return fmt.Errorf("resize server failed: %v", err)
+		}
+
+		// Kiểm tra trạng thái hiện tại của server, nếu thấy vẫn bị ở trạng thái resized sau 10s nữa thì accept resize
+		time.Sleep(10 * time.Second)
+		updatedServer, err := client.Server.Get(id, false)
+		if err != nil {
+			return fmt.Errorf("error getting server status after resize: %v", err)
+		}
+		if updatedServer.Status == "resized" {
+			_, err := client.Server.ConfirmResize(id)
+			if err != nil {
+				return fmt.Errorf("error when confirm resize server [%s]: %v", id, err)
+			}
+			_, err = waitUntilServerStatusChangedState(d, meta, []string{"stopped", "active"}, []string{"error"})
+			if err != nil {
+				return fmt.Errorf("error waiting for server to confirm resize: %v", err)
+			}
+		}
+
+		// Nếu server ban đầu không ở trạng thái stopped thì start lại server sau khi resize
+		if wasActive {
+			_, err := client.Server.Start(id)
+			if err != nil {
+				return fmt.Errorf("error starting server after resize: %v", err)
+			}
+			_, err = waitUntilServerStatusChangedState(d, meta, []string{"active"}, []string{"error"})
+			if err != nil {
+				return fmt.Errorf("error waiting for server to start after resize: %v", err)
+			}
 		}
 	}
 
