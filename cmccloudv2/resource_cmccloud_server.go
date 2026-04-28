@@ -125,6 +125,7 @@ func readOrImport(d *schema.ResourceData, meta interface{}, isImport bool) error
 	_ = d.Set("billing_mode", server.BillingMode)
 	_ = d.Set("vm_state", server.VMState)
 	_ = d.Set("volumes", convertVolumeAttachs(server.VolumesAttached))
+
 	if len(server.VolumesAttached) > 0 {
 		_ = d.Set("delete_on_termination", server.VolumesAttached[0].DeleteOnTermination)
 	}
@@ -144,7 +145,8 @@ func readOrImport(d *schema.ResourceData, meta interface{}, isImport bool) error
 				// chua set thi moi set
 				// if d.Get("ip_address").(string) == "" || d.Get("ip_address").(string) == nic.FixedIps[0].IPAddress {
 				// }
-				setString(d, "ip_address", nic.FixedIps[0].IPAddress)
+				// setString(d, "ip_address", nic.FixedIps[0].IPAddress)
+				_ = d.Set("ip_address", nic.FixedIps[0].IPAddress)
 				break
 			}
 		}
