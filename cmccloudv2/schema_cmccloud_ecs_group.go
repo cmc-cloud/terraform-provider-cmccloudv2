@@ -16,7 +16,7 @@ func ecsgroupSchema() map[string]*schema.Schema {
 		},
 		"policy": {
 			Type:         schema.TypeString,
-			ValidateFunc: validation.StringInSlice([]string{"soft-anti-affinity", "soft-affinity"}, true),
+			ValidateFunc: validation.StringInSlice([]string{"soft-anti-affinity", "soft-affinity", "anti-affinity", "affinity"}, true),
 			Optional:     true,
 			Default:      "soft-anti-affinity",
 			ForceNew:     true,
