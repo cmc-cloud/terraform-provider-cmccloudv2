@@ -128,7 +128,7 @@ func (v *opensearch) Resize(id string, params map[string]interface{}) (ActionRes
 	return v.client.PerformAction("opensearch/cluster/"+id+"/resize", params)
 }
 func (v *opensearch) ChangePassword(id string, password string) (ActionResponse, error) {
-	return v.client.PerformAction("opensearch/cluster/"+id+"/change_password", map[string]interface{}{"password": password})
+	return v.client.PerformAction("opensearch/cluster/"+id+"/set_password", map[string]interface{}{"password": password})
 }
 func (v *opensearch) UpdateStorageAutoscaling(id string, params map[string]interface{}) (ActionResponse, error) {
 	return v.client.PerformUpdate("opensearch/cluster/"+id+"/storage_autoscaling", params)
