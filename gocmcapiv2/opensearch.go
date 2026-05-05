@@ -36,6 +36,7 @@ type OpenSearch struct {
 	EnableLbInternal            bool   `json:"enable_lb_internal"`
 	FlavorID                    string `json:"flavor_id"`
 	DashboardFlavorID           string `json:"dashboard_flavor_id"`
+	EnableIsolateMaster         bool   `json:"enable_isolate_master"`
 	EnableSnapshot              bool   `json:"enable_snapshot"`
 	SnapshotCreationCron        string `json:"snapshot_creation_cron"`
 	SnapshotDeletionCron        string `json:"snapshot_deletion_cron"`

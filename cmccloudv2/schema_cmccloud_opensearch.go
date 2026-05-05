@@ -58,6 +58,7 @@ func opensearchSchema() map[string]*schema.Schema {
 		"enable_isolate_master": {
 			Type:        schema.TypeBool,
 			Required:    true,
+			ForceNew:    true,
 			Description: "Configuring master nodes to only manage the cluster, without handling data or user requests",
 		},
 

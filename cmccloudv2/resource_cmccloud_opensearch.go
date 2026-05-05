@@ -91,6 +91,7 @@ func resourceOpenSearchCreate(d *schema.ResourceData, meta interface{}) error {
 		"master_count":                  d.Get("master_count").(int),
 		"dashboard_replicas":            d.Get("dashboard_replicas").(int),
 		"enable_snapshot":               d.Get("enable_snapshot").(bool),
+		"enable_isolate_master":         d.Get("enable_isolate_master").(bool),
 		"snapshot_creation_cron":        d.Get("snapshot_creation_cron").(string),
 		"snapshot_timezone":             d.Get("snapshot_timezone").(string),
 		"rentation_max_age":             d.Get("rentation_max_age").(int),
@@ -129,6 +130,7 @@ func resourceOpenSearchRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	_ = d.Set("dashboard_flavor_id", instance.DashboardFlavorID)
 	_ = d.Set("node_count", instance.NodeCount)
+	_ = d.Set("enable_isolate_master", instance.EnableIsolateMaster)
 	if !d.Get("enable_isolate_master").(bool) {
 		// user không dùng master riêng → bỏ qua giá trị API trả về
 		_ = d.Set("master_count", nil)
