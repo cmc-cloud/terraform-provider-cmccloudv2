@@ -128,6 +128,7 @@ func resourceOpenSearchRead(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return fmt.Errorf("error retrieving OpenSearch %s: %v", d.Id(), err)
 	}
+	_ = d.Set("biling_mode", instance.BillingMode)
 	_ = d.Set("dashboard_flavor_id", instance.DashboardFlavorID)
 	_ = d.Set("node_count", instance.NodeCount)
 	_ = d.Set("enable_isolate_master", instance.EnableIsolateMaster)

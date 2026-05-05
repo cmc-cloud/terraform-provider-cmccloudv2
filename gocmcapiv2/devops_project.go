@@ -26,7 +26,7 @@ type DevopsProject struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	IsDefault   string `json:"isDefault"`
+	IsDefault   bool   `json:"isDefault"`
 	CreatedAt   string `json:"createdAt"`
 }
 type devopsproject struct {
