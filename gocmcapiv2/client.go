@@ -95,6 +95,7 @@ type Client struct {
 	RdsCluster                 RdsClusterService
 	Tag                        TagService
 	StorageGateway             StorageGatewayService
+	DBv2                       DBv2Service
 	// RedisConfiguration         RedisConfigurationService
 	// PostgresAutoBackup         PostgresAutoBackupService
 }
@@ -181,6 +182,7 @@ func NewClient(configs ClientConfigs) (*Client, error) {
 	c.KeyManagement = &keymanagement{client: c}
 	c.Snapshot = &snapshot{client: c}
 	c.Backup = &backup{client: c}
+	c.DBv2 = &dbv2{client: c}
 	c.AutoScalingConfiguration = &asconfiguration{client: c}
 	c.AutoScalingGroup = &autoscalinggroup{client: c}
 	c.AutoScalingV2Configuration = &asv2configuration{client: c}

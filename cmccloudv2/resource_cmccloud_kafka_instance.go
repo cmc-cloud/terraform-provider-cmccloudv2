@@ -144,13 +144,13 @@ func resourceKafkaInstanceCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error creating Kafka Instance: %s", err)
 	}
 
-	securityGroupIds := d.Get("security_group_ids").(*schema.Set)
-	for _, security_group_id := range securityGroupIds.List() {
-		_, err = waitUntilKafkaInstanceAttachFinished(d, meta, security_group_id.(string))
-		if err != nil {
-			return fmt.Errorf("error attach security group %s to %s: %v", security_group_id, d.Id(), err)
-		}
-	}
+	// securityGroupIds := d.Get("security_group_ids").(*schema.Set)
+	// for _, security_group_id := range securityGroupIds.List() {
+	// 	_, err = waitUntilKafkaInstanceAttachFinished(d, meta, security_group_id.(string))
+	// 	if err != nil {
+	// 		return fmt.Errorf("error attach security group %s to %s: %v", security_group_id, d.Id(), err)
+	// 	}
+	// }
 
 	return resourceKafkaInstanceRead(d, meta)
 }
@@ -172,12 +172,12 @@ func resourceKafkaInstanceRead(d *schema.ResourceData, meta interface{}) error {
 		_ = d.Set("broker_quantity", nil)
 	}
 
-	var securityGroupIds []string
-	err = json.Unmarshal([]byte(instance.SecurityClientIds), &securityGroupIds)
-	if err != nil {
-		return fmt.Errorf("error when get info of Kafka Instance [%s]: %v", d.Id(), err)
-	}
-	_ = d.Set("security_group_ids", securityGroupIds)
+	// var securityGroupIds []string
+	// err = json.Unmarshal([]byte(instance.SecurityClientIds), &securityGroupIds)
+	// if err != nil {
+	// 	return fmt.Errorf("error when get info of Kafka Instance [%s]: %v", d.Id(), err)
+	// }
+	// _ = d.Set("security_group_ids", securityGroupIds)
 	_ = d.Set("flavor_id", instance.FlavorInfo.ID)
 	_ = d.Set("volume_size", instance.VolumeSize)
 	_ = d.Set("subnet_id", instance.SubnetID)
@@ -197,35 +197,35 @@ func resourceKafkaInstanceUpdate(d *schema.ResourceData, meta interface{}) error
 			return fmt.Errorf("error when set kafka tags [%s]: %v", id, err)
 		}
 	}
-	if d.HasChange("security_group_ids") {
-		err := checkSecurityGroupConflict(d, meta)
-		if err != nil {
-			return err
-		}
+	// if d.HasChange("security_group_ids") {
+	// 	err := checkSecurityGroupConflict(d, meta)
+	// 	if err != nil {
+	// 		return err
+	// 	}
 
-		removes, adds := getDiffSet(d.GetChange("security_group_ids"))
+	// 	removes, adds := getDiffSet(d.GetChange("security_group_ids"))
 
-		for _, security_group_id := range removes.List() {
-			_, err := client.KafkaInstance.DetachSecurityGroupId(d.Id(), security_group_id.(string))
-			if err != nil {
-				return fmt.Errorf("error detach security group %s from %s: %v", security_group_id, d.Id(), err)
-			}
-			_, err = waitUntilKafkaInstanceDetachFinished(d, meta, security_group_id.(string))
-			if err != nil {
-				return fmt.Errorf("error detach security group %s from %s: %v", security_group_id, d.Id(), err)
-			}
-		}
-		for _, security_group_id := range adds.List() {
-			_, err := client.KafkaInstance.AttachSecurityGroupId(d.Id(), security_group_id.(string))
-			if err != nil {
-				return fmt.Errorf("error attach security group %s from %s: %v", security_group_id, d.Id(), err)
-			}
-			_, err = waitUntilKafkaInstanceAttachFinished(d, meta, security_group_id.(string))
-			if err != nil {
-				return fmt.Errorf("error attach security group %s from %s: %v", security_group_id, d.Id(), err)
-			}
-		}
-	}
+	// 	for _, security_group_id := range removes.List() {
+	// 		_, err := client.KafkaInstance.DetachSecurityGroupId(d.Id(), security_group_id.(string))
+	// 		if err != nil {
+	// 			return fmt.Errorf("error detach security group %s from %s: %v", security_group_id, d.Id(), err)
+	// 		}
+	// 		_, err = waitUntilKafkaInstanceDetachFinished(d, meta, security_group_id.(string))
+	// 		if err != nil {
+	// 			return fmt.Errorf("error detach security group %s from %s: %v", security_group_id, d.Id(), err)
+	// 		}
+	// 	}
+	// 	for _, security_group_id := range adds.List() {
+	// 		_, err := client.KafkaInstance.AttachSecurityGroupId(d.Id(), security_group_id.(string))
+	// 		if err != nil {
+	// 			return fmt.Errorf("error attach security group %s from %s: %v", security_group_id, d.Id(), err)
+	// 		}
+	// 		_, err = waitUntilKafkaInstanceAttachFinished(d, meta, security_group_id.(string))
+	// 		if err != nil {
+	// 			return fmt.Errorf("error attach security group %s from %s: %v", security_group_id, d.Id(), err)
+	// 		}
+	// 	}
+	// }
 
 	if d.HasChange("volume_size") {
 		_, err := client.KafkaInstance.ResizeVolume(id, d.Get("volume_size").(int))
@@ -252,25 +252,25 @@ func resourceKafkaInstanceUpdate(d *schema.ResourceData, meta interface{}) error
 	return resourceKafkaInstanceRead(d, meta)
 }
 
-func checkSecurityGroupConflict(d *schema.ResourceData, meta interface{}) error {
-	securityGroupIds := getStringArrayFromTypeSet(d.Get("security_group_ids").(*schema.Set))
-	if len(securityGroupIds) > 1 {
-		firstValue := ""
-		for _, security_group_id := range securityGroupIds {
-			group, err := meta.(*CombinedConfig).goCMCClient().SecurityGroup.Get(security_group_id)
-			if err != nil {
-				return err
-			}
-			if firstValue == "" {
-				firstValue = fmt.Sprintf("%t", group.Stateful)
-			}
-			if firstValue != fmt.Sprintf("%t", group.Stateful) {
-				return fmt.Errorf("invalid security_group_ids, all security groups must have the same stateful")
-			}
-		}
-	}
-	return nil
-}
+//	func checkSecurityGroupConflict(d *schema.ResourceData, meta interface{}) error {
+//		securityGroupIds := getStringArrayFromTypeSet(d.Get("security_group_ids").(*schema.Set))
+//		if len(securityGroupIds) > 1 {
+//			firstValue := ""
+//			for _, security_group_id := range securityGroupIds {
+//				group, err := meta.(*CombinedConfig).goCMCClient().SecurityGroup.Get(security_group_id)
+//				if err != nil {
+//					return err
+//				}
+//				if firstValue == "" {
+//					firstValue = fmt.Sprintf("%t", group.Stateful)
+//				}
+//				if firstValue != fmt.Sprintf("%t", group.Stateful) {
+//					return fmt.Errorf("invalid security_group_ids, all security groups must have the same stateful")
+//				}
+//			}
+//		}
+//		return nil
+//	}
 func resourceKafkaInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	_, err := client.KafkaInstance.Delete(d.Id())
@@ -311,33 +311,33 @@ func waitUntilKafkaInstanceDeleted(d *schema.ResourceData, meta interface{}) (in
 	})
 }
 
-func waitUntilKafkaInstanceAttachFinished(d *schema.ResourceData, meta interface{}, securityGroupId string) (interface{}, error) {
-	return waitUntilResourceStatusChanged(d, meta, []string{"true"}, []string{"error"}, WaitConf{
-		Timeout:    40 * time.Second,
-		Delay:      5 * time.Second,
-		MinTimeout: 5 * time.Second,
-	}, func(id string) (any, error) {
-		return getClient(meta).KafkaInstance.Get(id)
-	}, func(obj interface{}) string {
-		instance := obj.(gocmcapiv2.KafkaInstance)
-		if strings.Contains(instance.SecurityClientIds, securityGroupId) {
-			return "true"
-		}
-		return ""
-	})
-}
-func waitUntilKafkaInstanceDetachFinished(d *schema.ResourceData, meta interface{}, securityGroupId string) (interface{}, error) {
-	return waitUntilResourceStatusChanged(d, meta, []string{"true"}, []string{"error"}, WaitConf{
-		Timeout:    40 * time.Second,
-		Delay:      5 * time.Second,
-		MinTimeout: 5 * time.Second,
-	}, func(id string) (any, error) {
-		return getClient(meta).KafkaInstance.Get(id)
-	}, func(obj interface{}) string {
-		instance := obj.(gocmcapiv2.KafkaInstance)
-		if !strings.Contains(instance.SecurityClientIds, securityGroupId) {
-			return "true"
-		}
-		return ""
-	})
-}
+// func waitUntilKafkaInstanceAttachFinished(d *schema.ResourceData, meta interface{}, securityGroupId string) (interface{}, error) {
+// 	return waitUntilResourceStatusChanged(d, meta, []string{"true"}, []string{"error"}, WaitConf{
+// 		Timeout:    40 * time.Second,
+// 		Delay:      5 * time.Second,
+// 		MinTimeout: 5 * time.Second,
+// 	}, func(id string) (any, error) {
+// 		return getClient(meta).KafkaInstance.Get(id)
+// 	}, func(obj interface{}) string {
+// 		instance := obj.(gocmcapiv2.KafkaInstance)
+// 		if strings.Contains(instance.SecurityClientIds, securityGroupId) {
+// 			return "true"
+// 		}
+// 		return ""
+// 	})
+// }
+// func waitUntilKafkaInstanceDetachFinished(d *schema.ResourceData, meta interface{}, securityGroupId string) (interface{}, error) {
+// 	return waitUntilResourceStatusChanged(d, meta, []string{"true"}, []string{"error"}, WaitConf{
+// 		Timeout:    40 * time.Second,
+// 		Delay:      5 * time.Second,
+// 		MinTimeout: 5 * time.Second,
+// 	}, func(id string) (any, error) {
+// 		return getClient(meta).KafkaInstance.Get(id)
+// 	}, func(obj interface{}) string {
+// 		instance := obj.(gocmcapiv2.KafkaInstance)
+// 		if !strings.Contains(instance.SecurityClientIds, securityGroupId) {
+// 			return "true"
+// 		}
+// 		return ""
+// 	})
+// }

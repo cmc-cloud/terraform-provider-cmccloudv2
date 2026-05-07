@@ -245,7 +245,19 @@ func (v *kafkainstance) CreateTopic(id string, topicId string, numPartitions int
 }
 
 func (v *kafkainstance) DeleteTopic(id string, topicId string) (ActionResponse, error) {
-	return v.client.PerformDeleteWithBody("cloudops-core/api/v1/dbaas/instances", map[string]interface{}{"instanceIds": []string{id}})
+	bytes, _ := json.Marshal(map[string]interface{}{
+		"command": "delete_topic",
+		"body": map[string]interface{}{
+			"topicName": topicId,
+		},
+	})
+	return v.client.PerformAction("cloudops-core/api/v1/dbaas/execute-action", map[string]interface{}{
+		"instanceId": id,
+		"action":     "db_action",
+		"requestData": map[string]interface{}{
+			"requestDbAction": string(bytes),
+		},
+	})
 }
 
 func (v *kafkainstance) UpdateTopic(id string, topicId string, partitions int, retentionDay int) (ActionResponse, error) {

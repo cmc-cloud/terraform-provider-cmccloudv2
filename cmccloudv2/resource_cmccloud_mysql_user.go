@@ -3,7 +3,9 @@ package cmccloudv2
 import (
 	"fmt"
 	"strings"
+	"time"
 
+	"github.com/cmc-cloud/terraform-provider-cmccloudv2/gocmcapiv2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -81,6 +83,10 @@ func resourceMysqlUserCreate(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return fmt.Errorf("error creating mysql user: %v", err)
 	}
+	_, err = waitUntilDatabaseUserFound(d, meta)
+	if err != nil {
+		return fmt.Errorf("error creating mysql user: %v", err)
+	}
 	d.SetId(buildMysqlUserID(d.Get("instance_id").(string), d.Get("username").(string)))
 	return resourceMysqlUserRead(d, meta)
 }
@@ -90,7 +96,7 @@ func resourceMysqlUserRead(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return err
 	}
-	user, err := getClient(meta).MysqlInstance.GetUser(instanceID, username)
+	user, err := getClient(meta).DBv2.GetUser(instanceID, username)
 	if err != nil {
 		return fmt.Errorf("error retrieving mysql user %s/%s: %v", instanceID, username, err)
 	}
@@ -150,6 +156,10 @@ func resourceMysqlUserDelete(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return fmt.Errorf("error deleting mysql user %s/%s: %v", instanceID, user, err)
 	}
+	_, err = waitUntilDatabaseUserDeleted(d, meta)
+	if err != nil {
+		return fmt.Errorf("error deleting mysql user %s/%s: %v", instanceID, user, err)
+	}
 	return nil
 }
 
@@ -168,4 +178,38 @@ func parseMysqlUserID(id string) (string, string, error) {
 		return "", "", fmt.Errorf("invalid id `%s`, expected format: <instance_id>/user/<username>", id)
 	}
 	return parts[0], parts[2], nil
+}
+
+func waitUntilDatabaseUserDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+	return waitUntilResourceStatusChanged(d, meta, []string{"true"}, []string{"false"}, WaitConf{
+		Timeout:    40 * time.Second,
+		Delay:      5 * time.Second,
+		MinTimeout: 5 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).DBv2.ListUsers(d.Get("instance_id").(string), map[string]string{})
+	}, func(obj interface{}) string {
+		users := obj.([]gocmcapiv2.DBv2User)
+		for _, t := range users {
+			if t.Name == d.Get("username").(string) {
+				return "false"
+			}
+		}
+		return "true"
+	})
+}
+
+func waitUntilDatabaseUserFound(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+	return waitUntilResourceStatusChanged(d, meta, []string{"true"}, []string{"false"}, WaitConf{
+		Timeout:    40 * time.Second,
+		Delay:      5 * time.Second,
+		MinTimeout: 5 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).DBv2.GetUser(d.Get("instance_id").(string), d.Get("username").(string))
+	}, func(obj interface{}) string {
+		user := obj.(gocmcapiv2.DBv2User)
+		if user.Name == d.Get("username").(string) {
+			return "true"
+		}
+		return ""
+	})
 }

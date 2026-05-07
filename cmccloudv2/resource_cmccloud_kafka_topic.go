@@ -86,7 +86,7 @@ func resourceKafkaTopicUpdate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceKafkaTopicDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
-	_, err := client.KafkaInstance.DeleteTopic(d.Get("instance_id").(string), d.Id())
+	_, err := client.KafkaInstance.DeleteTopic(d.Get("instance_id").(string), d.Get("name").(string))
 
 	if err != nil {
 		return fmt.Errorf("error delete kafka topic: %v", err)
@@ -117,7 +117,7 @@ func waitUntilKafkaTopicDeleted(d *schema.ResourceData, meta interface{}) (inter
 				return "false"
 			}
 		}
-		return ""
+		return "true"
 	})
 }
 

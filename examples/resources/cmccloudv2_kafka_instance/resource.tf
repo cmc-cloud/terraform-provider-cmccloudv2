@@ -12,7 +12,6 @@ resource "cmccloudv2_kafka_instance" "kafka_instance_cluster" {
     flavor_id           = "${data.cmccloudv2_flavor_kafka.flavor_kafka.id}"
     subnet_id           = "00d793a9-be8c-464d-9163-b27e1058db0b"
     volume_size         = 20
-    security_group_ids  = ["2465c8f5-1aa5-4fcd-9ea0-0713d6a1f685"]
     enable_basic_authen = true
     users {
         username = "username-1"
@@ -34,6 +33,5 @@ resource "cmccloudv2_kafka_instance" "kafka_instance_standalone" {
     flavor_id           = "${data.cmccloudv2_flavor_kafka.flavor_kafka.id}"
     subnet_id           = "00d793a9-be8c-464d-9163-b27e1058db0b"
     volume_size         = 20
-    security_group_ids  = ["2465c8f5-1aa5-4fcd-9ea0-0713d6a1f685"]
     enable_basic_authen = false
 }
