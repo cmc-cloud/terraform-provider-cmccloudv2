@@ -34,7 +34,17 @@ resource "cmccloudv2_mysql_database" "db1" {
 
 - `character_set` (String) Mysql character set, default is `utf8mb4`
 - `collation` (String) Mysql collation, default is `utf8mb4_unicode_ci`
+- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
+
+<a id="nestedblock--timeouts"></a>
+### Nested Schema for `timeouts`
+
+Optional:
+
+- `create` (String)
+- `delete` (String)
+- `update` (String)

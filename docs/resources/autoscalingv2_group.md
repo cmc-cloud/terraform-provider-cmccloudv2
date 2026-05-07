@@ -32,7 +32,7 @@ resource "cmccloudv2_autoscalingv2_group" "as_group_1" {
 }  
 
 # create autoscale group using Load Balancer
-resource "cmccloudv2_autoscalingv2_group" "as_group_1" { 
+resource "cmccloudv2_autoscalingv2_group" "as_group_2" { 
 	name             = "as-group-vjw2"
 	zone             = "AZ1"
 	min_size         = 1

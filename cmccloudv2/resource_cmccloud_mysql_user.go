@@ -18,6 +18,11 @@ func resourceMysqlUser() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: resourceMysqlUserImport,
 		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(2 * time.Minute),
+			Update: schema.DefaultTimeout(5 * time.Minute),
+			Delete: schema.DefaultTimeout(2 * time.Minute),
+		},
 		SchemaVersion: 1,
 		Schema:        mysqlUserSchema(),
 	}
@@ -83,7 +88,7 @@ func resourceMysqlUserCreate(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return fmt.Errorf("error creating mysql user: %v", err)
 	}
-	_, err = waitUntilDatabaseUserFound(d, meta)
+	_, err = waitUntilMysqlUserFound(d, meta, d.Get("host").(string))
 	if err != nil {
 		return fmt.Errorf("error creating mysql user: %v", err)
 	}
@@ -96,7 +101,7 @@ func resourceMysqlUserRead(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return err
 	}
-	user, err := getClient(meta).DBv2.GetUser(instanceID, username, host)
+	user, err := getClient(meta).DBv2.GetMysqlUser(instanceID, username, host)
 	if err != nil {
 		return fmt.Errorf("error retrieving mysql user %s/%s: %v", instanceID, username, err)
 	}
@@ -147,7 +152,7 @@ func resourceMysqlUserUpdate(d *schema.ResourceData, meta interface{}) error {
 		if err != nil {
 			return fmt.Errorf("error when update mysql user %s: %v", id, err)
 		}
-		_, err = waitUntilDatabaseUserFound(d, meta)
+		_, err = waitUntilMysqlUserFound(d, meta, d.Get("host").(string))
 		if err != nil {
 			return fmt.Errorf("error when update mysql user %s: %v", id, err)
 		}
@@ -163,7 +168,7 @@ func resourceMysqlUserDelete(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return fmt.Errorf("error deleting mysql user %s/%s/%s: %v", instanceID, username, host, err)
 	}
-	_, err = waitUntilDatabaseUserDeleted(d, meta)
+	_, err = waitUntilMysqlUserDeleted(d, meta, host)
 	if err != nil {
 		return fmt.Errorf("error deleting mysql user %s/%s/%s: %v", instanceID, username, host, err)
 	}
@@ -187,17 +192,17 @@ func parseMysqlUserID(id string) (string, string, string, error) {
 	return parts[0], parts[2], parts[3], nil
 }
 
-func waitUntilDatabaseUserDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+func waitUntilMysqlUserDeleted(d *schema.ResourceData, meta interface{}, host string) (interface{}, error) {
 	return waitUntilResourceStatusChanged(d, meta, []string{"true"}, []string{"false"}, WaitConf{
 		Timeout:    40 * time.Second,
 		Delay:      5 * time.Second,
 		MinTimeout: 5 * time.Second,
 	}, func(id string) (any, error) {
-		return getClient(meta).DBv2.ListUsers(d.Get("instance_id").(string), map[string]string{})
+		return getClient(meta).DBv2.ListMysqlUsers(d.Get("instance_id").(string), map[string]string{})
 	}, func(obj interface{}) string {
-		users := obj.([]gocmcapiv2.DBv2User)
+		users := obj.([]gocmcapiv2.DBv2MysqlUser)
 		for _, t := range users {
-			if t.Name == d.Get("username").(string) && t.Host == d.Get("host").(string) {
+			if t.Name == d.Get("username").(string) && (host != "" && t.Host == host) {
 				return "false"
 			}
 		}
@@ -205,15 +210,15 @@ func waitUntilDatabaseUserDeleted(d *schema.ResourceData, meta interface{}) (int
 	})
 }
 
-func waitUntilDatabaseUserFound(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+func waitUntilMysqlUserFound(d *schema.ResourceData, meta interface{}, host string) (interface{}, error) {
 	return waitUntilResourceStatusChanged(d, meta, []string{"true"}, []string{"false"}, WaitConf{
 		Timeout:    40 * time.Second,
 		Delay:      5 * time.Second,
 		MinTimeout: 5 * time.Second,
 	}, func(id string) (any, error) {
-		return getClient(meta).DBv2.GetUser(d.Get("instance_id").(string), d.Get("username").(string), d.Get("host").(string))
+		return getClient(meta).DBv2.GetMysqlUser(d.Get("instance_id").(string), d.Get("username").(string), host)
 	}, func(obj interface{}) string {
-		user := obj.(gocmcapiv2.DBv2User)
+		user := obj.(gocmcapiv2.DBv2MysqlUser)
 		if user.Name != "" {
 			return "true"
 		}

@@ -36,17 +36,6 @@ resource "cmccloudv2_cdn" "cdn2" {
 	s3_endpoint    = "s3.hn-1.cloud.cmctelecom.vn"
 }
 
-# create cdn for a VOD site 
-resource "cmccloudv2_cdn" "cdn3" {
- vod          = true
- name         = "bongda"
- origin_type  = "host"
- domain_or_ip = "bongda.com.vn"
- protocol     = "https"
- port         = 443
-}
-
-
 # create cdn for a VOD site with S3
 resource "cmccloudv2_cdn" "cdn4" {
 	vod            = true
@@ -65,16 +54,16 @@ resource "cmccloudv2_cdn" "cdn4" {
 
 ### Required
 
-- `domain_or_ip` (String) The domain or IP of the CDN. Only valid for Host Origin type
 - `name` (String) The name of the CDN
 - `origin_type` (String) The origin type of the CDN: Host Origin or S3 Origin
-- `port` (Number) The port of the CDN. Only valid for Host Origin type
-- `protocol` (String) The protocol of the CDN, `http`, `https`. Only valid for Host Origin type
 - `vod` (Boolean) If true, it will be the VOD site
 
 ### Optional
 
+- `domain_or_ip` (String) The domain or IP of the CDN. Only valid for Host Origin type
 - `origin_path` (String) The origin path of the CDN, example `/content/`. Only valid for Host Origin type & vod is false
+- `port` (Number) The port of the CDN. Only valid for Host Origin type
+- `protocol` (String) The protocol of the CDN, `http`, `https`. Only valid for Host Origin type
 - `s3_access_key` (String) The access key of the S3 Origin. Only valid for S3 Origin type
 - `s3_bucket_name` (String) The bucket name of the S3 Origin. Only valid for S3 Origin type
 - `s3_endpoint` (String) The endpoint of the S3 Origin. Only valid for S3 Origin type

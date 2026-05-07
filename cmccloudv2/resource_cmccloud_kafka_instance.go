@@ -234,8 +234,14 @@ func resourceKafkaInstanceUpdate(d *schema.ResourceData, meta interface{}) error
 		// Remove users that are in old but not in new
 		for username := range oldUserMap {
 			if _, found := newUserMap[username]; !found {
-				client.KafkaInstance.DeleteUser(id, username)
-				waitUntilKafkaUserDeleted(d, meta, username)
+				_, err := client.KafkaInstance.DeleteUser(id, username)
+				if err != nil {
+					return err
+				}
+				_, err = waitUntilKafkaUserDeleted(d, meta, username)
+				if err != nil {
+					return err
+				}
 			}
 		}
 
@@ -244,11 +250,23 @@ func resourceKafkaInstanceUpdate(d *schema.ResourceData, meta interface{}) error
 			oldUser, found := oldUserMap[username]
 			if !found {
 				if oldUser["password"].(string) != newUser["password"].(string) {
-					client.KafkaInstance.DeleteUser(id, username)
-					waitUntilKafkaUserDeleted(d, meta, username)
+					_, err := client.KafkaInstance.DeleteUser(id, username)
+					if err != nil {
+						return err
+					}
+					_, err = waitUntilKafkaUserDeleted(d, meta, username)
+					if err != nil {
+						return err
+					}
 				}
-				client.KafkaInstance.CreateUser(id, username, newUser["password"].(string))
-				waitUntilKafkaUserFound(d, meta, username)
+				_, err := client.KafkaInstance.CreateUser(id, username, newUser["password"].(string))
+				if err != nil {
+					return err
+				}
+				_, err = waitUntilKafkaUserFound(d, meta, username)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -373,9 +391,9 @@ func waitUntilKafkaUserDeleted(d *schema.ResourceData, meta interface{}, usernam
 		Delay:      5 * time.Second,
 		MinTimeout: 5 * time.Second,
 	}, func(id string) (any, error) {
-		return getClient(meta).DBv2.ListUsers(d.Id(), map[string]string{})
+		return getClient(meta).DBv2.ListKafkaUsers(d.Id(), map[string]string{})
 	}, func(obj interface{}) string {
-		users := obj.([]gocmcapiv2.DBv2User)
+		users := obj.([]gocmcapiv2.DBv2KafkaUser)
 		for _, t := range users {
 			if t.Name == username {
 				return "false"
@@ -391,9 +409,9 @@ func waitUntilKafkaUserFound(d *schema.ResourceData, meta interface{}, username 
 		Delay:      5 * time.Second,
 		MinTimeout: 5 * time.Second,
 	}, func(id string) (any, error) {
-		return getClient(meta).DBv2.GetUser(d.Id(), username, "")
+		return getClient(meta).DBv2.GetKafkaUser(d.Id(), username)
 	}, func(obj interface{}) string {
-		user := obj.(gocmcapiv2.DBv2User)
+		user := obj.(gocmcapiv2.DBv2KafkaUser)
 		if user.Name != "" {
 			return "true"
 		}

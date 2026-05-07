@@ -3,6 +3,7 @@ package cmccloudv2
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -14,6 +15,11 @@ func resourceMysqlDatabase() *schema.Resource {
 		Delete: resourceMysqlDatabaseDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceMysqlDatabaseImport,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(2 * time.Minute),
+			Update: schema.DefaultTimeout(5 * time.Minute),
+			Delete: schema.DefaultTimeout(2 * time.Minute),
 		},
 		SchemaVersion: 1,
 		Schema:        mysqlDatabaseSchema(),
@@ -30,6 +36,11 @@ func resourceMysqlDatabaseCreate(d *schema.ResourceData, meta interface{}) error
 	if err != nil {
 		return fmt.Errorf("error creating mysql database: %v", err)
 	}
+
+	_, err = waitUntilDatabaseFound(d, meta, d.Get("name").(string))
+	if err != nil {
+		return fmt.Errorf("error creating mysql database %s/%s: %v", d.Get("instance_id").(string), d.Get("name").(string), err)
+	}
 	d.SetId(buildMysqlDatabaseID(d.Get("instance_id").(string), d.Get("name").(string)))
 	return resourceMysqlDatabaseRead(d, meta)
 }
@@ -39,7 +50,7 @@ func resourceMysqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return err
 	}
-	db, err := getClient(meta).MysqlInstance.GetDatabase(instanceID, database)
+	db, err := getClient(meta).DBv2.GetDatabase(instanceID, database)
 	if err != nil {
 		return fmt.Errorf("error retrieving mysql database %s/%s: %v", instanceID, database, err)
 	}
@@ -54,6 +65,10 @@ func resourceMysqlDatabaseDelete(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 	_, err = getClient(meta).MysqlInstance.DeleteDatabase(instanceID, database)
+	if err != nil {
+		return fmt.Errorf("error deleting mysql database %s/%s: %v", instanceID, database, err)
+	}
+	_, err = waitUntilDatabaseDeleted(d, meta, d.Get("name").(string))
 	if err != nil {
 		return fmt.Errorf("error deleting mysql database %s/%s: %v", instanceID, database, err)
 	}

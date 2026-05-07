@@ -22,7 +22,7 @@ resource "cmccloudv2_va" "va_1" {
 }
 
 # create `BASIC_NETWORK_SCAN` Vulnerability Assessment Scan and run at specific time
-resource "cmccloudv2_va" "va_1" {
+resource "cmccloudv2_va" "va_2" {
     name        = "va-dip3"
     type        = "BASIC_NETWORK_SCAN"
     schedule    = "2026-01-25 01:00:50"
@@ -37,13 +37,13 @@ resource "cmccloudv2_va" "va_1" {
 ### Required
 
 - `name` (String) The name of the VA
-- `schedule` (String) The schedule of the VA, example `2026-01-25 01:00:50`. If not set, it will run immediately
 - `target` (String) The target of the VA, example `https://www.google.com`, `1.2.3.4`
 - `type` (String) The type of the VA, HOST_DISCOVERY, BASIC_NETWORK_SCAN, ADVANCED_SCAN, WEB_APPLICATION_TESTS
 
 ### Optional
 
 - `description` (String) The description of the VA
+- `schedule` (String) The schedule of the VA, example `2026-01-25 01:00:50`. If not set, it will run immediately
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only

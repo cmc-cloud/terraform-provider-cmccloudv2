@@ -20,10 +20,10 @@ type MongoInstanceService interface {
 	UpdateUser(id string, params map[string]interface{}) (ActionResponse, error)
 	DeleteUser(id string, username string) (ActionResponse, error)
 
-	GetDatabase(id string, name string) (MongoDatabase, error)
+	// GetDatabase(id string, name string) (MongoDatabase, error)
 	CreateDatabase(id string, params map[string]interface{}) (ActionResponse, error)
 	DeleteDatabase(id string, databaseName string) (ActionResponse, error)
-	ListDatabases(id string) ([]MongoDatabase, error)
+	// ListDatabases(id string) ([]MongoDatabase, error)
 }
 
 type MongoUser struct {
@@ -260,38 +260,38 @@ func (v *mongoinstance) DeleteDatabase(id string, databaseName string) (ActionRe
 	})
 }
 
-func (v *mongoinstance) GetDatabase(id string, database string) (MongoDatabase, error) {
-	databases, err := v.ListDatabases(id)
-	if err != nil {
-		return MongoDatabase{}, err
-	}
-	for _, db := range databases {
-		if db.Name == database {
-			return db, nil
-		}
-	}
-	return MongoDatabase{}, nil
-}
-func (v *mongoinstance) ListDatabases(id string) ([]MongoDatabase, error) {
-	params := map[string]interface{}{
-		"command": "get_list_database",
-		"body":    map[string]interface{}{},
-	}
-	jsonStr, err := v.postAction(id, "db_action", params)
-	var obj struct {
-		Data struct {
-			Docs []MongoDatabase `json:"docs"`
-		} `json:"data"`
-	}
-	if err != nil {
-		return []MongoDatabase{}, err
-	}
-	err = json.Unmarshal([]byte(jsonStr), &obj)
-	if err != nil {
-		return []MongoDatabase{}, err
-	}
-	return obj.Data.Docs, nil
-}
+// func (v *mongoinstance) GetDatabase(id string, database string) (MongoDatabase, error) {
+// 	databases, err := v.ListDatabases(id)
+// 	if err != nil {
+// 		return MongoDatabase{}, err
+// 	}
+// 	for _, db := range databases {
+// 		if db.Name == database {
+// 			return db, nil
+// 		}
+// 	}
+// 	return MongoDatabase{}, nil
+// }
+// func (v *mongoinstance) ListDatabases(id string) ([]MongoDatabase, error) {
+// 	params := map[string]interface{}{
+// 		"command": "get_list_database",
+// 		"body":    map[string]interface{}{},
+// 	}
+// 	jsonStr, err := v.postAction(id, "db_action", params)
+// 	var obj struct {
+// 		Data struct {
+// 			Docs []MongoDatabase `json:"docs"`
+// 		} `json:"data"`
+// 	}
+// 	if err != nil {
+// 		return []MongoDatabase{}, err
+// 	}
+// 	err = json.Unmarshal([]byte(jsonStr), &obj)
+// 	if err != nil {
+// 		return []MongoDatabase{}, err
+// 	}
+// 	return obj.Data.Docs, nil
+// }
 
 func (v *mongoinstance) DeleteUser(id string, username string) (ActionResponse, error) {
 	params := map[string]interface{}{

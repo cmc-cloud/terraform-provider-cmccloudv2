@@ -34,13 +34,15 @@ resource "cmccloudv2_kubernetesv2_nodegroup" "nodegroup_1" {
 	volume_size        = 20
 	init_current_node  = 1
 	max_pods           = 110
+    enable_autohealing = false
+    enable_autoscale   = false
 } 
 
 # create a k8s nodegroup with advance options
-resource "cmccloudv2_kubernetesv2_nodegroup" "nodegroup_1" {
+resource "cmccloudv2_kubernetesv2_nodegroup" "nodegroup_2" {
 	cluster_id         = "ad5a8b1d-0c12-4cd5-b7d9-19a32abfb87f"
 	billing_mode       = "monthly"
-	name               = "nodegroup_1"
+	name               = "nodegroup_2"
 	zone               = "AZ1"
 	flavor_id          = "${data.cmccloudv2_flavor_k8s.flavor_k8s.id}"
 	key_name           = "keypair-zn75"

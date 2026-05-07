@@ -3,7 +3,9 @@ package cmccloudv2
 import (
 	"fmt"
 	"strings"
+	"time"
 
+	"github.com/cmc-cloud/terraform-provider-cmccloudv2/gocmcapiv2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -15,6 +17,11 @@ func resourcePostgresDatabase() *schema.Resource {
 		Delete: resourcePostgresDatabaseDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourcePostgresDatabaseImport,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(2 * time.Minute),
+			Update: schema.DefaultTimeout(5 * time.Minute),
+			Delete: schema.DefaultTimeout(2 * time.Minute),
 		},
 		SchemaVersion: 1,
 		Schema:        postgresDatabaseSchema(),
@@ -29,14 +36,13 @@ func resourcePostgresDatabaseCreate(d *schema.ResourceData, meta interface{}) er
 		"databaseName": databaseName,
 		"owner":        owner,
 	}
-	params := map[string]interface{}{
-		"command": "create_database",
-		"body":    body,
-	}
-
-	_, err := getClient(meta).PostgresInstance.CreateDatabase(instanceID, params)
+	_, err := getClient(meta).PostgresInstance.CreateDatabase(instanceID, body)
 	if err != nil {
-		return fmt.Errorf("error creating postgres user: %v", err)
+		return fmt.Errorf("error creating postgres database: %v", err)
+	}
+	_, err = waitUntilDatabaseFound(d, meta, d.Get("name").(string))
+	if err != nil {
+		return fmt.Errorf("error creating postgres database: %v", err)
 	}
 	d.SetId(buildPostgresDatabaseID(instanceID, databaseName))
 	return resourcePostgresDatabaseRead(d, meta)
@@ -47,14 +53,14 @@ func resourcePostgresDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 	if err != nil {
 		return err
 	}
-	db, err := getClient(meta).PostgresInstance.GetDatabase(instanceID, database)
+	db, err := getClient(meta).DBv2.GetDatabase(instanceID, database)
 	if err != nil {
-		return fmt.Errorf("error retrieving postgres user %s/%s: %v", instanceID, database, err)
+		return fmt.Errorf("error retrieving postgres database %s/%s: %v", instanceID, database, err)
 	}
 	_ = d.Set("id", buildPostgresDatabaseID(instanceID, database))
 	_ = d.Set("instance_id", instanceID)
 	_ = d.Set("name", db.Name)
-	_ = d.Set("owner", db.Owner)
+	// _ = d.Set("owner", db.)
 	return nil
 }
 
@@ -71,7 +77,7 @@ func resourcePostgresDatabaseUpdate(d *schema.ResourceData, meta interface{}) er
 		if len(params) > 0 {
 			_, err := getClient(meta).PostgresInstance.UpdateDatabase(instanceID, params)
 			if err != nil {
-				return fmt.Errorf("error updating postgres user %s/%s: %v", instanceID, database, err)
+				return fmt.Errorf("error updating postgres database %s/%s: %v", instanceID, database, err)
 			}
 		}
 	}
@@ -85,7 +91,11 @@ func resourcePostgresDatabaseDelete(d *schema.ResourceData, meta interface{}) er
 	}
 	_, err = getClient(meta).PostgresInstance.DeleteDatabase(instanceID, database)
 	if err != nil {
-		return fmt.Errorf("error deleting postgres user %s/%s: %v", instanceID, database, err)
+		return fmt.Errorf("error deleting postgres database %s/%s: %v", instanceID, database, err)
+	}
+	_, err = waitUntilDatabaseDeleted(d, meta, d.Get("name").(string))
+	if err != nil {
+		return fmt.Errorf("error deleting postgres database %s/%s: %v", instanceID, database, err)
 	}
 	return nil
 }
@@ -105,4 +115,38 @@ func parsePostgresDatabaseID(id string) (string, string, error) {
 		return "", "", fmt.Errorf("invalid id `%s`, expected format: <instance_id>/db/<database>", id)
 	}
 	return parts[0], parts[2], nil
+}
+
+func waitUntilDatabaseDeleted(d *schema.ResourceData, meta interface{}, name string) (interface{}, error) {
+	return waitUntilResourceStatusChanged(d, meta, []string{"true"}, []string{"false"}, WaitConf{
+		Timeout:    40 * time.Second,
+		Delay:      5 * time.Second,
+		MinTimeout: 5 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).DBv2.ListDatabases(d.Get("instance_id").(string), map[string]string{})
+	}, func(obj interface{}) string {
+		users := obj.([]gocmcapiv2.DBv2Database)
+		for _, t := range users {
+			if t.Name == name {
+				return "false"
+			}
+		}
+		return "true"
+	})
+}
+
+func waitUntilDatabaseFound(d *schema.ResourceData, meta interface{}, name string) (interface{}, error) {
+	return waitUntilResourceStatusChanged(d, meta, []string{"true"}, []string{"false"}, WaitConf{
+		Timeout:    40 * time.Second,
+		Delay:      5 * time.Second,
+		MinTimeout: 5 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).DBv2.GetDatabase(d.Get("instance_id").(string), name)
+	}, func(obj interface{}) string {
+		user := obj.(gocmcapiv2.DBv2Database)
+		if user.Name != "" {
+			return "true"
+		}
+		return "false"
+	})
 }

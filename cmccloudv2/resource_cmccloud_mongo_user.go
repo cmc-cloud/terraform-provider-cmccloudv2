@@ -3,6 +3,7 @@ package cmccloudv2
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -15,6 +16,11 @@ func resourceMongoUser() *schema.Resource {
 		Delete: resourceMongoUserDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceMongoUserImport,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(2 * time.Minute),
+			Update: schema.DefaultTimeout(5 * time.Minute),
+			Delete: schema.DefaultTimeout(2 * time.Minute),
 		},
 		SchemaVersion: 1,
 		Schema:        mongoUserSchema(),

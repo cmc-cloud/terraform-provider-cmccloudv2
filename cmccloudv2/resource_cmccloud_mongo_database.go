@@ -3,6 +3,7 @@ package cmccloudv2
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -14,6 +15,11 @@ func resourceMongoDatabase() *schema.Resource {
 		Delete: resourceMongoDatabaseDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceMongoDatabaseImport,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(2 * time.Minute),
+			Update: schema.DefaultTimeout(5 * time.Minute),
+			Delete: schema.DefaultTimeout(2 * time.Minute),
 		},
 		SchemaVersion: 1,
 		Schema:        mongoDatabaseSchema(),
@@ -31,6 +37,10 @@ func resourceMongoDatabaseCreate(d *schema.ResourceData, meta interface{}) error
 	if err != nil {
 		return fmt.Errorf("error creating mongo database: %v", err)
 	}
+	_, err = waitUntilDatabaseFound(d, meta, d.Get("name").(string))
+	if err != nil {
+		return fmt.Errorf("error creating mongo database %s/%s: %v", d.Get("instance_id").(string), d.Get("name").(string), err)
+	}
 	d.SetId(buildMongoDatabaseID(instanceID, databaseName))
 	return resourceMongoDatabaseRead(d, meta)
 }
@@ -40,7 +50,7 @@ func resourceMongoDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return err
 	}
-	db, err := getClient(meta).MongoInstance.GetDatabase(instanceID, database)
+	db, err := getClient(meta).DBv2.GetDatabase(instanceID, database)
 	if err != nil {
 		return fmt.Errorf("error retrieving mongo database %s/%s: %v", instanceID, database, err)
 	}
@@ -57,6 +67,10 @@ func resourceMongoDatabaseDelete(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 	_, err = getClient(meta).MongoInstance.DeleteDatabase(instanceID, database)
+	if err != nil {
+		return fmt.Errorf("error deleting mongo database %s/%s: %v", instanceID, database, err)
+	}
+	_, err = waitUntilDatabaseDeleted(d, meta, d.Get("name").(string))
 	if err != nil {
 		return fmt.Errorf("error deleting mongo database %s/%s: %v", instanceID, database, err)
 	}

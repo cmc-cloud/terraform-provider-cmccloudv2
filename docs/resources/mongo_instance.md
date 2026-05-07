@@ -35,7 +35,6 @@ resource "cmccloudv2_mongo_instance" "mongo_instance_replica1" {
     volume_size           = 20
     subnet_id             = "036f3b55-2ff8-4350-9fc0-4baf12deca03"
     configuration_id      = "${data.cmccloudv2_mongo_configuration.config_replicaset.id}"
-    security_group_ids    = ["2465c8f5-1aa5-4fcd-9ea0-0713d6a1f685"]
     #backup_id             = ""
     quantity_of_secondary = 2
 	tags {
@@ -60,7 +59,6 @@ resource "cmccloudv2_mongo_instance" "mongo_instance_standalone" {
     volume_size           = 20
     subnet_id             = "036f3b55-2ff8-4350-9fc0-4baf12deca03"
     configuration_id      = "${data.cmccloudv2_mongo_configuration.config_standalone.id}"
-    security_group_ids    = ["2465c8f5-1aa5-4fcd-9ea0-0713d6a1f685"]
 	tags {
         key = "env"
         value = "prod"

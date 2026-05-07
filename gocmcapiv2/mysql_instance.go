@@ -20,10 +20,10 @@ type MysqlInstanceService interface {
 	UpdateUser(id string, params map[string]interface{}) (ActionResponse, error)
 	DeleteUser(id string, username string) (ActionResponse, error)
 
-	GetDatabase(id string, name string) (MysqlDatabase, error)
+	// GetDatabase(id string, name string) (MysqlDatabase, error)
 	CreateDatabase(id string, params map[string]interface{}) (ActionResponse, error)
 	DeleteDatabase(id string, databaseName string) (ActionResponse, error)
-	ListDatabases(id string) ([]MysqlDatabase, error)
+	// ListDatabases(id string) ([]MysqlDatabase, error)
 }
 
 type MysqlUser struct {
@@ -259,38 +259,38 @@ func (v *mysqlinstance) DeleteDatabase(id string, databaseName string) (ActionRe
 	})
 }
 
-func (v *mysqlinstance) GetDatabase(id string, database string) (MysqlDatabase, error) {
-	databases, err := v.ListDatabases(id)
-	if err != nil {
-		return MysqlDatabase{}, err
-	}
-	for _, db := range databases {
-		if db.Name == database {
-			return db, nil
-		}
-	}
-	return MysqlDatabase{}, nil
-}
-func (v *mysqlinstance) ListDatabases(id string) ([]MysqlDatabase, error) {
-	params := map[string]interface{}{
-		"command": "get_list_database",
-		"body":    map[string]interface{}{},
-	}
-	jsonStr, err := v.postAction(id, "db_action", params)
-	var obj struct {
-		Data struct {
-			Docs []MysqlDatabase `json:"docs"`
-		} `json:"data"`
-	}
-	if err != nil {
-		return []MysqlDatabase{}, err
-	}
-	err = json.Unmarshal([]byte(jsonStr), &obj)
-	if err != nil {
-		return []MysqlDatabase{}, err
-	}
-	return obj.Data.Docs, nil
-}
+// func (v *mysqlinstance) GetDatabase(id string, database string) (MysqlDatabase, error) {
+// 	databases, err := v.ListDatabases(id)
+// 	if err != nil {
+// 		return MysqlDatabase{}, err
+// 	}
+// 	for _, db := range databases {
+// 		if db.Name == database {
+// 			return db, nil
+// 		}
+// 	}
+// 	return MysqlDatabase{}, nil
+// }
+// func (v *mysqlinstance) ListDatabases(id string) ([]MysqlDatabase, error) {
+// 	params := map[string]interface{}{
+// 		"command": "get_list_database",
+// 		"body":    map[string]interface{}{},
+// 	}
+// 	jsonStr, err := v.postAction(id, "db_action", params)
+// 	var obj struct {
+// 		Data struct {
+// 			Docs []MysqlDatabase `json:"docs"`
+// 		} `json:"data"`
+// 	}
+// 	if err != nil {
+// 		return []MysqlDatabase{}, err
+// 	}
+// 	err = json.Unmarshal([]byte(jsonStr), &obj)
+// 	if err != nil {
+// 		return []MysqlDatabase{}, err
+// 	}
+// 	return obj.Data.Docs, nil
+// }
 
 func (v *mysqlinstance) DeleteUser(id string, username string) (ActionResponse, error) {
 	params := map[string]interface{}{

@@ -17,8 +17,8 @@ description: |-
 data "cmccloudv2_flavor_k8s" "master_flavor" {
     name = "c6.large.2.k8s"
 }
-resource "cmccloudv2_kubernetesv2" "k8s_1" {
-    name               = "k8s_1"
+resource "cmccloudv2_kubernetesv2" "k8s1" {
+    name               = "k8s1"
     zone               = "AZ1"
     subnet_id          = "ac67cf25-205d-440a-82de-1017f72653b7"
     kubernetes_version = "v1.28.9"
@@ -30,8 +30,8 @@ resource "cmccloudv2_kubernetesv2" "k8s_1" {
 } 
 
 # create k8s cluster with addons
-resource "cmccloudv2_kubernetesv2" "k8s_2" {
-    name               = "k8s_2"
+resource "cmccloudv2_kubernetesv2" "k8s2" {
+    name               = "k8s2"
     zone               = "AZ1"
     subnet_id          = "ac67cf25-205d-440a-82de-1017f72653b7"
     kubernetes_version = "v1.28.9"
@@ -51,8 +51,8 @@ resource "cmccloudv2_kubernetesv2" "k8s_2" {
 
 
 # create k8s cluster with advance options
-resource "cmccloudv2_kubernetesv2" "k8s_3" {
-    name               = "k8s_3"
+resource "cmccloudv2_kubernetesv2" "k8s3" {
+    name               = "k8s3"
     zone               = "AZ1"
     subnet_id          = "ac67cf25-205d-440a-82de-1017f72653b7"
     kubernetes_version = "v1.28.9"

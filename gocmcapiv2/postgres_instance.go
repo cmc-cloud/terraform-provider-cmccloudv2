@@ -20,11 +20,11 @@ type PostgresInstanceService interface {
 	UpdateUser(id string, params map[string]interface{}) (ActionResponse, error)
 	DeleteUser(id string, username string) (ActionResponse, error)
 
-	GetDatabase(id string, name string) (PostgresDatabase, error)
+	// GetDatabase(id string, name string) (PostgresDatabase, error)
 	CreateDatabase(id string, params map[string]interface{}) (ActionResponse, error)
 	UpdateDatabase(id string, params map[string]interface{}) (ActionResponse, error)
 	DeleteDatabase(id string, databaseName string) (ActionResponse, error)
-	ListDatabases(id string) ([]PostgresDatabase, error)
+	// ListDatabases(id string) ([]PostgresDatabase, error)
 }
 
 type PostgresUser struct {
@@ -276,38 +276,38 @@ func (v *postgresinstance) UpdateDatabase(id string, params map[string]interface
 	})
 }
 
-func (v *postgresinstance) GetDatabase(id string, database string) (PostgresDatabase, error) {
-	databases, err := v.ListDatabases(id)
-	if err != nil {
-		return PostgresDatabase{}, err
-	}
-	for _, db := range databases {
-		if db.Name == database {
-			return db, nil
-		}
-	}
-	return PostgresDatabase{}, nil
-}
-func (v *postgresinstance) ListDatabases(id string) ([]PostgresDatabase, error) {
-	params := map[string]interface{}{
-		"command": "get_list_database",
-		"body":    map[string]interface{}{},
-	}
-	jsonStr, err := v.postAction(id, "db_action", params)
-	var obj struct {
-		Data struct {
-			Docs []PostgresDatabase `json:"docs"`
-		} `json:"data"`
-	}
-	if err != nil {
-		return []PostgresDatabase{}, err
-	}
-	err = json.Unmarshal([]byte(jsonStr), &obj)
-	if err != nil {
-		return []PostgresDatabase{}, err
-	}
-	return obj.Data.Docs, nil
-}
+// func (v *postgresinstance) GetDatabase(id string, database string) (PostgresDatabase, error) {
+// 	databases, err := v.ListDatabases(id)
+// 	if err != nil {
+// 		return PostgresDatabase{}, err
+// 	}
+// 	for _, db := range databases {
+// 		if db.Name == database {
+// 			return db, nil
+// 		}
+// 	}
+// 	return PostgresDatabase{}, nil
+// }
+// func (v *postgresinstance) ListDatabases(id string) ([]PostgresDatabase, error) {
+// 	params := map[string]interface{}{
+// 		"command": "get_list_database",
+// 		"body":    map[string]interface{}{},
+// 	}
+// 	jsonStr, err := v.postAction(id, "db_action", params)
+// 	var obj struct {
+// 		Data struct {
+// 			Docs []PostgresDatabase `json:"docs"`
+// 		} `json:"data"`
+// 	}
+// 	if err != nil {
+// 		return []PostgresDatabase{}, err
+// 	}
+// 	err = json.Unmarshal([]byte(jsonStr), &obj)
+// 	if err != nil {
+// 		return []PostgresDatabase{}, err
+// 	}
+// 	return obj.Data.Docs, nil
+// }
 
 func (v *postgresinstance) DeleteUser(id string, username string) (ActionResponse, error) {
 	params := map[string]interface{}{

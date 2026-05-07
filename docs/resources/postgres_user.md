@@ -13,11 +13,11 @@ description: |-
 ## Example Usage
 
 ```terraform
-resource "cmccloudv2_postgres_user" "postgres_useradmin" {
-  instance_id = "e8d3f389-4008-4b54-a1c1-f4152b73878e"
-  username    = "userdev"
-  password    = "5k9DJoK1F"
-  permissions = [ "CREATEDB", "CREATEROLE", "LOGIN", "REPLICATION" ]
+resource "cmccloudv2_postgres_user" "postgres_userdev" {
+    instance_id = "e8d3f389-4008-4b54-a1c1-f4152b73878e"
+    username    = "userdev"
+    password    = "5k9DJoK1F"
+    permissions = [ "CREATEDB", "CREATEROLE", "LOGIN", "REPLICATION" ]
 }
 ```
 
@@ -33,7 +33,17 @@ resource "cmccloudv2_postgres_user" "postgres_useradmin" {
 
 - `password` (String, Sensitive) Postgres user password
 - `permissions` (Set of String) Postgres user permissions, e.g. CREATEDB, CREATEROLE, LOGIN, REPLICATION
+- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
+
+<a id="nestedblock--timeouts"></a>
+### Nested Schema for `timeouts`
+
+Optional:
+
+- `create` (String)
+- `delete` (String)
+- `update` (String)

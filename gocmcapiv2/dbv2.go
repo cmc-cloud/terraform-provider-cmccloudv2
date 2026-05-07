@@ -5,22 +5,47 @@ import (
 )
 
 type DBv2Service interface {
-	GetUser(id string, userName string, host string) (DBv2User, error)
-	ListUsers(id string, params map[string]string) ([]DBv2User, error)
-	UpdateUser(id string, userName string, partitions int, retentionDay int) (ActionResponse, error)
 	DeleteUser(id string, userName string, host string) (ActionResponse, error)
 
-	// CreateDatabase(id string, userName string, numPartitions int, replicationFactor int) (ActionResponse, error)
-	// GetDatabase(id string, userName string) (DBv2Database, error)
-	// ListDatabases(id string, params map[string]string) ([]DBv2Database, error)
-	// UpdateDatabase(id string, userName string, partitions int, retentionDay int) (ActionResponse, error)
-	// DeleteDatabase(id string, userName string) (ActionResponse, error)
+	GetMysqlUser(id string, userName string, host string) (DBv2MysqlUser, error)
+	ListMysqlUsers(id string, params map[string]string) ([]DBv2MysqlUser, error)
+
+	GetKafkaUser(id string, userName string) (DBv2KafkaUser, error)
+	ListKafkaUsers(id string, params map[string]string) ([]DBv2KafkaUser, error)
+
+	GetPostgresUser(id string, userName string) (DBv2PostgresUser, error)
+	ListPostgresUsers(id string, params map[string]string) ([]DBv2PostgresUser, error)
+
+	GetMongoUser(id string, userName string) (DBv2MongoUser, error)
+	ListMongoUsers(id string, params map[string]string) ([]DBv2MongoUser, error)
+
+	GetDatabase(id string, userName string) (DBv2Database, error)
+	ListDatabases(id string, params map[string]string) ([]DBv2Database, error)
 }
 
-type DBv2User struct {
-	Name string `json:"name"`
-	Host string `json:"host"`
+type DBv2MysqlUser struct {
+	Host            string `json:"allowHost"`
+	UserPermissions []struct {
+		DatabaseName string   `json:"databaseName"`
+		Permissions  []string `json:"permissions"`
+	} `json:"userPermissions"`
+	Name string `json:"username"`
 }
+type DBv2PostgresUser struct {
+	OwnedDatabases []string `json:"owned_databases"`
+	Permissions    []string `json:"permissions"`
+	Name           string   `json:"username"`
+}
+type DBv2MongoUser struct {
+	Dbs struct {
+		Admin []string `json:"admin"`
+	} `json:"dbs"`
+	Name string `json:"user"`
+}
+type DBv2KafkaUser struct {
+	Name string `json:"username"`
+}
+
 type DBv2Database struct {
 	Name string `json:"name"`
 }
@@ -28,31 +53,129 @@ type dbv2 struct {
 	client *Client
 }
 
-func (v *dbv2) GetUser(id string, userName string, host string) (DBv2User, error) {
-	jsonStr, err := v.client.Get("cloudops-core/api/v1/dbaas/instance/"+id+"/users", map[string]string{})
-	var obj DBActionResponse
+func (v *dbv2) GetMysqlUser(id string, userName string, host string) (DBv2MysqlUser, error) {
+	users, err := ListUsers[DBv2MysqlUser](v, id, map[string]string{})
 	if err != nil {
-		return DBv2User{}, err
+		return DBv2MysqlUser{}, err
 	}
-	err = json.Unmarshal([]byte(jsonStr), &obj)
-	if err != nil {
-		return DBv2User{}, err
-	}
-	actionID := obj.Data.ActionID
-	var topics []DBv2User
-	topics, err = WaitForActionResult[DBv2User](v.client, "cloudops-core/api/v1/dbaas/instance/"+id+"/actions/"+actionID, actionID, 2)
-	if err != nil {
-		return DBv2User{}, err
-	}
-	for _, t := range topics {
-		if t.Name == userName && (host == "" || t.Host == host) {
+	for _, t := range users {
+		if t.Name == userName && t.Host == host {
 			return t, nil
 		}
 	}
-	return DBv2User{}, err
+	return DBv2MysqlUser{}, err
 }
 
-// Get dbv2 detail
+func (v *dbv2) ListMysqlUsers(id string, params map[string]string) ([]DBv2MysqlUser, error) {
+	return ListUsers[DBv2MysqlUser](v, id, map[string]string{})
+}
+
+func (v *dbv2) GetKafkaUser(id string, userName string) (DBv2KafkaUser, error) {
+	users, err := ListUsers[DBv2KafkaUser](v, id, map[string]string{})
+	if err != nil {
+		return DBv2KafkaUser{}, err
+	}
+	for _, t := range users {
+		if t.Name == userName {
+			return t, nil
+		}
+	}
+	return DBv2KafkaUser{}, err
+}
+
+func (v *dbv2) ListKafkaUsers(id string, params map[string]string) ([]DBv2KafkaUser, error) {
+	return ListUsers[DBv2KafkaUser](v, id, map[string]string{})
+}
+
+func (v *dbv2) GetPostgresUser(id string, userName string) (DBv2PostgresUser, error) {
+	users, err := ListUsers[DBv2PostgresUser](v, id, map[string]string{})
+	if err != nil {
+		return DBv2PostgresUser{}, err
+	}
+	for _, t := range users {
+		if t.Name == userName {
+			return t, nil
+		}
+	}
+	return DBv2PostgresUser{}, err
+}
+
+func (v *dbv2) ListPostgresUsers(id string, params map[string]string) ([]DBv2PostgresUser, error) {
+	return ListUsers[DBv2PostgresUser](v, id, map[string]string{})
+}
+
+func (v *dbv2) GetMongoUser(id string, userName string) (DBv2MongoUser, error) {
+	users, err := ListUsers[DBv2MongoUser](v, id, map[string]string{})
+	if err != nil {
+		return DBv2MongoUser{}, err
+	}
+	for _, t := range users {
+		if t.Name == userName {
+			return t, nil
+		}
+	}
+	return DBv2MongoUser{}, err
+}
+
+func (v *dbv2) ListMongoUsers(id string, params map[string]string) ([]DBv2MongoUser, error) {
+	return ListUsers[DBv2MongoUser](v, id, map[string]string{})
+}
+func ListUsers[T any](v *dbv2, id string, params map[string]string) ([]T, error) {
+	jsonStr, err := v.client.Get("cloudops-core/api/v1/dbaas/instance/"+id+"/users", params)
+	var obj DBActionResponse
+	if err != nil {
+		return []T{}, err
+	}
+	err = json.Unmarshal([]byte(jsonStr), &obj)
+	if err != nil {
+		return []T{}, err
+	}
+	actionID := obj.Data.ActionID
+	var users []T
+	users, err = WaitForActionResult[T](v.client, "cloudops-core/api/v1/dbaas/instance/"+id+"/actions/"+actionID, actionID, 2)
+	if err != nil {
+		return []T{}, err
+	}
+	return users, err
+}
+
+func (v *dbv2) GetDatabase(id string, userName string) (DBv2Database, error) {
+	databases, err := DBv2ListDatabases[DBv2Database](v, id, map[string]string{})
+	if err != nil {
+		return DBv2Database{}, err
+	}
+	for _, t := range databases {
+		if t.Name == userName {
+			return t, nil
+		}
+	}
+	return DBv2Database{}, err
+}
+
+func (v *dbv2) ListDatabases(id string, params map[string]string) ([]DBv2Database, error) {
+	return DBv2ListDatabases[DBv2Database](v, id, map[string]string{})
+}
+
+func DBv2ListDatabases[T any](v *dbv2, id string, params map[string]string) ([]T, error) {
+	jsonStr, err := v.client.Get("cloudops-core/api/v1/dbaas/instance/"+id+"/databases", params)
+	var obj DBActionResponse
+	if err != nil {
+		return []T{}, err
+	}
+	err = json.Unmarshal([]byte(jsonStr), &obj)
+	if err != nil {
+		return []T{}, err
+	}
+	actionID := obj.Data.ActionID
+	var users []T
+	users, err = WaitForActionResult[T](v.client, "cloudops-core/api/v1/dbaas/instance/"+id+"/actions/"+actionID, actionID, 2)
+	if err != nil {
+		return []T{}, err
+	}
+	return users, err
+}
+
+// Get dbv2 action result
 func (v *dbv2) GetAction(id string, actionID string) (string, error) {
 	jsonStr, err := v.client.Get("cloudops-core/api/v1/dbaas/instance/"+id+"/actions/"+actionID, map[string]string{})
 	if err != nil {
@@ -61,43 +184,16 @@ func (v *dbv2) GetAction(id string, actionID string) (string, error) {
 	return jsonStr, err
 }
 
-func (v *dbv2) ListUsers(id string, params map[string]string) ([]DBv2User, error) {
-	jsonStr, err := v.client.Get("cloudops-core/api/v1/dbaas/instance/"+id+"/topics", params)
-	var obj DBActionResponse
-	if err != nil {
-		return []DBv2User{}, err
-	}
-	err = json.Unmarshal([]byte(jsonStr), &obj)
-	if err != nil {
-		return []DBv2User{}, err
-	}
-	actionID := obj.Data.ActionID
-	var topics []DBv2User
-	topics, err = WaitForActionResult[DBv2User](v.client, "cloudops-core/api/v1/dbaas/instance/"+id+"/actions/"+actionID, actionID, 2)
-	if err != nil {
-		return []DBv2User{}, err
-	}
-	return topics, err
-}
-func (v *dbv2) CreateUser(id string, userName string, numPartitions int, replicationFactor int) (ActionResponse, error) {
-	params := map[string]interface{}{
-		"command": "create_topic",
-		"body": map[string]interface{}{
-			"topicName":         userName,
-			"numPartitions":     numPartitions,
-			"replicationFactor": replicationFactor,
-		},
-	}
-	return v.performAction(id, "db_action", params)
-}
-
 func (v *dbv2) DeleteUser(id string, userName string, host string) (ActionResponse, error) {
+	body := map[string]interface{}{
+		"username": userName,
+	}
+	if host != "" {
+		body["allowHost"] = host
+	}
 	params := map[string]interface{}{
 		"command": "drop_user",
-		"body": map[string]interface{}{
-			"username":  userName,
-			"allowHost": host,
-		},
+		"body":    body,
 	}
 
 	bytes, _ := json.Marshal(params)
@@ -107,28 +203,6 @@ func (v *dbv2) DeleteUser(id string, userName string, host string) (ActionRespon
 		"requestData": map[string]interface{}{
 			"requestDbAction": string(bytes),
 		},
-		"requestId": genUUID(),
-	})
-}
-
-func (v *dbv2) UpdateUser(id string, userName string, partitions int, retentionDay int) (ActionResponse, error) {
-	params := map[string]interface{}{
-		"command": "edit_topic_config",
-		"body": map[string]interface{}{
-			"topicName":   userName,
-			"retentionMs": retentionDay * 86400000,
-			"partitions":  partitions,
-		},
-	}
-	return v.performAction(id, "db_action", params)
-}
-func (v *dbv2) performAction(id string, action string, params map[string]interface{}) (ActionResponse, error) {
-	bytes, _ := json.Marshal(params)
-	return v.client.PerformAction("cloudops-core/api/v1/dbaas/execute-action", map[string]interface{}{
-		"instanceId": id,
-		"action":     action,
-		"requestData": map[string]interface{}{
-			"requestDbAction": string(bytes),
-		},
+		// "requestId": genUUID(),
 	})
 }

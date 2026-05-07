@@ -15,15 +15,15 @@ description: |-
 ```terraform
 # create mysql user with alter and create permissions on all databases & tables
 resource "cmccloudv2_mysql_user" "user1" {
-	instance_id = "4233c081-0f75-4d9a-83f0-3641a0da1a62"
-	username  = "user1"
-	password = "AaioeuroieEd343"
-	hosts = [ "%" ]
-	user_permissions {
-		database = "*"
-		table = "*"
-		permissions = [ "alter", "create" ]
-	}
+    instance_id = "4233c081-0f75-4d9a-83f0-3641a0da1a62"
+    username    = "user1"
+    password    = "AaioeuroieEd343"
+    host        = "%"
+    user_permissions {
+        database    = "*"
+        table       = "*"
+        permissions = ["alter", "create"]
+    }
 }
 ```
 
@@ -37,13 +37,24 @@ resource "cmccloudv2_mysql_user" "user1" {
 
 ### Optional
 
-- `hosts` (Set of String) `%` to allow all IPs, specific IP address (e.g., 192.168.1.1) or multiple IP addresses
+- `host` (String, Sensitive) Allow host for mysql user. `%` to allow all IPs, specific IP address (e.g., 192.168.1.1) or multiple IP addresses
 - `password` (String, Sensitive) Mysql user password
+- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 - `user_permissions` (Block Set) List of user permissions (see [below for nested schema](#nestedblock--user_permissions))
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
+
+<a id="nestedblock--timeouts"></a>
+### Nested Schema for `timeouts`
+
+Optional:
+
+- `create` (String)
+- `delete` (String)
+- `update` (String)
+
 
 <a id="nestedblock--user_permissions"></a>
 ### Nested Schema for `user_permissions`
