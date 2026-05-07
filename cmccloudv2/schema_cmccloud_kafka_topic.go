@@ -25,7 +25,7 @@ func kafkaTopicSchema() map[string]*schema.Schema {
 			Type:         schema.TypeInt,
 			Optional:     true,
 			Default:      6,
-			ValidateFunc: validation.IntBetween(1, 14),
+			ValidateFunc: validation.IntAtLeast(1),
 			Description:  "Number of partitions in a topic. More partitions = more parallel processing (higher throughput).",
 		},
 		"replication_factor": {

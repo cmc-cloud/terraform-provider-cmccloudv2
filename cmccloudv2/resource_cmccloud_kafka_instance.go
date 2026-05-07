@@ -197,6 +197,62 @@ func resourceKafkaInstanceUpdate(d *schema.ResourceData, meta interface{}) error
 			return fmt.Errorf("error when set kafka tags [%s]: %v", id, err)
 		}
 	}
+	if d.HasChange("users") {
+		oldRaw, newRaw := d.GetChange("users")
+		oldUsers := []map[string]interface{}{}
+		newUsers := []map[string]interface{}{}
+
+		if oldRaw != nil {
+			for _, u := range oldRaw.([]interface{}) {
+				if u == nil {
+					continue
+				}
+				oldUsers = append(oldUsers, u.(map[string]interface{}))
+			}
+		}
+		if newRaw != nil {
+			for _, u := range newRaw.([]interface{}) {
+				if u == nil {
+					continue
+				}
+				newUsers = append(newUsers, u.(map[string]interface{}))
+			}
+		}
+
+		// Build maps for easier comparison
+		oldUserMap := make(map[string]map[string]interface{})
+		for _, u := range oldUsers {
+			username := u["username"].(string)
+			oldUserMap[username] = u
+		}
+		newUserMap := make(map[string]map[string]interface{})
+		for _, u := range newUsers {
+			username := u["username"].(string)
+			newUserMap[username] = u
+		}
+
+		// Remove users that are in old but not in new
+		for username := range oldUserMap {
+			if _, found := newUserMap[username]; !found {
+				client.KafkaInstance.DeleteUser(id, username)
+				waitUntilKafkaUserDeleted(d, meta, username)
+			}
+		}
+
+		// Add/update users that are in new but not in old or whose password has changed
+		for username, newUser := range newUserMap {
+			oldUser, found := oldUserMap[username]
+			if !found {
+				if oldUser["password"].(string) != newUser["password"].(string) {
+					client.KafkaInstance.DeleteUser(id, username)
+					waitUntilKafkaUserDeleted(d, meta, username)
+				}
+				client.KafkaInstance.CreateUser(id, username, newUser["password"].(string))
+				waitUntilKafkaUserFound(d, meta, username)
+			}
+		}
+	}
+
 	// if d.HasChange("security_group_ids") {
 	// 	err := checkSecurityGroupConflict(d, meta)
 	// 	if err != nil {
@@ -308,6 +364,40 @@ func waitUntilKafkaInstanceDeleted(d *schema.ResourceData, meta interface{}) (in
 		MinTimeout: 20 * time.Second,
 	}, func(id string) (any, error) {
 		return getClient(meta).KafkaInstance.Get(id)
+	})
+}
+
+func waitUntilKafkaUserDeleted(d *schema.ResourceData, meta interface{}, username string) (interface{}, error) {
+	return waitUntilResourceStatusChanged(d, meta, []string{"true"}, []string{"false"}, WaitConf{
+		Timeout:    40 * time.Second,
+		Delay:      5 * time.Second,
+		MinTimeout: 5 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).DBv2.ListUsers(d.Id(), map[string]string{})
+	}, func(obj interface{}) string {
+		users := obj.([]gocmcapiv2.DBv2User)
+		for _, t := range users {
+			if t.Name == username {
+				return "false"
+			}
+		}
+		return "true"
+	})
+}
+
+func waitUntilKafkaUserFound(d *schema.ResourceData, meta interface{}, username string) (interface{}, error) {
+	return waitUntilResourceStatusChanged(d, meta, []string{"true"}, []string{"false"}, WaitConf{
+		Timeout:    40 * time.Second,
+		Delay:      5 * time.Second,
+		MinTimeout: 5 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).DBv2.GetUser(d.Id(), username, "")
+	}, func(obj interface{}) string {
+		user := obj.(gocmcapiv2.DBv2User)
+		if user.Name != "" {
+			return "true"
+		}
+		return "false"
 	})
 }
 

@@ -76,7 +76,7 @@ func resourceMysqlUserCreate(d *schema.ResourceData, meta interface{}) error {
 	params := map[string]interface{}{
 		"username":        d.Get("username").(string),
 		"password":        d.Get("password").(string),
-		"allowHost":       strings.Join(getStringArrayFromTypeSet(d.Get("hosts").(*schema.Set)), ","),
+		"allowHost":       d.Get("host").(string), //strings.Join(getStringArrayFromTypeSet(d.Get("hosts").(*schema.Set)), ","),
 		"userPermissions": getMysqlUserPermission(d),
 	}
 	_, err := getClient(meta).MysqlInstance.CreateUser(d.Get("instance_id").(string), params)
@@ -87,21 +87,22 @@ func resourceMysqlUserCreate(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return fmt.Errorf("error creating mysql user: %v", err)
 	}
-	d.SetId(buildMysqlUserID(d.Get("instance_id").(string), d.Get("username").(string)))
+	d.SetId(buildMysqlUserID(d.Get("instance_id").(string), d.Get("username").(string), d.Get("host").(string)))
 	return resourceMysqlUserRead(d, meta)
 }
 
 func resourceMysqlUserRead(d *schema.ResourceData, meta interface{}) error {
-	instanceID, username, err := parseMysqlUserID(d.Id())
+	instanceID, username, host, err := parseMysqlUserID(d.Id())
 	if err != nil {
 		return err
 	}
-	user, err := getClient(meta).DBv2.GetUser(instanceID, username)
+	user, err := getClient(meta).DBv2.GetUser(instanceID, username, host)
 	if err != nil {
 		return fmt.Errorf("error retrieving mysql user %s/%s: %v", instanceID, username, err)
 	}
 	_ = d.Set("instance_id", instanceID)
 	_ = d.Set("username", user.Name)
+	_ = d.Set("host", user.Host)
 	return nil
 }
 
@@ -109,7 +110,7 @@ func resourceMysqlUserUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	id := d.Id()
 
-	if d.HasChange("password") || d.HasChange("hosts") || d.HasChange("user_permissions") {
+	if d.HasChange("password") || d.HasChange("host") || d.HasChange("user_permissions") {
 		// Lấy password và currentAllowHost là giá trị trước khi thay đổi
 		var oldPassword string
 		if d.HasChange("password") {
@@ -120,27 +121,33 @@ func resourceMysqlUserUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		var currentAllowHost string
-		if d.HasChange("hosts") {
-			oldHosts, _ := d.GetChange("hosts")
-			currentAllowHost = strings.Join(getStringArrayFromTypeSet(oldHosts.(*schema.Set)), ",")
+		if d.HasChange("host") {
+			oldHosts, _ := d.GetChange("host")
+			currentAllowHost = oldHosts.(string)
 		} else {
-			currentAllowHost = strings.Join(getStringArrayFromTypeSet(d.Get("hosts").(*schema.Set)), ",")
+			currentAllowHost = d.Get("host").(string)
 		}
+		// if d.HasChange("hosts") {
+		// 	oldHosts, _ := d.GetChange("hosts")
+		// 	currentAllowHost = strings.Join(getStringArrayFromTypeSet(oldHosts.(*schema.Set)), ",")
+		// } else {
+		// 	currentAllowHost = strings.Join(getStringArrayFromTypeSet(d.Get("hosts").(*schema.Set)), ",")
+		// }
 
 		params := map[string]interface{}{
 			"username":         d.Get("username").(string),
 			"newPassword":      d.Get("password").(string),
 			"password":         oldPassword,
 			"currentAllowHost": currentAllowHost,
-			"newAllowHost":     strings.Join(getStringArrayFromTypeSet(d.Get("hosts").(*schema.Set)), ","),
+			"newAllowHost":     d.Get("host").(string), //strings.Join(getStringArrayFromTypeSet(d.Get("hosts").(*schema.Set)), ","),
 			"userPermissions":  getMysqlUserPermission(d),
 		}
 
-		_, err := client.MysqlInstance.UpdateUser(id, params)
+		_, err := client.MysqlInstance.UpdateUser(d.Get("instance_id").(string), params)
 		if err != nil {
 			return fmt.Errorf("error when update mysql user %s: %v", id, err)
 		}
-		_, err = waitUntilPostgresInstanceJobFinished(d, meta, d.Timeout(schema.TimeoutUpdate))
+		_, err = waitUntilDatabaseUserFound(d, meta)
 		if err != nil {
 			return fmt.Errorf("error when update mysql user %s: %v", id, err)
 		}
@@ -148,17 +155,17 @@ func resourceMysqlUserUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourcePostgresInstanceRead(d, meta)
 }
 func resourceMysqlUserDelete(d *schema.ResourceData, meta interface{}) error {
-	instanceID, user, err := parseMysqlUserID(d.Id())
+	instanceID, username, host, err := parseMysqlUserID(d.Id())
 	if err != nil {
 		return err
 	}
-	_, err = getClient(meta).MysqlInstance.DeleteUser(instanceID, user)
+	_, err = getClient(meta).DBv2.DeleteUser(instanceID, username, host)
 	if err != nil {
-		return fmt.Errorf("error deleting mysql user %s/%s: %v", instanceID, user, err)
+		return fmt.Errorf("error deleting mysql user %s/%s/%s: %v", instanceID, username, host, err)
 	}
 	_, err = waitUntilDatabaseUserDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("error deleting mysql user %s/%s: %v", instanceID, user, err)
+		return fmt.Errorf("error deleting mysql user %s/%s/%s: %v", instanceID, username, host, err)
 	}
 	return nil
 }
@@ -168,16 +175,16 @@ func resourceMysqlUserImport(d *schema.ResourceData, meta interface{}) ([]*schem
 	return []*schema.ResourceData{d}, err
 }
 
-func buildMysqlUserID(instanceID string, username string) string {
-	return instanceID + "/user/" + username
+func buildMysqlUserID(instanceID string, username string, host string) string {
+	return instanceID + "/user/" + username + "/" + host
 }
 
-func parseMysqlUserID(id string) (string, string, error) {
+func parseMysqlUserID(id string) (string, string, string, error) {
 	parts := strings.Split(id, "/")
-	if len(parts) != 3 || parts[0] == "" || parts[2] == "" {
-		return "", "", fmt.Errorf("invalid id `%s`, expected format: <instance_id>/user/<username>", id)
+	if len(parts) != 4 || parts[0] == "" || parts[2] == "" || parts[3] == "" {
+		return "", "", "", fmt.Errorf("invalid id `%s`, expected format: <instance_id>/user/<name>/<host>", id)
 	}
-	return parts[0], parts[2], nil
+	return parts[0], parts[2], parts[3], nil
 }
 
 func waitUntilDatabaseUserDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
@@ -190,7 +197,7 @@ func waitUntilDatabaseUserDeleted(d *schema.ResourceData, meta interface{}) (int
 	}, func(obj interface{}) string {
 		users := obj.([]gocmcapiv2.DBv2User)
 		for _, t := range users {
-			if t.Name == d.Get("username").(string) {
+			if t.Name == d.Get("username").(string) && t.Host == d.Get("host").(string) {
 				return "false"
 			}
 		}
@@ -204,12 +211,12 @@ func waitUntilDatabaseUserFound(d *schema.ResourceData, meta interface{}) (inter
 		Delay:      5 * time.Second,
 		MinTimeout: 5 * time.Second,
 	}, func(id string) (any, error) {
-		return getClient(meta).DBv2.GetUser(d.Get("instance_id").(string), d.Get("username").(string))
+		return getClient(meta).DBv2.GetUser(d.Get("instance_id").(string), d.Get("username").(string), d.Get("host").(string))
 	}, func(obj interface{}) string {
 		user := obj.(gocmcapiv2.DBv2User)
-		if user.Name == d.Get("username").(string) {
+		if user.Name != "" {
 			return "true"
 		}
-		return ""
+		return "false"
 	})
 }

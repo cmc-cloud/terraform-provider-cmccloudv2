@@ -5,21 +5,21 @@ import (
 )
 
 type DBv2Service interface {
-	CreateUser(id string, topicId string, numPartitions int, replicationFactor int) (ActionResponse, error)
-	GetUser(id string, topicId string) (DBv2User, error)
+	GetUser(id string, userName string, host string) (DBv2User, error)
 	ListUsers(id string, params map[string]string) ([]DBv2User, error)
-	UpdateUser(id string, topicId string, partitions int, retentionDay int) (ActionResponse, error)
-	DeleteUser(id string, topicId string) (ActionResponse, error)
+	UpdateUser(id string, userName string, partitions int, retentionDay int) (ActionResponse, error)
+	DeleteUser(id string, userName string, host string) (ActionResponse, error)
 
-	// CreateDatabase(id string, topicId string, numPartitions int, replicationFactor int) (ActionResponse, error)
-	// GetDatabase(id string, topicId string) (DBv2Database, error)
+	// CreateDatabase(id string, userName string, numPartitions int, replicationFactor int) (ActionResponse, error)
+	// GetDatabase(id string, userName string) (DBv2Database, error)
 	// ListDatabases(id string, params map[string]string) ([]DBv2Database, error)
-	// UpdateDatabase(id string, topicId string, partitions int, retentionDay int) (ActionResponse, error)
-	// DeleteDatabase(id string, topicId string) (ActionResponse, error)
+	// UpdateDatabase(id string, userName string, partitions int, retentionDay int) (ActionResponse, error)
+	// DeleteDatabase(id string, userName string) (ActionResponse, error)
 }
 
 type DBv2User struct {
 	Name string `json:"name"`
+	Host string `json:"host"`
 }
 type DBv2Database struct {
 	Name string `json:"name"`
@@ -28,7 +28,7 @@ type dbv2 struct {
 	client *Client
 }
 
-func (v *dbv2) GetUser(id string, topicId string) (DBv2User, error) {
+func (v *dbv2) GetUser(id string, userName string, host string) (DBv2User, error) {
 	jsonStr, err := v.client.Get("cloudops-core/api/v1/dbaas/instance/"+id+"/users", map[string]string{})
 	var obj DBActionResponse
 	if err != nil {
@@ -45,7 +45,7 @@ func (v *dbv2) GetUser(id string, topicId string) (DBv2User, error) {
 		return DBv2User{}, err
 	}
 	for _, t := range topics {
-		if t.Name == topicId {
+		if t.Name == userName && (host == "" || t.Host == host) {
 			return t, nil
 		}
 	}
@@ -79,11 +79,11 @@ func (v *dbv2) ListUsers(id string, params map[string]string) ([]DBv2User, error
 	}
 	return topics, err
 }
-func (v *dbv2) CreateUser(id string, topicId string, numPartitions int, replicationFactor int) (ActionResponse, error) {
+func (v *dbv2) CreateUser(id string, userName string, numPartitions int, replicationFactor int) (ActionResponse, error) {
 	params := map[string]interface{}{
 		"command": "create_topic",
 		"body": map[string]interface{}{
-			"topicName":         topicId,
+			"topicName":         userName,
 			"numPartitions":     numPartitions,
 			"replicationFactor": replicationFactor,
 		},
@@ -91,15 +91,31 @@ func (v *dbv2) CreateUser(id string, topicId string, numPartitions int, replicat
 	return v.performAction(id, "db_action", params)
 }
 
-func (v *dbv2) DeleteUser(id string, topicId string) (ActionResponse, error) {
-	return v.client.PerformDeleteWithBody("cloudops-core/api/v1/dbaas/instances", map[string]interface{}{"instanceIds": []string{id}})
+func (v *dbv2) DeleteUser(id string, userName string, host string) (ActionResponse, error) {
+	params := map[string]interface{}{
+		"command": "drop_user",
+		"body": map[string]interface{}{
+			"username":  userName,
+			"allowHost": host,
+		},
+	}
+
+	bytes, _ := json.Marshal(params)
+	return v.client.PerformAction("cloudops-core/api/v1/dbaas/execute-action", map[string]interface{}{
+		"instanceId": id,
+		"action":     "db_action",
+		"requestData": map[string]interface{}{
+			"requestDbAction": string(bytes),
+		},
+		"requestId": genUUID(),
+	})
 }
 
-func (v *dbv2) UpdateUser(id string, topicId string, partitions int, retentionDay int) (ActionResponse, error) {
+func (v *dbv2) UpdateUser(id string, userName string, partitions int, retentionDay int) (ActionResponse, error) {
 	params := map[string]interface{}{
 		"command": "edit_topic_config",
 		"body": map[string]interface{}{
-			"topicName":   topicId,
+			"topicName":   userName,
 			"retentionMs": retentionDay * 86400000,
 			"partitions":  partitions,
 		},

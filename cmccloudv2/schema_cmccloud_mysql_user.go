@@ -25,14 +25,20 @@ func mysqlUserSchema() map[string]*schema.Schema {
 			Sensitive:   true,
 			Description: "Mysql user password",
 		},
-		"hosts": {
-			Type:        schema.TypeSet,
+		"host": {
+			Type:        schema.TypeString,
 			Optional:    true,
-			Description: "`%` to allow all IPs, specific IP address (e.g., 192.168.1.1) or multiple IP addresses",
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
-			},
+			Sensitive:   true,
+			Description: "Allow host for mysql user. `%` to allow all IPs, specific IP address (e.g., 192.168.1.1) or multiple IP addresses",
 		},
+		// "hosts": {
+		// 	Type:        schema.TypeSet,
+		// 	Optional:    true,
+		// 	Description: "`%` to allow all IPs, specific IP address (e.g., 192.168.1.1) or multiple IP addresses",
+		// 	Elem: &schema.Schema{
+		// 		Type: schema.TypeString,
+		// 	},
+		// },
 		"user_permissions": {
 			Type:        schema.TypeSet,
 			Optional:    true,

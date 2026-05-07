@@ -20,6 +20,9 @@ type KafkaInstanceService interface {
 	ListTopics(id string, params map[string]string) ([]KafkaTopic, error)
 	UpdateTopic(id string, topicId string, partitions int, retentionDay int) (ActionResponse, error)
 	DeleteTopic(id string, topicId string) (ActionResponse, error)
+
+	CreateUser(id string, username string, password string) (ActionResponse, error)
+	DeleteUser(id string, username string) (ActionResponse, error)
 }
 
 type KafkaInstanceWrapper struct {
@@ -280,4 +283,25 @@ func (v *kafkainstance) performAction(id string, action string, params map[strin
 			"requestDbAction": string(bytes),
 		},
 	})
+}
+
+func (v *kafkainstance) CreateUser(id string, username string, password string) (ActionResponse, error) {
+	params := map[string]interface{}{
+		"command": "add_user_sasl",
+		"body": map[string]interface{}{
+			"username": username,
+			"password": password,
+		},
+	}
+	return v.performAction(id, "db_action", params)
+}
+
+func (v *kafkainstance) DeleteUser(id string, username string) (ActionResponse, error) {
+	params := map[string]interface{}{
+		"command": "remove_user_sasl",
+		"body": map[string]interface{}{
+			"username": username,
+		},
+	}
+	return v.performAction(id, "db_action", params)
 }
