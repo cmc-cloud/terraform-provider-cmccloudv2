@@ -1,9 +1,44 @@
 package cmccloudv2
 
 import (
+	"fmt"
+	"regexp"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
+
+func validateKafkaUser(val interface{}, key string) (warns []string, errs []error) {
+	v, ok := val.(string)
+	if !ok {
+		errs = append(errs, fmt.Errorf("%q must be a string", key))
+		return
+	}
+
+	if len(v) < 2 {
+		errs = append(errs, fmt.Errorf("%q must be at least 2 characters long", key))
+		return
+	}
+
+	validUserRegex := `^[a-zA-Z][a-zA-Z0-9_-]*$`
+	matched, _ := regexp.MatchString(validUserRegex, v)
+	if !matched {
+		errs = append(errs, fmt.Errorf("%q must start with a letter and contain only letters, digits, _ and -", key))
+	}
+	return
+}
+
+func validateKafkaPassword(val interface{}, key string) (warns []string, errs []error) {
+	v, ok := val.(string)
+	if !ok {
+		errs = append(errs, fmt.Errorf("%q must be a string", key))
+		return
+	}
+	if len(v) < 8 || len(v) > 32 {
+		errs = append(errs, fmt.Errorf("%q password length must be from 8 to 32 characters", key))
+	}
+	return
+}
 
 func kafkaInstanceSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
@@ -90,16 +125,17 @@ func kafkaInstanceSchema() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"username": {
-						Type:        schema.TypeString,
-						Required:    true,
-						Description: "Username for user",
+						Type:         schema.TypeString,
+						Required:     true,
+						ValidateFunc: validateKafkaUser,
+						Description:  "Username for user",
 					},
 					"password": {
-						Type:      schema.TypeString,
-						Required:  true,
-						Sensitive: true,
-						// ValidateFunc: validateKafkaPassword,
-						Description: "Password for user",
+						Type:         schema.TypeString,
+						Required:     true,
+						Sensitive:    true,
+						ValidateFunc: validateKafkaPassword,
+						Description:  "Password for user",
 					},
 				},
 			},

@@ -184,9 +184,9 @@ func resourceKafkaInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("tags", convertTagsToSet(instance.Tags))
 	_ = d.Set("status", instance.Status)
 	_ = d.Set("created_at", instance.Created)
+
 	return nil
 }
-
 func resourceKafkaInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	id := d.Id()
@@ -199,41 +199,26 @@ func resourceKafkaInstanceUpdate(d *schema.ResourceData, meta interface{}) error
 	}
 	if d.HasChange("users") {
 		oldRaw, newRaw := d.GetChange("users")
-		oldUsers := []map[string]interface{}{}
-		newUsers := []map[string]interface{}{}
+		oldUsers := oldRaw.([]interface{})
+		newUsers := newRaw.([]interface{})
 
-		if oldRaw != nil {
-			for _, u := range oldRaw.([]interface{}) {
-				if u == nil {
-					continue
-				}
-				oldUsers = append(oldUsers, u.(map[string]interface{}))
-			}
-		}
-		if newRaw != nil {
-			for _, u := range newRaw.([]interface{}) {
-				if u == nil {
-					continue
-				}
-				newUsers = append(newUsers, u.(map[string]interface{}))
-			}
-		}
-
-		// Build maps for easier comparison
-		oldUserMap := make(map[string]map[string]interface{})
+		// Build set username từ old và new
+		oldUserMap := make(map[string]string)
 		for _, u := range oldUsers {
-			username := u["username"].(string)
-			oldUserMap[username] = u
-		}
-		newUserMap := make(map[string]map[string]interface{})
-		for _, u := range newUsers {
-			username := u["username"].(string)
-			newUserMap[username] = u
+			user := u.(map[string]interface{})
+			oldUserMap[user["username"].(string)] = user["password"].(string)
 		}
 
-		// Remove users that are in old but not in new
-		for username := range oldUserMap {
-			if _, found := newUserMap[username]; !found {
+		newUserMap := make(map[string]string)
+		for _, u := range newUsers {
+			user := u.(map[string]interface{})
+			newUserMap[user["username"].(string)] = user["password"].(string)
+		}
+
+		// Delete users không còn trong new list (kể cả đổi password)
+		for username, oldPassword := range oldUserMap {
+			newPassword, exists := newUserMap[username]
+			if !exists || newPassword != oldPassword {
 				_, err := client.KafkaInstance.DeleteUser(id, username)
 				if err != nil {
 					return err
@@ -245,21 +230,11 @@ func resourceKafkaInstanceUpdate(d *schema.ResourceData, meta interface{}) error
 			}
 		}
 
-		// Add/update users that are in new but not in old or whose password has changed
-		for username, newUser := range newUserMap {
-			oldUser, found := oldUserMap[username]
-			if !found {
-				if oldUser["password"].(string) != newUser["password"].(string) {
-					_, err := client.KafkaInstance.DeleteUser(id, username)
-					if err != nil {
-						return err
-					}
-					_, err = waitUntilKafkaUserDeleted(d, meta, username)
-					if err != nil {
-						return err
-					}
-				}
-				_, err := client.KafkaInstance.CreateUser(id, username, newUser["password"].(string))
+		// Create users mới (kể cả user đổi password)
+		for username, newPassword := range newUserMap {
+			oldPassword, exists := oldUserMap[username]
+			if !exists || oldPassword != newPassword {
+				_, err := client.KafkaInstance.CreateUser(id, username, newPassword)
 				if err != nil {
 					return err
 				}
