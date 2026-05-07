@@ -147,12 +147,12 @@ func dataSourceComputeDBaaSConfigurationAttributes(d *schema.ResourceData, confi
 
 	_ = d.Set("name", configuration.Name)
 	_ = d.Set("database_mode", configuration.DatastoreMode)
-	if configuration.ID2 != "" {
-		_ = d.Set("configuration_id", configuration.ID2)
-		d.SetId(configuration.ID2)
-	} else {
-		d.SetId(configuration.ID)
-		_ = d.Set("configuration_id", configuration.ID)
-	}
+	// if configuration.ID2 != "" {
+	// 	_ = d.Set("configuration_id", configuration.ID2)
+	// 	d.SetId(configuration.ID2)
+	// } else {
+	d.SetId(configuration.ID)
+	_ = d.Set("configuration_id", configuration.ID)
+	// }
 	return nil
 }

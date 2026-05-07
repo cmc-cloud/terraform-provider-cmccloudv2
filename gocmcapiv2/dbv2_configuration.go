@@ -18,8 +18,8 @@ type DBv2ConfigurationService interface {
 }
 
 type DBv2Configuration struct {
-	ID                 string                       `json:"id"`
-	ID2                string                       `json:"groupConfigId"`
+	// ID                 string                       `json:"id"`
+	ID                 string                       `json:"groupConfigId"`
 	Name               string                       `json:"name"`
 	Description        string                       `json:"description"`
 	DatastoreName      string                       `json:"datastoreName"`
