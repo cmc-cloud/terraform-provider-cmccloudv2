@@ -15,9 +15,10 @@ type KafkaInstanceService interface {
 	DetachSecurityGroupId(id string, securityGroupId string) (ActionResponse, error)
 	Resize(id string, flavorId string) (ActionResponse, error)
 	ResizeVolume(id string, volumeSize int) (ActionResponse, error)
-	CreateTopic(id string, params map[string]interface{}) (CreateResponse, error)
+	CreateTopic(id string, topicId string, numPartitions int, replicationFactor int) (ActionResponse, error)
 	GetTopic(id string, topicId string) (KafkaTopic, error)
-	ListTopic(id string, params map[string]string) ([]KafkaTopic, error)
+	ListTopics(id string, params map[string]string) ([]KafkaTopic, error)
+	UpdateTopic(id string, topicId string, partitions int, retentionDay int) (ActionResponse, error)
 	DeleteTopic(id string, topicId string) (ActionResponse, error)
 }
 
@@ -54,9 +55,7 @@ type KafkaTopicWrapper struct {
 }
 
 type KafkaTopic struct {
-	ID     string `json:"id"`
-	Name   string `json:"name"`
-	Status string `json:"status"`
+	Name string `json:"name"`
 }
 type KafkaInstanceCreateResponse struct {
 	Data struct {
@@ -117,8 +116,8 @@ func (v *kafkainstance) List(params map[string]string) ([]KafkaInstance, error) 
 
 // Get kafkainstance detail
 func (v *kafkainstance) GetTopic(id string, topicId string) (KafkaTopic, error) {
-	jsonStr, err := v.client.Get("cloudops-core/api/v1/dbaas/instance/"+id, map[string]string{"v": "2"})
-	var obj KafkaTopicWrapper
+	jsonStr, err := v.client.Get("cloudops-core/api/v1/dbaas/instance/"+id+"/topics", map[string]string{})
+	var obj DBActionResponse
 	if err != nil {
 		return KafkaTopic{}, err
 	}
@@ -126,21 +125,46 @@ func (v *kafkainstance) GetTopic(id string, topicId string) (KafkaTopic, error) 
 	if err != nil {
 		return KafkaTopic{}, err
 	}
-	return obj.Data, err
+	actionID := obj.Data.ActionID
+	var topics []KafkaTopic
+	topics, err = WaitForActionResult[KafkaTopic](v.client, "cloudops-core/api/v1/dbaas/instance/"+id+"/actions/"+actionID, actionID, 2)
+	if err != nil {
+		return KafkaTopic{}, err
+	}
+	for _, t := range topics {
+		if t.Name == topicId {
+			return t, nil
+		}
+	}
+	return KafkaTopic{}, err
 }
 
-func (v *kafkainstance) ListTopic(id string, params map[string]string) ([]KafkaTopic, error) {
-	jsonStr, err := v.client.Get("cloudops-core/api/v1/dbaas/instances", params)
-	var obj KafkaTopicListWrapper
+// Get kafkainstance detail
+func (v *kafkainstance) GetAction(id string, actionID string) (string, error) {
+	jsonStr, err := v.client.Get("cloudops-core/api/v1/dbaas/instance/"+id+"/actions/"+actionID, map[string]string{})
+	if err != nil {
+		return "", err
+	}
+	return jsonStr, err
+}
+
+func (v *kafkainstance) ListTopics(id string, params map[string]string) ([]KafkaTopic, error) {
+	jsonStr, err := v.client.Get("cloudops-core/api/v1/dbaas/instance/"+id+"/topics", params)
+	var obj DBActionResponse
 	if err != nil {
 		return []KafkaTopic{}, err
 	}
 	err = json.Unmarshal([]byte(jsonStr), &obj)
-
 	if err != nil {
 		return []KafkaTopic{}, err
 	}
-	return obj.Data.Docs, err
+	actionID := obj.Data.ActionID
+	var topics []KafkaTopic
+	topics, err = WaitForActionResult[KafkaTopic](v.client, "cloudops-core/api/v1/dbaas/instance/"+id+"/actions/"+actionID, actionID, 2)
+	if err != nil {
+		return []KafkaTopic{}, err
+	}
+	return topics, err
 }
 func (v *kafkainstance) ListDatastore() ([]Datastore, error) {
 	jsonStr, err := v.client.Get("cloudops-core/api/v1/dbaas/datastore?datastoreCode=kafka", map[string]string{})
@@ -198,8 +222,8 @@ func (v *kafkainstance) ResizeVolume(id string, volumeSize int) (ActionResponse,
 	})
 }
 
-func (s *kafkainstance) Create(params map[string]interface{}) (KafkaInstanceCreateResponse, error) {
-	jsonStr, err := s.client.Post("cloudops-core/api/v1/dbaas/instance", params)
+func (v *kafkainstance) Create(params map[string]interface{}) (KafkaInstanceCreateResponse, error) {
+	jsonStr, err := v.client.Post("cloudops-core/api/v1/dbaas/instance", params)
 	var response KafkaInstanceCreateResponse
 	if err != nil {
 		return response, err
@@ -208,10 +232,40 @@ func (s *kafkainstance) Create(params map[string]interface{}) (KafkaInstanceCrea
 	return response, err
 }
 
-func (s *kafkainstance) CreateTopic(id string, params map[string]interface{}) (CreateResponse, error) {
-	return s.client.PerformCreate("cloudops-core/api/v1/dbaas/instance/"+id, params)
+func (v *kafkainstance) CreateTopic(id string, topicId string, numPartitions int, replicationFactor int) (ActionResponse, error) {
+	params := map[string]interface{}{
+		"command": "create_topic",
+		"body": map[string]interface{}{
+			"topicName":         topicId,
+			"numPartitions":     numPartitions,
+			"replicationFactor": replicationFactor,
+		},
+	}
+	return v.performAction(id, "db_action", params)
 }
 
 func (v *kafkainstance) DeleteTopic(id string, topicId string) (ActionResponse, error) {
 	return v.client.PerformDeleteWithBody("cloudops-core/api/v1/dbaas/instances", map[string]interface{}{"instanceIds": []string{id}})
+}
+
+func (v *kafkainstance) UpdateTopic(id string, topicId string, partitions int, retentionDay int) (ActionResponse, error) {
+	params := map[string]interface{}{
+		"command": "edit_topic_config",
+		"body": map[string]interface{}{
+			"topicName":   topicId,
+			"retentionMs": retentionDay * 86400000,
+			"partitions":  partitions,
+		},
+	}
+	return v.performAction(id, "db_action", params)
+}
+func (v *kafkainstance) performAction(id string, action string, params map[string]interface{}) (ActionResponse, error) {
+	bytes, _ := json.Marshal(params)
+	return v.client.PerformAction("cloudops-core/api/v1/dbaas/execute-action", map[string]interface{}{
+		"instanceId": id,
+		"action":     action,
+		"requestData": map[string]interface{}{
+			"requestDbAction": string(bytes),
+		},
+	})
 }

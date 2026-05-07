@@ -29,7 +29,7 @@ resource "cmccloudv2_mysql_instance" "mysql_instance_replica1" {
 		key = "ver"
 		value = "v1"
 	}
-    quantity_of_secondary = 2
+    quantity_of_slave = 2
 }
 
 # create mysql in Standalone mode

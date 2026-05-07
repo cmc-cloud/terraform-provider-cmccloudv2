@@ -12,7 +12,7 @@ resource "cmccloudv2_redis_configuration" "redis_conf_1" {
     }
 }
 # create cluster redis configuration
-resource "cmccloudv2_redis_configuration" "redis_conf_1" {   
+resource "cmccloudv2_redis_configuration" "redis_conf_2" {   
     name             = "redis-config-5sac"
     database_engine  = "Redis"
     database_version = "6.0"
@@ -25,7 +25,7 @@ resource "cmccloudv2_redis_configuration" "redis_conf_1" {
     }
 }
 # create standalone redis configuration
-resource "cmccloudv2_redis_configuration" "redis_conf_1" {   
+resource "cmccloudv2_redis_configuration" "redis_conf_3" {   
     name             = "redis-config-5sac"
     database_engine  = "Redis"
     database_version = "6.0"

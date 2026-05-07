@@ -32,15 +32,15 @@ func resourceCDN() *schema.Resource {
 				if !isSet(diff, "s3_access_key") || !isSet(diff, "s3_secret_key") || !isSet(diff, "s3_bucket_name") || !isSet(diff, "s3_region") || !isSet(diff, "s3_endpoint") {
 					return fmt.Errorf("when `origin_type` is 's3', `s3_access_key, s3_secret_key, s3_bucket_name, s3_region, s3_endpoint must be set")
 				}
-				if !isSet(diff, "domain_or_ip") || !isSet(diff, "protocol") || !isSet(diff, "port") || !isSet(diff, "origin_path") {
-					return fmt.Errorf("when `origin_type` is 's3', `domain_or_ip, protocol, port, origin_path must not be set")
+				if isSet(diff, "domain_or_ip") || isSet(diff, "protocol") || isSet(diff, "port") || isSet(diff, "origin_path") {
+					return fmt.Errorf("when `origin_type` is 's3', domain_or_ip, protocol, port, origin_path must not be set")
 				}
 			case "host":
 				if isSet(diff, "s3_access_key") || isSet(diff, "s3_secret_key") || isSet(diff, "s3_bucket_name") || isSet(diff, "s3_region") || isSet(diff, "s3_endpoint") {
 					return fmt.Errorf("when `origin_type` is 'host', `s3_access_key, s3_secret_key, s3_bucket_name, s3_region, s3_endpoint must not be set")
 				}
 				if !isSet(diff, "domain_or_ip") || !isSet(diff, "protocol") || !isSet(diff, "port") || !isSet(diff, "origin_path") {
-					return fmt.Errorf("when `origin_type` is 'host', `domain_or_ip, protocol, port, origin_path must be set")
+					return fmt.Errorf("when `origin_type` is 'host', domain_or_ip, protocol, port, origin_path must be set")
 				}
 			}
 			if vod {

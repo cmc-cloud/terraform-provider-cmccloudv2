@@ -1,5 +1,5 @@
 #create a simple EIP
-resource "cmccloudv2_eip" "eip_terraform" {    
+resource "cmccloudv2_eip" "eip_terraform1" {    
     billing_mode 		= "monthly" 
     domestic_bandwidth 	= 500 
     inter_bandwidth 	= 10
@@ -7,7 +7,7 @@ resource "cmccloudv2_eip" "eip_terraform" {
 }
 
 #create a EIP with advance options
-resource "cmccloudv2_eip" "eip_terraform" {    
+resource "cmccloudv2_eip" "eip_terraform2" {    
     billing_mode 		= "monthly" 
     domestic_bandwidth 	= 500 
     inter_bandwidth 	= 10

@@ -21,17 +21,6 @@ resource "cmccloudv2_cdn" "cdn2" {
 	s3_endpoint    = "s3.hn-1.cloud.cmctelecom.vn"
 }
 
-# create cdn for a VOD site 
-resource "cmccloudv2_cdn" "cdn3" {
- vod          = true
- name         = "bongda"
- origin_type  = "host"
- domain_or_ip = "bongda.com.vn"
- protocol     = "https"
- port         = 443
-}
-
-
 # create cdn for a VOD site with S3
 resource "cmccloudv2_cdn" "cdn4" {
 	vod            = true

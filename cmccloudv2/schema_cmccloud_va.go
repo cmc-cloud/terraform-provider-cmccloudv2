@@ -23,7 +23,7 @@ func vaSchema() map[string]*schema.Schema {
 		},
 		"schedule": {
 			Type:        schema.TypeString,
-			Required:    true,
+			Optional:    true,
 			ForceNew:    true,
 			Description: "The schedule of the VA, example `2026-01-25 01:00:50`. If not set, it will run immediately",
 		},

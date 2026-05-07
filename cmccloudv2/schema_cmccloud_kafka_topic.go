@@ -2,10 +2,18 @@ package cmccloudv2
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func kafkaTopicSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
+		"instance_id": {
+			Type:         schema.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validateUUID,
+			Description:  "The id of the Kafka instance",
+		},
 		"name": {
 			Type:         schema.TypeString,
 			Required:     true,
@@ -14,24 +22,25 @@ func kafkaTopicSchema() map[string]*schema.Schema {
 			Description:  "The name of the Kafka topic",
 		},
 		"partition_count": {
-			Type:        schema.TypeInt,
-			Required:    true,
-			Description: "Number of partitions in a topic. More partitions = more parallel processing (higher throughput).",
+			Type:         schema.TypeInt,
+			Optional:     true,
+			Default:      6,
+			ValidateFunc: validation.IntBetween(1, 14),
+			Description:  "Number of partitions in a topic. More partitions = more parallel processing (higher throughput).",
 		},
 		"replication_factor": {
 			Type:        schema.TypeInt,
-			Required:    true,
+			Optional:    true,
+			Default:     1,
+			ForceNew:    true,
 			Description: "Number of copies of each partition across brokers. Higher = better fault tolerance and data safety.",
 		},
-		"status": {
-			Type:        schema.TypeString,
-			Computed:    true,
-			Description: "The status of the Kafka topic",
-		},
-		"created_at": {
-			Type:        schema.TypeString,
-			Computed:    true,
-			Description: "The created time of the Kafka topic",
+		"rentation_day": {
+			Type:         schema.TypeInt,
+			Optional:     true,
+			Default:      7,
+			ValidateFunc: validation.IntBetween(1, 99999),
+			Description:  "Number of partitions in a topic. More partitions = more parallel processing (higher throughput).",
 		},
 	}
 }

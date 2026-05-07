@@ -2,7 +2,6 @@ package cmccloudv2
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/cmc-cloud/terraform-provider-cmccloudv2/gocmcapiv2"
@@ -25,21 +24,39 @@ func resourceKafkaTopic() *schema.Resource {
 		},
 		SchemaVersion: 1,
 		Schema:        kafkaTopicSchema(),
+		// Rule: (do not allow decreasing partition_count)
+		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+			oldRaw, newRaw := diff.GetChange("partition_count")
+
+			oldVal := oldRaw.(int)
+			newVal := newRaw.(int)
+
+			if newVal < oldVal {
+				return fmt.Errorf("partition_count of kafka topic [%s] cannot be decreased", diff.Get("name").(string))
+			}
+
+			return nil
+		},
 	}
 }
 
 func resourceKafkaTopicCreate(d *schema.ResourceData, meta interface{}) error {
 	// #endregion
 	client := meta.(*CombinedConfig).goCMCClient()
-	params := map[string]interface{}{}
-	instance, err := client.KafkaInstance.CreateTopic(d.Get("instance_id").(string), params)
+	_, err := client.KafkaInstance.CreateTopic(d.Get("instance_id").(string), d.Get("name").(string),
+		d.Get("partition_count").(int), d.Get("replication_factor").(int))
 	if err != nil {
 		return fmt.Errorf("error creating Kafka Topic: %s", err)
 	}
-	d.SetId(instance.ID)
-	_, err = waitUntilKafkaTopicJobFinished(d, meta, d.Timeout(schema.TimeoutCreate))
+	_, err = waitUntilKafkaTopicFound(d, meta)
 	if err != nil {
 		return fmt.Errorf("error creating Kafka Topic: %s", err)
+	}
+	d.SetId(d.Get("instance_id").(string) + "/" + d.Get("name").(string))
+
+	_, err = client.KafkaInstance.UpdateTopic(d.Get("instance_id").(string), d.Get("name").(string), d.Get("partition_count").(int), d.Get("rentation_day").(int))
+	if err != nil {
+		return fmt.Errorf("error when update kafka topic [%s]: %v", d.Get("name").(string), err)
 	}
 
 	return resourceKafkaTopicRead(d, meta)
@@ -47,20 +64,22 @@ func resourceKafkaTopicCreate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceKafkaTopicRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).goCMCClient()
-	instance, err := client.KafkaInstance.GetTopic(d.Get("instance_id").(string), d.Id())
+	instance, err := client.KafkaInstance.GetTopic(d.Get("instance_id").(string), d.Get("name").(string))
 	if err != nil {
 		return fmt.Errorf("error retrieving Kafka Topic %s: %v", d.Id(), err)
 	}
-	_ = d.Set("id", instance.ID)
 	_ = d.Set("name", instance.Name)
-	// _ = d.Set("status", instance.Status)
-	// _ = d.Set("created_at", instance.Created)
 	return nil
 }
 
 func resourceKafkaTopicUpdate(d *schema.ResourceData, meta interface{}) error {
-	// client := meta.(*CombinedConfig).goCMCClient()
-	// id := d.Id()
+	client := meta.(*CombinedConfig).goCMCClient()
+	if d.HasChange("rentation_day") || d.HasChange("partition_count") {
+		_, err := client.KafkaInstance.UpdateTopic(d.Get("instance_id").(string), d.Get("name").(string), d.Get("partition_count").(int), d.Get("rentation_day").(int))
+		if err != nil {
+			return fmt.Errorf("error when update kafka topic [%s]: %v", d.Get("name").(string), err)
+		}
+	}
 
 	return resourceKafkaTopicRead(d, meta)
 }
@@ -70,11 +89,11 @@ func resourceKafkaTopicDelete(d *schema.ResourceData, meta interface{}) error {
 	_, err := client.KafkaInstance.DeleteTopic(d.Get("instance_id").(string), d.Id())
 
 	if err != nil {
-		return fmt.Errorf("error delete kafka database instance: %v", err)
+		return fmt.Errorf("error delete kafka topic: %v", err)
 	}
 	_, err = waitUntilKafkaTopicDeleted(d, meta)
 	if err != nil {
-		return fmt.Errorf("error delete kafka database instance: %v", err)
+		return fmt.Errorf("error delete kafka topic: %v", err)
 	}
 	return nil
 }
@@ -84,54 +103,36 @@ func resourceKafkaTopicImport(d *schema.ResourceData, meta interface{}) ([]*sche
 	return []*schema.ResourceData{d}, err
 }
 
-func waitUntilKafkaTopicJobFinished(d *schema.ResourceData, meta interface{}, timeout time.Duration) (interface{}, error) {
-	return waitUntilResourceStatusChanged(d, meta, []string{"HEALTHY", "RUNNING", "ACTIVE", "READY", "STABLE"}, []string{"ERROR", "SHUTDOWN", "FAILURE"}, WaitConf{
-		Timeout:    timeout,
-		Delay:      10 * time.Second,
-		MinTimeout: 20 * time.Second,
-	}, func(id string) (any, error) {
-		return getClient(meta).KafkaInstance.GetTopic(d.Get("instance_id").(string), d.Id())
-	}, func(obj interface{}) string {
-		return strings.ToUpper(obj.(gocmcapiv2.KafkaTopic).Status)
-	})
-}
-
 func waitUntilKafkaTopicDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
-	return waitUntilResourceDeleted(d, meta, WaitConf{
-		Delay:      10 * time.Second,
-		MinTimeout: 20 * time.Second,
+	return waitUntilResourceStatusChanged(d, meta, []string{"true"}, []string{"false"}, WaitConf{
+		Timeout:    40 * time.Second,
+		Delay:      5 * time.Second,
+		MinTimeout: 5 * time.Second,
 	}, func(id string) (any, error) {
-		return getClient(meta).KafkaInstance.GetTopic(d.Get("instance_id").(string), d.Id())
+		return getClient(meta).KafkaInstance.ListTopics(d.Get("instance_id").(string), map[string]string{})
+	}, func(obj interface{}) string {
+		topics := obj.([]gocmcapiv2.KafkaTopic)
+		for _, t := range topics {
+			if t.Name == d.Get("name").(string) {
+				return "false"
+			}
+		}
+		return ""
 	})
 }
 
-// func waitUntilKafkaTopicAttachFinished(d *schema.ResourceData, meta interface{}, securityGroupId string) (interface{}, error) {
-// 	return waitUntilResourceStatusChanged(d, meta, []string{"true"}, []string{"error"}, WaitConf{
-// 		Timeout:    40 * time.Second,
-// 		Delay:      5 * time.Second,
-// 		MinTimeout: 5 * time.Second,
-// 	}, func(id string) (any, error) {
-// 		return getClient(meta).KafkaInstance.GetTopic(d.Get("instance_id").(string), d.Id())
-// 	}, func(obj interface{}) string {
-// 		// instance := obj.(gocmcapiv2.KafkaTopic)
-// 		// if strings.Contains(instance.SecurityClientIds, securityGroupId) {
-// 		// 	return "true"
-// 		// }
-// 		return ""
-// 	})
-// }
-// func waitUntilKafkaTopicDetachFinished(d *schema.ResourceData, meta interface{}, securityGroupId string) (interface{}, error) {
-// 	return waitUntilResourceStatusChanged(d, meta, []string{"true"}, []string{"error"}, WaitConf{
-// 		Timeout:    40 * time.Second,
-// 		Delay:      5 * time.Second,
-// 		MinTimeout: 5 * time.Second,
-// 	}, func(id string) (any, error) {
-// 		return getClient(meta).KafkaInstance.GetTopic(d.Get("instance_id").(string), d.Id())
-// 	}, func(obj interface{}) string {
-// 		// instance := obj.(gocmcapiv2.KafkaTopic)
-// 		// if !strings.Contains(instance.SecurityClientIds, securityGroupId) {
-// 		// 	return "true"
-// 		// }
-// 		return ""
-// 	})
-// }
+func waitUntilKafkaTopicFound(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+	return waitUntilResourceStatusChanged(d, meta, []string{"true"}, []string{"false"}, WaitConf{
+		Timeout:    40 * time.Second,
+		Delay:      5 * time.Second,
+		MinTimeout: 5 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).KafkaInstance.GetTopic(d.Get("instance_id").(string), d.Get("name").(string))
+	}, func(obj interface{}) string {
+		topic := obj.(gocmcapiv2.KafkaTopic)
+		if topic.Name == d.Get("name").(string) {
+			return "true"
+		}
+		return ""
+	})
+}

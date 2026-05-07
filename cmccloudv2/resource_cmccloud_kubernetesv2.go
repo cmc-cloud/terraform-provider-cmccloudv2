@@ -146,7 +146,7 @@ func resourceKubernetesv2Read(d *schema.ResourceData, meta interface{}) error {
 	// setInt(d, "node_mask_cidr", kubernetes.NodeMaskCidr)
 	// setString(d, "network_driver_mode", kubernetes.ClusterNetworkDriverMode)
 	_ = d.Set("ntp_servers", convertNtpServers(kubernetes.NtpServers))
-
+	_ = d.Set("master_flavor_name", kubernetes.MasterFlavorId)
 	status, err := client.Kubernetesv2.GetStatus(d.Id())
 	if err != nil {
 		return fmt.Errorf("error retrieving Kubernetesv2 status %s: %v", d.Id(), err)
@@ -155,7 +155,7 @@ func resourceKubernetesv2Read(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("enable_autoscale", status.EnableAutoScale)
 	_ = d.Set("enable_monitoring", status.EnableMonitor)
 
-	// "zone":                        d.Get("zone").(string),
+	_ = d.Set("zone", kubernetes.Zone)
 	// 	"workerNumberEstimate":        d.Get("max_node_count").(int),
 
 	return nil
