@@ -146,10 +146,10 @@ func (v *dbv2configuration) UpdateParameters(id string, params map[string]interf
 
 func (s *dbv2configuration) Create(params map[string]interface{}) (DBv2Configuration, error) {
 	jsonStr, err := s.client.Post("cloudops-core/api/v1/dbaas/group-configuration", params)
-	var response DBv2Configuration
+	var response DBv2ConfigurationWrapper
 	if err != nil {
-		return response, err
+		return DBv2Configuration{}, err
 	}
 	err = json.Unmarshal([]byte(jsonStr), &response)
-	return response, err
+	return response.Data, err
 }

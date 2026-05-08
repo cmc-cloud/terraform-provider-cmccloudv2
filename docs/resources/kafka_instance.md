@@ -104,5 +104,5 @@ Optional:
 
 Required:
 
-- `password` (String, Sensitive) Password for user
-- `username` (String) Username for user
+- `password` (String, Sensitive) Password for user. Password must not contain special characters, length from 8 to 32 characters including upper and lower case letters and numbers
+- `username` (String) Username for user. Valid characters: letters, digits, _ and - (start with a letter), minium length = 8

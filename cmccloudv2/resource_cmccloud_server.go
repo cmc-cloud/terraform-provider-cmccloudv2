@@ -138,7 +138,7 @@ func readOrImport(d *schema.ResourceData, meta interface{}, isImport bool) error
 		for _, v := range volumes {
 			for _, att := range v.Attachments {
 				if att.Device == "/dev/vda" {
-					_ = d.Set("volume_type", v.VolumeTypeID)
+					_ = d.Set("volume_type", v.VolumeType)
 					_ = d.Set("volume_size", v.Size)
 					_ = d.Set("volume_name", v.Name)
 
