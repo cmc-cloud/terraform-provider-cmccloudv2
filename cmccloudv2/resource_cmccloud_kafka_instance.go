@@ -215,17 +215,32 @@ func resourceKafkaInstanceUpdate(d *schema.ResourceData, meta interface{}) error
 			newUserMap[user["username"].(string)] = user["password"].(string)
 		}
 
+		// Lấy danh sách users thực sự trên instance hiện tại
+		currentUsers, err := client.DBv2.ListKafkaUsers(id, map[string]string{})
+		if err != nil {
+			return fmt.Errorf("error retrieving current kafka users: %v", err)
+		}
 		// Delete users không còn trong new list (kể cả đổi password)
 		for username, oldPassword := range oldUserMap {
 			newPassword, exists := newUserMap[username]
 			if !exists || newPassword != oldPassword {
-				_, err := client.KafkaInstance.DeleteUser(id, username)
-				if err != nil {
-					return err
+				// Only delete if the username exists in currentUsers
+				userExists := false
+				for _, u := range currentUsers {
+					if u.Name == username {
+						userExists = true
+						break
+					}
 				}
-				_, err = waitUntilKafkaUserDeleted(d, meta, username)
-				if err != nil {
-					return err
+				if userExists {
+					_, err := client.KafkaInstance.DeleteUser(id, username)
+					if err != nil {
+						return err
+					}
+					_, err = waitUntilKafkaUserDeleted(d, meta, username)
+					if err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -362,7 +377,7 @@ func waitUntilKafkaInstanceDeleted(d *schema.ResourceData, meta interface{}) (in
 
 func waitUntilKafkaUserDeleted(d *schema.ResourceData, meta interface{}, username string) (interface{}, error) {
 	return waitUntilResourceStatusChanged(d, meta, []string{"true"}, []string{"false"}, WaitConf{
-		Timeout:    40 * time.Second,
+		Timeout:    120 * time.Second,
 		Delay:      5 * time.Second,
 		MinTimeout: 5 * time.Second,
 	}, func(id string) (any, error) {
@@ -380,7 +395,7 @@ func waitUntilKafkaUserDeleted(d *schema.ResourceData, meta interface{}, usernam
 
 func waitUntilKafkaUserFound(d *schema.ResourceData, meta interface{}, username string) (interface{}, error) {
 	return waitUntilResourceStatusChanged(d, meta, []string{"true"}, []string{"false"}, WaitConf{
-		Timeout:    40 * time.Second,
+		Timeout:    120 * time.Second,
 		Delay:      5 * time.Second,
 		MinTimeout: 5 * time.Second,
 	}, func(id string) (any, error) {

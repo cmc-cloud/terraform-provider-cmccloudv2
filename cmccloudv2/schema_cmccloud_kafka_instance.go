@@ -15,8 +15,8 @@ func validateKafkaUser(val interface{}, key string) (warns []string, errs []erro
 		return
 	}
 
-	if len(v) < 2 {
-		errs = append(errs, fmt.Errorf("%q must be at least 2 characters long", key))
+	if len(v) < 8 {
+		errs = append(errs, fmt.Errorf("%q must be at least 8 characters long", key))
 		return
 	}
 
@@ -36,6 +36,11 @@ func validateKafkaPassword(val interface{}, key string) (warns []string, errs []
 	}
 	if len(v) < 8 || len(v) > 32 {
 		errs = append(errs, fmt.Errorf("%q password length must be from 8 to 32 characters", key))
+	}
+	passwordRegex := `^[a-zA-Z0-9]+$`
+	matched, _ := regexp.MatchString(passwordRegex, v)
+	if !matched {
+		errs = append(errs, fmt.Errorf("%q password must only contain upper and lower case letters and numbers (no special characters allowed)", key))
 	}
 	return
 }
@@ -128,14 +133,14 @@ func kafkaInstanceSchema() map[string]*schema.Schema {
 						Type:         schema.TypeString,
 						Required:     true,
 						ValidateFunc: validateKafkaUser,
-						Description:  "Username for user",
+						Description:  "Username for user. Valid characters: letters, digits, _ and - (start with a letter), minium length = 8",
 					},
 					"password": {
 						Type:         schema.TypeString,
 						Required:     true,
 						Sensitive:    true,
 						ValidateFunc: validateKafkaPassword,
-						Description:  "Password for user",
+						Description:  "Password for user. Password must not contain special characters, length from 8 to 32 characters including upper and lower case letters and numbers",
 					},
 				},
 			},
