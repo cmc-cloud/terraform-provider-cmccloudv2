@@ -131,6 +131,7 @@ func serverSchema() map[string]*schema.Schema {
 		"user_data": {
 			Type:        schema.TypeString,
 			Optional:    true,
+			Computed:    true,
 			ForceNew:    true,
 			Description: "User data of server, it will be executed when the server is created",
 		},
