@@ -140,7 +140,7 @@ func dataSourceEFSRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if len(allEFSs) > 1 {
-		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allEFSs)
+		gocmcapiv2.Logo("[DEBUG] Multiple results found: ", allEFSs)
 		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 

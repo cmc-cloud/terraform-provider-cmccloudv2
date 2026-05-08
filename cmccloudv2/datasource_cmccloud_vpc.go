@@ -96,7 +96,7 @@ func dataSourceVPCRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if len(allVPCs) > 1 {
-		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allVPCs)
+		gocmcapiv2.Logo("[DEBUG] Multiple results found: ", allVPCs)
 		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 

@@ -135,7 +135,7 @@ func dataSourceDBaaSConfigurationRead(d *schema.ResourceData, meta interface{}, 
 	}
 
 	if len(allDBaaSConfigurations) > 1 {
-		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allDBaaSConfigurations)
+		gocmcapiv2.Logo("[DEBUG] Multiple results found: ", allDBaaSConfigurations)
 		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 

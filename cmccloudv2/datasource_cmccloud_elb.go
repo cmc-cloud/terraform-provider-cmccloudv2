@@ -81,7 +81,7 @@ func dataSourceELBRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if len(allELBs) > 1 {
-		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allELBs)
+		gocmcapiv2.Logo("[DEBUG] Multiple results found: ", allELBs)
 		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 

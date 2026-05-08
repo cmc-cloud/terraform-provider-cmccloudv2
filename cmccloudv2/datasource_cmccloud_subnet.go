@@ -107,7 +107,7 @@ func dataSourceSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if len(allSubnets) > 1 {
-		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allSubnets)
+		gocmcapiv2.Logo("[DEBUG] Multiple results found: ", allSubnets)
 		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 

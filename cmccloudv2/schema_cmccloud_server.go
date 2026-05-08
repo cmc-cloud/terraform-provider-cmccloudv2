@@ -61,6 +61,7 @@ func serverSchema() map[string]*schema.Schema {
 		"volume_name": {
 			Type:         schema.TypeString,
 			Optional:     true,
+			Computed:     true,
 			Description:  "Name of root volume",
 			ValidateFunc: validation.NoZeroValues,
 		},

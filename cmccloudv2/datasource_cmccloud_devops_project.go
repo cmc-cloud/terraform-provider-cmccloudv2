@@ -102,7 +102,7 @@ func dataSourceDevopsProjectRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if len(allDevopsProjects) > 1 {
-		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allDevopsProjects)
+		gocmcapiv2.Logo("[DEBUG] Multiple results found: ", allDevopsProjects)
 		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 

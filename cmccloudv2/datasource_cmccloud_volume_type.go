@@ -114,7 +114,7 @@ func dataSourceVolumeTypeRead(d *schema.ResourceData, meta interface{}, for_data
 	}
 
 	if len(allVolumeTypes) > 1 {
-		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allVolumeTypes)
+		gocmcapiv2.Logo("[DEBUG] Multiple results found: ", allVolumeTypes)
 		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 

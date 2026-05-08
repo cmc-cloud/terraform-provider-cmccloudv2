@@ -144,7 +144,7 @@ func dataSourceEIPRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if len(allEIPs) > 1 {
-		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allEIPs)
+		gocmcapiv2.Logo("[DEBUG] Multiple results found: ", allEIPs)
 		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 

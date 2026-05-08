@@ -130,7 +130,7 @@ func dataSourceVolumeBackupRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	if len(allBackups) > 1 {
-		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allBackups)
+		gocmcapiv2.Logo("[DEBUG] Multiple results found: ", allBackups)
 
 		// if v, ok := d.GetOkExists("is_latest"); ok {
 		// 	if v.(bool) {

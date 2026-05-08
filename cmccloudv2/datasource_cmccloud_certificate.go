@@ -76,7 +76,7 @@ func dataSourceCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if len(allCertificates) > 1 {
-		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allCertificates)
+		gocmcapiv2.Logo("[DEBUG] Multiple results found: ", allCertificates)
 		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 

@@ -65,7 +65,7 @@ func dataSourceIamCustomRoleRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if len(alls) > 1 {
-		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", alls)
+		gocmcapiv2.Logo("[DEBUG] Multiple results found: ", alls)
 		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 

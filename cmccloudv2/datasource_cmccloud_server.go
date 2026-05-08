@@ -160,7 +160,7 @@ func dataSourceServerRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if len(allServers) > 1 {
-		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allServers)
+		gocmcapiv2.Logo("[DEBUG] Multiple results found: ", allServers)
 		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 

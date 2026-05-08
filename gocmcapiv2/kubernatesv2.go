@@ -202,7 +202,7 @@ type Kubernetesv2 struct {
 	ClusterNetworkDriverMode string      `json:"clusterNetworkDriverMode"`
 	NtpServers               []NtpServer `json:"ntpServers"`
 	Zone                     string      `json:"zone"`
-	MasterFlavorId           int         `json:"masterFlavorId"`
+	MasterFlavorId           string      `json:"masterFlavorId"`
 }
 type NtpServer struct {
 	Host     string `json:"host"`

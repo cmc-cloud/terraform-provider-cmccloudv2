@@ -90,7 +90,7 @@ func dataSourceKeyManagementContainerRead(d *schema.ResourceData, meta interface
 	}
 
 	if len(allKeyManagementContainers) > 1 {
-		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allKeyManagementContainers)
+		gocmcapiv2.Logo("[DEBUG] Multiple results found: ", allKeyManagementContainers)
 		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 

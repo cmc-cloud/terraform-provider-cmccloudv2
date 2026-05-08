@@ -79,7 +79,7 @@ func dataSourceAutoScalingConfigurationRead(d *schema.ResourceData, meta interfa
 	}
 
 	if len(allAutoScalingConfigurations) > 1 {
-		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allAutoScalingConfigurations)
+		gocmcapiv2.Logo("[DEBUG] Multiple results found: ", allAutoScalingConfigurations)
 		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 

@@ -88,7 +88,7 @@ func dataSourceContainerRegistryRepositoryRead(d *schema.ResourceData, meta inte
 	}
 
 	if len(allContainerRegistryRepositorys) > 1 {
-		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allContainerRegistryRepositorys)
+		gocmcapiv2.Logo("[DEBUG] Multiple results found: ", allContainerRegistryRepositorys)
 		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 

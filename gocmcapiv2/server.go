@@ -3,6 +3,7 @@ package gocmcapiv2
 import (
 	"encoding/json"
 	"strconv"
+	"strings"
 )
 
 // ServerService interface
@@ -62,15 +63,20 @@ type VolumeAttachment struct {
 		ServerID     string `json:"server_id"`
 		VolumeID     string `json:"volume_id"`
 	} `json:"attachments"`
-	DeleteOnTermination bool `json:"delete_on_termination"`
+	DeleteOnTermination bool   `json:"delete_on_termination"`
+	Name                string `json:"name"`
+	VolumeType          string `json:"volume_type"`
+	VolumeTypeID        string `json:"volume_type_id"`
+	Size                int    `json:"size"`
+	VolumeImageMetadata *struct {
+		ImageID   string `json:"image_id"`
+		ImageName string `json:"image_name"`
+	} `json:"volume_image_metadata"`
 	// Status             string `json:"status"`
-	// Size               int    `json:"size"`
 	// AvailabilityZone   string `json:"availability_zone"`
 	// CreatedAt          string `json:"created_at"`
 	// UpdatedAt          string `json:"updated_at"`
-	// Name               string `json:"name"`
 	// Description        any    `json:"description"`
-	// VolumeType         string `json:"volume_type"`
 	// SnapshotID         any    `json:"snapshot_id"`
 	// SourceVolid        any    `json:"source_volid"`
 	// Metadata           []any  `json:"metadata"`
@@ -116,6 +122,8 @@ type Server struct {
 	Description      string                `json:"description"`
 	Tags             []Tag                 `json:"tags"`
 	Nics             []Nic                 `json:"nics"`
+	Image            json.RawMessage       `json:"image"`
+
 	// Metadata   []any  `json:"metadata"`
 	// Image      string `json:"image"`
 	// DisplayText  string   `json:"display_text"`
@@ -125,6 +133,25 @@ type Server struct {
 
 type server struct {
 	client *Client
+}
+
+func (s *Server) GetImageID() string {
+	if len(s.Image) == 0 {
+		return ""
+	}
+
+	raw := strings.TrimSpace(string(s.Image))
+	if raw == `""` || raw == "null" || raw == "" {
+		return ""
+	}
+
+	var image struct {
+		ID string `json:"id"`
+	}
+	if err := json.Unmarshal(s.Image, &image); err != nil {
+		return ""
+	}
+	return image.ID
 }
 
 // Get server detail

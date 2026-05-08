@@ -110,7 +110,7 @@ func dataSourceVolumeSnapshotRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if len(allSnapshots) > 1 {
-		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allSnapshots)
+		gocmcapiv2.Logo("[DEBUG] Multiple results found: ", allSnapshots)
 
 		if v, ok := d.GetOk("is_latest"); ok {
 			if v.(bool) {

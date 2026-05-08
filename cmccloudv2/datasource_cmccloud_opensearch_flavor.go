@@ -98,7 +98,7 @@ func datasourceFlavorForOpenSearchRead(d *schema.ResourceData, meta interface{},
 	}
 
 	if len(allFlavors) > 1 {
-		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allFlavors)
+		gocmcapiv2.Logo("[DEBUG] Multiple results found: ", allFlavors)
 		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 

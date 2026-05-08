@@ -95,7 +95,7 @@ func dataSourceImageRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if len(allImages) > 1 {
-		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allImages)
+		gocmcapiv2.Logo("[DEBUG] Multiple results found: ", allImages)
 		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 

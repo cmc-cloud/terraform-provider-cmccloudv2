@@ -89,7 +89,7 @@ func dataSourceKeyManagementSecretRead(d *schema.ResourceData, meta interface{})
 	}
 
 	if len(allKeyManagementSecrets) > 1 {
-		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allKeyManagementSecrets)
+		gocmcapiv2.Logo("[DEBUG] Multiple results found: ", allKeyManagementSecrets)
 		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 

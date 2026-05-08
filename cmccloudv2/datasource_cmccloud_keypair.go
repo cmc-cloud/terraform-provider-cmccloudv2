@@ -84,7 +84,7 @@ func dataSourceKeypairRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if len(allKeypairs) > 1 {
-		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allKeypairs)
+		gocmcapiv2.Logo("[DEBUG] Multiple results found: ", allKeypairs)
 		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 

@@ -113,7 +113,7 @@ func dataSourceAutoScalingGroupRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if len(allAutoScalingGroups) > 1 {
-		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allAutoScalingGroups)
+		gocmcapiv2.Logo("[DEBUG] Multiple results found: ", allAutoScalingGroups)
 		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 

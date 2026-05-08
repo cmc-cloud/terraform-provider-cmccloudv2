@@ -129,6 +129,35 @@ func readOrImport(d *schema.ResourceData, meta interface{}, isImport bool) error
 	if len(server.VolumesAttached) > 0 {
 		_ = d.Set("delete_on_termination", server.VolumesAttached[0].DeleteOnTermination)
 	}
+	if isImport {
+		volumes, err := client.Server.GetVolumeAttachments(d.Id())
+		if err != nil {
+			return fmt.Errorf("error retrieving server volumes %s: %v", d.Id(), err)
+		}
+		// find volume root (volume with device = '/dev/vda')
+		for _, v := range volumes {
+			for _, att := range v.Attachments {
+				if att.Device == "/dev/vda" {
+					_ = d.Set("volume_type", v.VolumeTypeID)
+					_ = d.Set("volume_size", v.Size)
+					_ = d.Set("volume_name", v.Name)
+
+					if v.VolumeImageMetadata != nil {
+						imageID := v.VolumeImageMetadata.ImageID
+						_ = d.Set("source_type", "image")
+						_ = d.Set("source_id", imageID)
+					} else if server.Image != nil {
+						imageID := server.GetImageID()
+						if imageID != "" {
+							_ = d.Set("source_type", "image")
+							_ = d.Set("source_id", imageID)
+						}
+					}
+					break
+				}
+			}
+		}
+	}
 	if len(server.Nics) > 0 {
 		if isImport {
 			// khong set, neu set co the bi sai neu co >= 2 interfaces

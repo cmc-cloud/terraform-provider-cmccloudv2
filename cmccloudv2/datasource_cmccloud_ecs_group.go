@@ -81,7 +81,7 @@ func dataSourceEcsGroupRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if len(allEcsGroups) > 1 {
-		gocmcapiv2.Logo("[DEBUG] Multiple results found: %#v", allEcsGroups)
+		gocmcapiv2.Logo("[DEBUG] Multiple results found: ", allEcsGroups)
 		return fmt.Errorf("your query returned more than one result. Please try a more specific search criteria")
 	}
 
