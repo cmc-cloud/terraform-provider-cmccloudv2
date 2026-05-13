@@ -1,18 +1,18 @@
-data "cmccloudv2_opensearch_flavor" "os_small" { 
+data "cmccloudv2_opensearch_flavor" "os_small" {
     name = "os.small.1"
-} 
-data "cmccloudv2_opensearch_dashboard_flavor" "dash_small" { 
+}
+data "cmccloudv2_opensearch_dashboard_flavor" "dash_small" {
     name = "dash.small"
-}  
+}
 # create opensearch 
-resource "cmccloudv2_opensearch" "opensearch1" { 
+resource "cmccloudv2_opensearch" "opensearch1" {
     billing_mode                  = "monthly"
-    name                          = "os-55ys"   
+    name                          = "os-55ys"
     version                       = "2.19.5"
-    flavor_id                     = "${data.cmccloudv2_opensearch_flavor.os_small.id}"
-    dashboard_flavor_id           = "${data.cmccloudv2_opensearch_dashboard_flavor.dash_small.id}"
-    volume_size                   = 20   
-    admin_password                = "SV<9wsb7rhhbapb" 
+    flavor_id                     = data.cmccloudv2_opensearch_flavor.os_small.id
+    dashboard_flavor_id           = data.cmccloudv2_opensearch_dashboard_flavor.dash_small.id
+    volume_size                   = 20
+    admin_password                = "SV<9wsb7rhhbapb"
     node_count                    = 2
     enable_isolate_master         = true
     master_count                  = 3
@@ -28,8 +28,12 @@ resource "cmccloudv2_opensearch" "opensearch1" {
     storage_autoscaling_threshold = 80
     storage_autoscaling_increment = 10
     storage_autoscaling_max       = 5000
+    api_domain                    = "api-os-55ys.internal"
+    dashboard_domain              = "dashboard-os-55ys.internal"
+    lb_source_cidrs               = ["143.20.0.0/16"]
+    lb_dashboard_source_cidrs     = ["143.20.0.0/16"]
     tags {
-        key = "env"
+        key   = "env"
         value = "prod"
     }
 }

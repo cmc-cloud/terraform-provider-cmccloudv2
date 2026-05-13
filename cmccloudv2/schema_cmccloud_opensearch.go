@@ -169,6 +169,26 @@ func opensearchSchema() map[string]*schema.Schema {
 				return false //old != new
 			},
 		},
+		"lb_source_cidrs": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Allowed Source CIDRs",
+			Elem: &schema.Schema{
+				Type:         schema.TypeString,
+				ValidateFunc: validateIPCidrRange,
+				Description:  "Allowd cidr",
+			},
+		},
+		"lb_dashboard_source_cidrs": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Dashboard allowed Source CIDRs",
+			Elem: &schema.Schema{
+				Type:         schema.TypeString,
+				ValidateFunc: validateIPCidrRange,
+				Description:  "Allowd cidr",
+			},
+		},
 		"tags": tagSchema(),
 		"status": {
 			Type:        schema.TypeString,

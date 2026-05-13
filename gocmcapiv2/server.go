@@ -65,7 +65,7 @@ type VolumeAttachment struct {
 	} `json:"attachments"`
 	DeleteOnTermination bool   `json:"delete_on_termination"`
 	Name                string `json:"name"`
-	VolumeType          string `json:"volume_type"`
+	VolumeTypeName      string `json:"volume_type"`
 	VolumeTypeID        string `json:"volume_type_id"`
 	Size                int    `json:"size"`
 	VolumeImageMetadata *struct {

@@ -32,6 +32,7 @@ func Provider() terraform.ResourceProvider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
+			"cmccloudv2_image":            resourceImage(),
 			"cmccloudv2_server":           resourceServer(),
 			"cmccloudv2_server_interface": resourceServerInterface(),
 

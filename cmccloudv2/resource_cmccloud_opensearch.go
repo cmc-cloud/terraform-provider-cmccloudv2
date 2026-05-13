@@ -107,6 +107,8 @@ func resourceOpenSearchCreate(d *schema.ResourceData, meta interface{}) error {
 		"dashboard_domain":              d.Get("dashboard_domain").(string),
 		"enable_lb_internal":            true, // d.Get("enable_lb_internal").(bool),
 		"tags":                          d.Get("tags").(*schema.Set).List(),
+		"lb_source_cidrs":               d.Get("lb_source_cidrs").([]interface{}),
+		"lb_dashboard_source_cidrs":     d.Get("lb_dashboard_source_cidrs").([]interface{}),
 		// "enable_drain_nodes":            true, //d.Get("enable_drain_nodes").(bool),
 		// "snapshot_deletion_cron":       d.Get("snapshot_deletion_cron").(string),
 	}
@@ -155,6 +157,8 @@ func resourceOpenSearchRead(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("volume_size", instance.VolumeSize)
 	_ = d.Set("api_domain", instance.ApiDomain)
 	_ = d.Set("dashboard_domain", instance.DashboardDomain)
+	_ = d.Set("lb_source_cidrs", instance.LbSourceCidrs)
+	_ = d.Set("lb_dashboard_source_cidrs", instance.LbDashboardSourceCidrs)
 	_ = d.Set("tags", convertTagsToSet(instance.Tags))
 	_ = d.Set("status", instance.Status)
 	_ = d.Set("created_at", instance.Created)

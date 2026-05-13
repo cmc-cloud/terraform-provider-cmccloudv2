@@ -7,7 +7,10 @@ import (
 // ImageService interface
 type ImageService interface {
 	Get(id string) (Image, error)
+	CreateFromVolume(volumeId string, params map[string]interface{}) (Image, error)
 	List(params map[string]string) ([]Image, error)
+	Update(id string, params map[string]interface{}) (ActionResponse, error)
+	Delete(id string) (ActionResponse, error)
 }
 
 // Image object
@@ -42,12 +45,32 @@ func (v *image) Get(id string) (Image, error) {
 	return vpc, err
 }
 
-func (s *image) List(params map[string]string) ([]Image, error) {
-	restext, err := s.client.Get("image", params)
+func (v *image) List(params map[string]string) ([]Image, error) {
+	restext, err := v.client.Get("image", params)
 	images := make([]Image, 0)
 	if err != nil {
 		return images, err
 	}
 	err = json.Unmarshal([]byte(restext), &images)
 	return images, err
+}
+
+// Create image from volume
+func (v *image) CreateFromVolume(volumeId string, params map[string]interface{}) (Image, error) {
+	jsonStr, err := v.client.Post("volume/"+volumeId+"/upload_to_image", params)
+	var response Image
+	if err != nil {
+		return response, err
+	}
+	err = json.Unmarshal([]byte(jsonStr), &response)
+	return response, err
+}
+
+func (v *image) Update(id string, params map[string]interface{}) (ActionResponse, error) {
+	return v.client.PerformUpdate("image/"+id, params)
+}
+
+// Delete a server
+func (v *image) Delete(id string) (ActionResponse, error) {
+	return v.client.PerformDelete("image/" + id)
 }

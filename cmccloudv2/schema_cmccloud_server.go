@@ -1,6 +1,7 @@
 package cmccloudv2
 
 import (
+	"github.com/cmc-cloud/terraform-provider-cmccloudv2/gocmcapiv2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -134,6 +135,12 @@ func serverSchema() map[string]*schema.Schema {
 			Computed:    true,
 			ForceNew:    true,
 			Description: "User data of server, it will be executed when the server is created",
+			DiffSuppressFunc: func(k, oldVal, newVal string, d *schema.ResourceData) bool {
+				// Bỏ qua diff nếu old value rỗng (trường hợp import)
+				gocmcapiv2.Logo("DiffSuppressFunc oldVal=", oldVal)
+				gocmcapiv2.Logo("DiffSuppressFunc newVal=", newVal)
+				return oldVal == ""
+			},
 		},
 		"password": {
 			Type:         schema.TypeString,

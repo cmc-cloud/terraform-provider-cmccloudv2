@@ -13,7 +13,7 @@ resource "cmccloudv2_server" "example_01" {
     source_type          = "image"
     volume_name          = "root-example-01"
     volume_size          = 30
-    volume_type          = data.cmccloudv2_volume_type.ssd.id
+    volume_type          = "${data.cmccloudv2_volume_type.ssd.id}"
     subnet_id            = "be679ec3-e661-4010-8e9e-f8c041a68dc7"
     key_name             = "keypair-rm74"
     security_group_names = ["default"]
@@ -29,7 +29,7 @@ resource "cmccloudv2_server" "example_02" {
     source_type          = "image"
     volume_name          = "root-2ds6"
     volume_size          = 30
-    volume_type          = data.cmccloudv2_volume_type.ssd.id
+    volume_type          = "${data.cmccloudv2_volume_type.ssd.id}"
     subnet_id            = "be679ec3-e661-4010-8e9e-f8c041a68dc7"
     password             = "UGFuq1TqeC@"
     security_group_names = ["default"]
@@ -45,7 +45,7 @@ resource "cmccloudv2_server" "example_03" {
     source_type          = "backup"
     volume_name          = "root-example-03"
     volume_size          = 30
-    volume_type          = data.cmccloudv2_volume_type.ssd.id
+    volume_type          = "${data.cmccloudv2_volume_type.ssd.id}"
     subnet_id            = "be679ec3-e661-4010-8e9e-f8c041a68dc7"
     password             = "UGFuq1TqeC@"
     security_group_names = ["default"]
@@ -62,7 +62,7 @@ resource "cmccloudv2_server" "example_04" {
     source_type           = "image"
     volume_name           = "root-example-04"
     volume_size           = 30
-    volume_type           = data.cmccloudv2_volume_type.ssd.id
+    volume_type           = "${data.cmccloudv2_volume_type.ssd.id}"
     subnet_id             = "be679ec3-e661-4010-8e9e-f8c041a68dc7"
     password              = "UGFuq1TqeC@"
     ip_address            = "192.168.0.55"
