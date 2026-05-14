@@ -27,7 +27,7 @@ resource "cmccloudv2_server" "example_01" {
     source_type          = "image"
     volume_name          = "root-example-01"
     volume_size          = 30
-    volume_type          = data.cmccloudv2_volume_type.ssd.id
+    volume_type          = "${data.cmccloudv2_volume_type.ssd.id}"
     subnet_id            = "be679ec3-e661-4010-8e9e-f8c041a68dc7"
     key_name             = "keypair-rm74"
     security_group_names = ["default"]
@@ -43,28 +43,11 @@ resource "cmccloudv2_server" "example_02" {
     source_type          = "image"
     volume_name          = "root-2ds6"
     volume_size          = 30
-    volume_type          = data.cmccloudv2_volume_type.ssd.id
+    volume_type          = "${data.cmccloudv2_volume_type.ssd.id}"
     subnet_id            = "be679ec3-e661-4010-8e9e-f8c041a68dc7"
     password             = "UGFuq1TqeC@"
     security_group_names = ["default"]
 }
-
-# Create instance from backup/snapshot
-resource "cmccloudv2_server" "example_03" {
-    name                 = "example-03"
-    billing_mode         = "monthly"
-    zone                 = "AZ1"
-    flavor_id            = "2b9dea6e-f628-446b-91f9-1122cff5a418"
-    source_id            = "58e458bc-c04e-4bc7-bb12-1b4dbc115a7c" # backup id
-    source_type          = "backup"
-    volume_name          = "root-example-03"
-    volume_size          = 30
-    volume_type          = data.cmccloudv2_volume_type.ssd.id
-    subnet_id            = "be679ec3-e661-4010-8e9e-f8c041a68dc7"
-    password             = "UGFuq1TqeC@"
-    security_group_names = ["default"]
-}
-
 
 # Create instance with advance optiopns: ip address & server group & security group & start script (user_data)
 resource "cmccloudv2_server" "example_04" {
@@ -76,7 +59,7 @@ resource "cmccloudv2_server" "example_04" {
     source_type           = "image"
     volume_name           = "root-example-04"
     volume_size           = 30
-    volume_type           = data.cmccloudv2_volume_type.ssd.id
+    volume_type           = "${data.cmccloudv2_volume_type.ssd.id}"
     subnet_id             = "be679ec3-e661-4010-8e9e-f8c041a68dc7"
     password              = "UGFuq1TqeC@"
     ip_address            = "192.168.0.55"

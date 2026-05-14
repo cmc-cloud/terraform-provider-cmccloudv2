@@ -35,23 +35,6 @@ resource "cmccloudv2_server" "example_02" {
     security_group_names = ["default"]
 }
 
-# Create instance from backup/snapshot
-resource "cmccloudv2_server" "example_03" {
-    name                 = "example-03"
-    billing_mode         = "monthly"
-    zone                 = "AZ1"
-    flavor_id            = "2b9dea6e-f628-446b-91f9-1122cff5a418"
-    source_id            = "58e458bc-c04e-4bc7-bb12-1b4dbc115a7c" # backup id
-    source_type          = "backup"
-    volume_name          = "root-example-03"
-    volume_size          = 30
-    volume_type          = "${data.cmccloudv2_volume_type.ssd.id}"
-    subnet_id            = "be679ec3-e661-4010-8e9e-f8c041a68dc7"
-    password             = "UGFuq1TqeC@"
-    security_group_names = ["default"]
-}
-
-
 # Create instance with advance optiopns: ip address & server group & security group & start script (user_data)
 resource "cmccloudv2_server" "example_04" {
     name                  = "example-04"
