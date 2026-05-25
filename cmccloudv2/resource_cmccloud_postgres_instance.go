@@ -101,10 +101,25 @@ func resourcePostgresInstanceCreate(d *schema.ResourceData, meta interface{}) er
 		"datastore_type": datastoreTypeId,
 		// "datastore_version": datastoreVersionId,
 	}
+
 	backupId := d.Get("backup_id").(string)
+	restoreInfo := map[string]interface{}{
+		"type":        nil,
+		"backupId":    nil,
+		"instanceId":  nil,
+		"timeRestore": nil,
+	}
+	params["source_type"] = "new"
 	if backupId != "" {
 		params["source_type"] = "restore"
 		params["source_id"] = backupId
+
+		restoreInfo = map[string]interface{}{
+			"type":        nil,
+			"backupId":    backupId,
+			"instanceId":  nil,
+			"timeRestore": nil,
+		}
 	}
 
 	requestMetadata := map[string]interface{}{
@@ -112,13 +127,8 @@ func resourcePostgresInstanceCreate(d *schema.ResourceData, meta interface{}) er
 		"adminPassword":   d.Get("admin_password").(string),
 		"enablePitr":      true,
 		"retentionPeriod": d.Get("retention_period").(int),
-		"createType":      "",
-		"restoreInfo": map[string]interface{}{
-			"type":        "",
-			"backupId":    backupId,
-			"instanceId":  "",
-			"timeRestore": "",
-		},
+		"createType":      params["source_type"],
+		"restoreInfo":     restoreInfo,
 	}
 	if backupId != "" {
 		requestMetadata["createType"] = "restore"

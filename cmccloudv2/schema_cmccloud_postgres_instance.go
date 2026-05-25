@@ -113,7 +113,6 @@ func postgresInstanceSchema() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Optional:    true,
 			ForceNew:    true,
-			Default:     2,
 			Description: "Flavor of Proxy, required if mode is ha_cluster",
 		},
 		"proxy_quantity": {
