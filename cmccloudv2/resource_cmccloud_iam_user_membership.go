@@ -2,6 +2,7 @@ package cmccloudv2
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -36,20 +37,21 @@ func resourceIamUserMembershipCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceIamUserMembershipRead(d *schema.ResourceData, meta interface{}) error {
 	id := d.Id()
-	parts := make([]string, 2)
-	splitIdx := -1
-	for i := 0; i < len(id); i++ {
-		if id[i] == '-' {
-			splitIdx = i
-			break
-		}
+
+	splitIdx := strings.LastIndex(id, "-")
+	if splitIdx == -1 {
+		return fmt.Errorf("invalid ID format: %s", id)
 	}
-	if splitIdx != -1 {
-		parts[0] = id[:splitIdx]
-		parts[1] = id[splitIdx+1:]
-		_ = d.Set("group_name", parts[0])
-		_ = d.Set("user_name", parts[1])
+
+	groupName := id[:splitIdx]
+	userName := id[splitIdx+1:]
+
+	if groupName == "" || userName == "" {
+		return fmt.Errorf("invalid ID format: %s", id)
 	}
+
+	_ = d.Set("group_name", groupName)
+	_ = d.Set("user_name", userName)
 
 	return nil
 }
