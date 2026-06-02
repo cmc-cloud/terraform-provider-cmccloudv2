@@ -129,14 +129,18 @@ func serverSchema() map[string]*schema.Schema {
 			Description: "The name of a key pair to put on the server. The key pair must already be created and associated with the current account. Changing this creates a new server",
 		},
 		"user_data": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Computed:    true,
+			Type:     schema.TypeString,
+			Optional: true,
+			// Computed:    true,
 			ForceNew:    true,
 			Description: "User data of server, it will be executed when the server is created",
 			DiffSuppressFunc: func(k, oldVal, newVal string, d *schema.ResourceData) bool {
 				// Bỏ qua diff nếu old value rỗng (trường hợp import)
-				return oldVal == ""
+				if d.Id() != "" && oldVal == "" {
+					// Đây là trường hợp import thật sự
+					return true
+				}
+				return false
 			},
 		},
 		"password": {
