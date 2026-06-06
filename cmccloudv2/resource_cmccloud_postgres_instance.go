@@ -161,7 +161,7 @@ func resourcePostgresInstanceCreate(d *schema.ResourceData, meta interface{}) er
 	}
 	d.SetId(instance.Data.InstanceID)
 
-	_, err = client.Tag.UpdateTag(instance.Data.InstanceID, "POSTGRES", d)
+	_, err = client.Tag.UpdateTag(instance.Data.InstanceID, "POSTGRESQL", d)
 	if err != nil {
 		fmt.Printf("error updating Postgres tags: %s\n", err)
 	}
@@ -209,7 +209,7 @@ func resourcePostgresInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 	id := d.Id()
 
 	if d.HasChange("tags") {
-		_, err := client.Tag.UpdateTag(id, "POSTGRES", d)
+		_, err := client.Tag.UpdateTag(id, "POSTGRESQL", d)
 		if err != nil {
 			return fmt.Errorf("error when set postgres tags [%s]: %v", id, err)
 		}

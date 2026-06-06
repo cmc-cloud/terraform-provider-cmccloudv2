@@ -88,7 +88,7 @@ func resourceSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 			"cidr":             d.Get("cidr").(string),
 		})
 		if err != nil {
-			return fmt.Errorf("error when rename Subnet [%s]: %v", id, err)
+			return fmt.Errorf("error when update Subnet [%s]: %v", id, err)
 		}
 	}
 	return resourceSubnetRead(d, meta)
