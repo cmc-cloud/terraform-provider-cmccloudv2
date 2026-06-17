@@ -170,7 +170,7 @@ func opensearchSchema() map[string]*schema.Schema {
 			},
 		},
 		"lb_source_cidrs": {
-			Type:        schema.TypeString,
+			Type:        schema.TypeList,
 			Optional:    true,
 			Description: "Allowed Source CIDRs",
 			Elem: &schema.Schema{
@@ -180,7 +180,7 @@ func opensearchSchema() map[string]*schema.Schema {
 			},
 		},
 		"lb_dashboard_source_cidrs": {
-			Type:        schema.TypeString,
+			Type:        schema.TypeList,
 			Optional:    true,
 			Description: "Dashboard allowed Source CIDRs",
 			Elem: &schema.Schema{

@@ -239,7 +239,7 @@ func waitUntilELBListenerDeleted(d *schema.ResourceData, meta interface{}) (inte
 }
 
 func waitUntilELBListenerStatusChangedState(d *schema.ResourceData, meta interface{}, targetStatus []string, errorStatus []string, timeout time.Duration) (interface{}, error) {
-	return waitUntilResourceStatusChanged(d, meta, targetStatus, errorStatus, WaitConf{
+	res, err := waitUntilResourceStatusChanged(d, meta, targetStatus, errorStatus, WaitConf{
 		Timeout:    timeout,
 		Delay:      10 * time.Second,
 		MinTimeout: 30 * time.Second,
@@ -248,6 +248,10 @@ func waitUntilELBListenerStatusChangedState(d *schema.ResourceData, meta interfa
 	}, func(obj interface{}) string {
 		return obj.(gocmcapiv2.ELBListener).ProvisioningStatus
 	})
+	if err == nil {
+		time.Sleep(5 * time.Second)
+	}
+	return res, err
 }
 
 func getElbIdFromPool(meta interface{}, pool_id string) (string, error) {

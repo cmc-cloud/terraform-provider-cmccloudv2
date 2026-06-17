@@ -158,6 +158,7 @@ func resourceELBRead(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("description", elb.Description)
 	_ = d.Set("operating_status", elb.OperatingStatus)
 	_ = d.Set("provisioning_status", elb.ProvisioningStatus)
+	_ = d.Set("ip_address", elb.VipAddress)
 	setString(d, "vip_address", elb.VipAddress)
 	if network_type == "public" {
 		_ = d.Set("bandwidth_mbps", elb.DomesticBandwidthMbps)
@@ -196,7 +197,7 @@ func waitUntilELBDeleted(d *schema.ResourceData, meta interface{}) (interface{},
 }
 
 func waitUntilELBStatusChangedState(d *schema.ResourceData, meta interface{}, targetStatus []string, errorStatus []string, timeout time.Duration) (interface{}, error) {
-	return waitUntilResourceStatusChanged(d, meta, targetStatus, errorStatus, WaitConf{
+	res, err := waitUntilResourceStatusChanged(d, meta, targetStatus, errorStatus, WaitConf{
 		Timeout:    timeout,
 		Delay:      10 * time.Second,
 		MinTimeout: 30 * time.Second,
@@ -205,4 +206,8 @@ func waitUntilELBStatusChangedState(d *schema.ResourceData, meta interface{}, ta
 	}, func(obj interface{}) string {
 		return obj.(gocmcapiv2.ELB).ProvisioningStatus
 	})
+	if err == nil {
+		time.Sleep(5 * time.Second)
+	}
+	return res, err
 }

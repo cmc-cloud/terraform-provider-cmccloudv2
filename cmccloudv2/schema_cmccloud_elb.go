@@ -70,6 +70,11 @@ func elbSchema() map[string]*schema.Schema {
 			Computed:    true,
 			Description: "The creation time of the ELB",
 		},
+		"ip_address": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "The IP address of the ELB",
+		},
 		"provisioning_status": {
 			Type:        schema.TypeString,
 			Computed:    true,

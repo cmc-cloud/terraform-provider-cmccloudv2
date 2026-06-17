@@ -153,7 +153,7 @@ func waitUntilEELBL7PolicyDeleted(d *schema.ResourceData, meta interface{}) (int
 }
 
 func waitUntilELBL7PolicyStatusChangedState(resource_id string, d *schema.ResourceData, meta interface{}, targetStatus []string, errorStatus []string, timeout time.Duration) (interface{}, error) {
-	return waitUntilResourceIdStatusChanged(resource_id, d, meta, targetStatus, errorStatus, WaitConf{
+	res, err := waitUntilResourceIdStatusChanged(resource_id, d, meta, targetStatus, errorStatus, WaitConf{
 		Timeout:    timeout,
 		Delay:      10 * time.Second,
 		MinTimeout: 30 * time.Second,
@@ -162,4 +162,8 @@ func waitUntilELBL7PolicyStatusChangedState(resource_id string, d *schema.Resour
 	}, func(obj interface{}) string {
 		return obj.(gocmcapiv2.L7Policy).ProvisioningStatus
 	})
+	if err == nil {
+		time.Sleep(5 * time.Second)
+	}
+	return res, err
 }

@@ -2,6 +2,7 @@ package cmccloudv2
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/cmc-cloud/terraform-provider-cmccloudv2/gocmcapiv2"
@@ -55,6 +56,18 @@ func resourceELBPoolMemberCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	member, err := client.ELB.CreatePoolMember(d.Get("pool_id").(string), params)
+
+	for i := 0; err != nil && i < 12*10; i++ { // retry tối đa 5 phút
+		if strings.Contains(err.Error(), "is immutable") {
+			time.Sleep(5 * time.Second)
+
+			member, err = client.ELB.CreatePoolMember(d.Get("pool_id").(string), params)
+			continue
+		}
+
+		return fmt.Errorf("error creating ELB Pool Member: %s", err)
+	}
+
 	if err != nil {
 		return fmt.Errorf("error creating ELB Pool Member: %s", err)
 	}
