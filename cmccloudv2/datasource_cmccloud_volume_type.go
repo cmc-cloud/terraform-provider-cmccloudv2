@@ -73,7 +73,7 @@ func dataSourceVolumeTypeRead(d *schema.ResourceData, meta interface{}, for_data
 		}
 		allVolumeTypes = append(allVolumeTypes, volumetype)
 	} else {
-		params := map[string]string{}
+		params := map[string]string{"show_encryption": "true"}
 		volumetypes, err := client.VolumeType.List(params)
 		if err != nil {
 			return fmt.Errorf("error when get volume types %v", err)

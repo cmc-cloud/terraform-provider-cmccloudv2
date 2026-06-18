@@ -48,6 +48,8 @@ func Provider() terraform.ResourceProvider {
 			"cmccloudv2_eip_port_forwarding_rule": resourceEIPPortForwardingRule(),
 			"cmccloudv2_eip_port":                 resourceEIPPort(),
 
+			"cmccloudv2_port_config": resourcePortConfig(),
+
 			"cmccloudv2_elb":               resourceELB(),
 			"cmccloudv2_elb_pool":          resourceELBPool(),
 			"cmccloudv2_elb_listener":      resourceELBListener(),
@@ -200,6 +202,7 @@ func Provider() terraform.ResourceProvider {
 			"cmccloudv2_iam_custom_role":             datasourceIamCustomRole(),
 			"cmccloudv2_devops_project":              datasourceDevopsProject(),
 			"cmccloudv2_container_registry_repo":     datasourceContainerRegistryRepository(),
+			"cmccloudv2_port":                        datasourcePort(),
 		},
 	}
 	p.ConfigureFunc = func(d *schema.ResourceData) (interface{}, error) {

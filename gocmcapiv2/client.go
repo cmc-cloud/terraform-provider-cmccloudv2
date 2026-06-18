@@ -96,6 +96,7 @@ type Client struct {
 	Tag                        TagService
 	StorageGateway             StorageGatewayService
 	DBv2                       DBv2Service
+	Port                       PortService
 	// RedisConfiguration         RedisConfigurationService
 	// PostgresAutoBackup         PostgresAutoBackupService
 }
@@ -192,6 +193,7 @@ func NewClient(configs ClientConfigs) (*Client, error) {
 	c.BillingMode = &billingmode{client: c}
 	c.Tag = &tag{client: c}
 	c.StorageGateway = &storagegateway{client: c}
+	c.Port = &port{client: c}
 
 	c.IamProject = &iamproject{client: c}
 	c.IamGroup = &iamgroup{client: c}

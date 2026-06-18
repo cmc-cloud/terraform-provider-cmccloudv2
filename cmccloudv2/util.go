@@ -219,6 +219,40 @@ func caseInsensitiveDiffSuppress(k, old, new string, d *schema.ResourceData) boo
 // 	return false
 // }
 
+func IsPublicIP(ipStr string) bool {
+	ip := net.ParseIP(ipStr)
+	if ip == nil {
+		return false
+	}
+
+	// Loopback
+	if ip.IsLoopback() {
+		return false
+	}
+
+	// Private RFC1918
+	if ip.IsPrivate() {
+		return false
+	}
+
+	// Link-local
+	if ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() {
+		return false
+	}
+
+	// Unspecified (0.0.0.0, ::)
+	if ip.IsUnspecified() {
+		return false
+	}
+
+	// Multicast
+	if ip.IsMulticast() {
+		return false
+	}
+
+	return true
+}
+
 func isIpBelongToCidr(ip_str, cidr_str string) (bool, error) {
 	ip := net.ParseIP(ip_str)
 	if ip == nil {
