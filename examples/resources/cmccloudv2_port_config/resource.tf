@@ -9,6 +9,7 @@ data "cmccloudv2_security_group" "default" {
 # config port
 resource "cmccloudv2_port_config" "port1" {
     port_id               = data.cmccloudv2_port.test.id
+    # only pass the attributes you want to update
     name                  = "test_port"
     port_security_enabled = true
     security_group_ids    = ["${data.cmccloudv2_security_group.default.id}"]

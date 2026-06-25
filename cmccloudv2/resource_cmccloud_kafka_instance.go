@@ -44,6 +44,13 @@ func resourceKafkaInstance() *schema.Resource {
 				}
 			}
 
+			// volume_type is required when creating a new instance, not when updating (fixed for old resource)
+			if diff.Id() == "" {
+				if v, ok := diff.GetOk("volume_type"); !ok || v.(string) == "" {
+					return fmt.Errorf("volume_type is required")
+				}
+			}
+
 			return nil
 		},
 	}
@@ -115,6 +122,7 @@ func resourceKafkaInstanceCreate(d *schema.ResourceData, meta interface{}) error
 		// "zone":             zones[0],
 		// "zones":            zones,
 		"flavorId":   d.Get("flavor_id").(string),
+		"volumeType": d.Get("volume_type").(string),
 		"volumeSize": d.Get("volume_size").(int),
 		// "volumeType":       d.Get("volume_type").(string),
 		"networkId": subnet.NetworkID,
@@ -179,6 +187,7 @@ func resourceKafkaInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	// }
 	// _ = d.Set("security_group_ids", securityGroupIds)
 	_ = d.Set("flavor_id", instance.FlavorInfo.ID)
+	setString(d, "volume_type", instance.VolumeType)
 	_ = d.Set("volume_size", instance.VolumeSize)
 	_ = d.Set("subnet_id", instance.SubnetID)
 	_ = d.Set("tags", convertTagsToSet(instance.Tags))

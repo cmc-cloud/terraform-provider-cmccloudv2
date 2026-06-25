@@ -108,6 +108,11 @@ func kafkaInstanceSchema() map[string]*schema.Schema {
 		// 	ForceNew:    true,
 		// 	Description: "The volume type",
 		// },
+		"volume_type": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The name of volume type, required when creating a new instance",
+		},
 		"volume_size": {
 			Type:        schema.TypeInt,
 			Required:    true,
