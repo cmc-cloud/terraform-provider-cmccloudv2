@@ -27,6 +27,7 @@ type OpenSearch struct {
 	Name                        string   `json:"name"`
 	APILbURL                    any      `json:"api_lb_url"`
 	DashboardLbURL              any      `json:"dashboard_lb_url"`
+	VolumeType                  string   `json:"volume_type"`
 	VolumeSize                  int      `json:"volume_size"`
 	Version                     string   `json:"version"`
 	NodeCount                   int      `json:"node_count"`

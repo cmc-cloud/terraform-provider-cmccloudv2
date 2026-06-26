@@ -32,6 +32,12 @@ func opensearchSchema() map[string]*schema.Schema {
 			Required:    true,
 			Description: "The ID of the dashboard node flavor",
 		},
+		"volume_type": {
+			Type:        schema.TypeString,
+			Required:    true,
+			ForceNew:    true,
+			Description: "The name of the volume type",
+		},
 		"volume_size": {
 			Type:        schema.TypeInt,
 			Required:    true,

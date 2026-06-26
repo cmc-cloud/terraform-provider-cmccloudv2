@@ -72,6 +72,13 @@ func resourceOpenSearch() *schema.Resource {
 				}
 			}
 
+			// volume_type is required when creating a new instance, not when updating (fixed for old resource)
+			if diff.Id() == "" {
+				if v, ok := diff.GetOk("volume_type"); !ok || v.(string) == "" {
+					return fmt.Errorf("volume_type is required")
+				}
+			}
+
 			return nil
 		},
 	}
@@ -85,6 +92,7 @@ func resourceOpenSearchCreate(d *schema.ResourceData, meta interface{}) error {
 		"version":                       d.Get("version").(string),
 		"flavor_id":                     d.Get("flavor_id").(string),
 		"dashboard_flavor_id":           d.Get("dashboard_flavor_id").(string),
+		"volume_type":                   d.Get("volume_type").(string),
 		"volume_size":                   d.Get("volume_size").(int),
 		"admin_password":                d.Get("admin_password").(string),
 		"node_count":                    d.Get("node_count").(int),
@@ -155,6 +163,7 @@ func resourceOpenSearchRead(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("name", instance.Name)
 	_ = d.Set("version", instance.Version)
 	_ = d.Set("volume_size", instance.VolumeSize)
+	setString(d, "volume_type", instance.VolumeType)
 	_ = d.Set("api_domain", instance.ApiDomain)
 	_ = d.Set("dashboard_domain", instance.DashboardDomain)
 	_ = d.Set("lb_source_cidrs", instance.LbSourceCidrs)

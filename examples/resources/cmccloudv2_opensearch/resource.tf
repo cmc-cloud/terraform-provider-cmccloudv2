@@ -4,17 +4,21 @@ data "cmccloudv2_opensearch_flavor" "os_small" {
 data "cmccloudv2_opensearch_dashboard_flavor" "dash_small" {
     name = "dash.small"
 }
+data "cmccloudv2_volume_type_database" "ssd" {
+    description = "Database volume (SSD)"
+}
 # create opensearch 
 resource "cmccloudv2_opensearch" "opensearch1" {
     billing_mode                  = "monthly"
     name                          = "os-55ys"
     version                       = "2.19.5"
-    flavor_id                     = data.cmccloudv2_opensearch_flavor.os_small.id
-    dashboard_flavor_id           = data.cmccloudv2_opensearch_dashboard_flavor.dash_small.id
+    flavor_id                     = "${data.cmccloudv2_opensearch_flavor.os_small.id}"
+    dashboard_flavor_id           = "${data.cmccloudv2_opensearch_dashboard_flavor.dash_small.id}"
+    volume_type                   = "${data.cmccloudv2_volume_type_database.ssd.name}"
     volume_size                   = 20
     admin_password                = "SV<9wsb7rhhbapb"
     node_count                    = 2
-    enable_isolate_master         = true
+    enable_isolate_master         = true 
     master_count                  = 3
     dashboard_replicas            = 1
     enable_snapshot               = true
