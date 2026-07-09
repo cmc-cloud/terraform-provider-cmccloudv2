@@ -46,6 +46,7 @@ type Client struct {
 	IamRole                    IamRoleService
 	IamCustomRole              IamCustomRoleService
 	Subnet                     SubnetService
+	VIP                        VIPService
 	EIP                        EIPService
 	ELB                        ELBService
 	EFS                        EFSService
@@ -143,6 +144,7 @@ func NewClient(configs ClientConfigs) (*Client, error) {
 	c.Subnet = &subnet{client: c}
 	c.NetworkInterface = &networkinterface{client: c}
 	c.EIP = &eip{client: c}
+	c.VIP = &vip{client: c}
 	c.ELB = &elb{client: c}
 	c.EFS = &efs{client: c}
 	c.VA = &va{client: c}

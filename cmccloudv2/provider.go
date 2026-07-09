@@ -47,6 +47,8 @@ func Provider() terraform.ResourceProvider {
 			"cmccloudv2_eip":                      resourceEIP(),
 			"cmccloudv2_eip_port_forwarding_rule": resourceEIPPortForwardingRule(),
 			"cmccloudv2_eip_port":                 resourceEIPPort(),
+			"cmccloudv2_vip":                      resourceVIP(),
+			"cmccloudv2_vip_binding":              resourceVIPBinding(),
 
 			"cmccloudv2_port_config": resourcePortConfig(),
 
