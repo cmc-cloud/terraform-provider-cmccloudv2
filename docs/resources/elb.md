@@ -71,6 +71,7 @@ resource "cmccloudv2_elb" "elb_2" {
 
 - `created_at` (String) The creation time of the ELB
 - `id` (String) The ID of this resource.
+- `ip_address` (String) The IP address of the ELB
 - `operating_status` (String) Shows the real runtime health of the load balancer data plane.
 - `provisioning_status` (String) The state of the control-plane operation — in other words, whether load balancer is still creating, updating, or deleting the resource.
 

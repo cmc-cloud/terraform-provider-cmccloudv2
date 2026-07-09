@@ -19,17 +19,21 @@ data "cmccloudv2_opensearch_flavor" "os_small" {
 data "cmccloudv2_opensearch_dashboard_flavor" "dash_small" {
     name = "dash.small"
 }
+data "cmccloudv2_volume_type_database" "ssd" {
+    description = "Database volume (SSD)"
+}
 # create opensearch 
 resource "cmccloudv2_opensearch" "opensearch1" {
     billing_mode                  = "monthly"
     name                          = "os-55ys"
     version                       = "2.19.5"
-    flavor_id                     = data.cmccloudv2_opensearch_flavor.os_small.id
-    dashboard_flavor_id           = data.cmccloudv2_opensearch_dashboard_flavor.dash_small.id
+    flavor_id                     = "${data.cmccloudv2_opensearch_flavor.os_small.id}"
+    dashboard_flavor_id           = "${data.cmccloudv2_opensearch_dashboard_flavor.dash_small.id}"
+    volume_type                   = "${data.cmccloudv2_volume_type_database.ssd.name}"
     volume_size                   = 20
     admin_password                = "SV<9wsb7rhhbapb"
     node_count                    = 2
-    enable_isolate_master         = true
+    enable_isolate_master         = true 
     master_count                  = 3
     dashboard_replicas            = 1
     enable_snapshot               = true
@@ -70,6 +74,7 @@ resource "cmccloudv2_opensearch" "opensearch1" {
 - `node_count` (Number) Number of data nodes in the OpenSearch cluster
 - `version` (String) The version of OpenSearch
 - `volume_size` (Number) The volume size (in GiB) for the OpenSearch cluster
+- `volume_type` (String) The name of the volume type
 
 ### Optional
 
@@ -77,8 +82,8 @@ resource "cmccloudv2_opensearch" "opensearch1" {
 - `dashboard_domain` (String) Dashboard domain name. Changes to this field do NOT trigger resource update. If not set, it will be dashboard-<name>.internal
 - `enable_snapshot` (Boolean) Whether to enable automatic snapshots
 - `enable_storage_autoscaling` (Boolean) Enable storage autoscaling
-- `lb_dashboard_source_cidrs` (String) Dashboard allowed Source CIDRs
-- `lb_source_cidrs` (String) Allowed Source CIDRs
+- `lb_dashboard_source_cidrs` (List of String) Dashboard allowed Source CIDRs
+- `lb_source_cidrs` (List of String) Allowed Source CIDRs
 - `master_count` (Number) Number of master nodes in the OpenSearch cluster. Required if enable_isolate_master is true
 - `rentation_max_age` (Number) Maximum retention age for snapshots (days)
 - `rentation_max_count` (Number) Maximum number of snapshots to retain
