@@ -40,11 +40,12 @@ type KafkaInstance struct {
 	SubnetID          string `json:"subnetId"`
 	Status            string `json:"status"`
 	// DataDetail        KafkaDataDetail `json:"dataDetail"`
-	VpcName    string `json:"vpcName"`
-	SubnetName string `json:"subnetName"`
-	VolumeSize int    `json:"volumeSize"`
-	VolumeType string `json:"volumeType"`
-	FlavorInfo struct {
+	VpcName          string   `json:"vpcName"`
+	SubnetName       string   `json:"subnetName"`
+	VolumeSize       int      `json:"volumeSize"`
+	VolumeType       string   `json:"volumeType"`
+	SecurityGroupIds []string `json:"securityGroupIds"`
+	FlavorInfo       struct {
 		ID   string `json:"id"`
 		Name string `json:"name"`
 	} `json:"flavorInfo"`

@@ -151,15 +151,16 @@ func kafkaInstanceSchema() map[string]*schema.Schema {
 			},
 			Description: "A list of user objects containing username and password. Required if enable_basic_authen is true",
 		},
-		// "security_group_ids": {
-		// 	Type: schema.TypeSet,
-		// 	Elem: &schema.Schema{
-		// 		Type:         schema.TypeString,
-		// 		ValidateFunc: validateUUID,
-		// 	},
-		// 	Optional:    true,
-		// 	Description: "Set of security group IDs that you want to attach to the kafka",
-		// },
+		"security_group_ids": {
+			Type: schema.TypeSet,
+			Elem: &schema.Schema{
+				Type:         schema.TypeString,
+				ValidateFunc: validateUUID,
+			},
+			Optional:    true,
+			ForceNew:    true,
+			Description: "Set of security group IDs that you want to attach to the kafka",
+		},
 		"tags": tagSchema(),
 		"status": {
 			Type:        schema.TypeString,

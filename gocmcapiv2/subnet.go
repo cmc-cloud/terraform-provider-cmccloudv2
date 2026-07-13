@@ -28,6 +28,7 @@ type Subnet struct {
 	IpVersion       int              `json:"ip_version"`
 	EnableDhcp      bool             `json:"enable_dhcp"`
 	GatewayIP       string           `json:"gateway_ip"`
+	RouteTableID    string           `json:"route_table_id"`
 	Cidr            string           `json:"cidr"`
 	AllocationPools []AllocationPool `json:"allocation_pools"`
 	HostRoutes      []HostRoute      `json:"host_routes"`

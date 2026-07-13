@@ -68,6 +68,12 @@ func subnetSchema() map[string]*schema.Schema {
 			ValidateFunc: validateIPAddress,
 			Description:  "The IP address of the gateway. Changing this updates the gateway IP of the existing subnet.",
 		},
+		"route_table_id": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			ValidateFunc: validateUUID,
+			Description:  "The ID of the route table. Changing this updates the route table of the existing subnet.",
+		},
 		"allocation_pools": {
 			Type:     schema.TypeList, // TypeSet => (where ordering doesn’t matter), TypeList (where ordering matters).
 			Optional: true,

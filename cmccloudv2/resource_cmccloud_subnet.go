@@ -35,6 +35,7 @@ func resourceSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		"ip_version":       d.Get("ip_version").(int),
 		"enable_dhcp":      d.Get("enable_dhcp").(bool),
 		"gateway_ip":       d.Get("gateway_ip").(string),
+		"route_table_id":   d.Get("route_table_id").(string),
 		"allocation_pools": d.Get("allocation_pools").([]interface{}),
 		"host_routes":      d.Get("host_routes").([]interface{}),
 		"dns_nameservers":  d.Get("dns_nameservers").([]interface{}),
@@ -65,6 +66,7 @@ func resourceSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("host_routes", convertHostRoutes(subnet.HostRoutes))
 	_ = d.Set("dns_nameservers", subnet.DNSNameservers)
 	_ = d.Set("tags", convertTagsToSet(subnet.Tags))
+	setString(d, "route_table_id", subnet.RouteTableID)
 	_ = d.Set("cidr", subnet.Cidr)
 	return nil
 }
@@ -76,11 +78,19 @@ func resourceSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 	if d.HasChange("cidr") || d.HasChange("vpc_id") || d.HasChange("ip_version") {
 		return errors.New("these fields 'cidr, vpc_id, ip_version' cannot be changed after creation")
 	}
-	if d.HasChange("name") || d.HasChange("enable_dhcp") || d.HasChange("gateway_ip") || d.HasChange("allocation_pools") || d.HasChange("host_routes") || d.HasChange("dns_nameservers") || d.HasChange("tags") {
+	if d.HasChange("name") ||
+		d.HasChange("enable_dhcp") ||
+		d.HasChange("gateway_ip") ||
+		d.HasChange("allocation_pools") ||
+		d.HasChange("host_routes") ||
+		d.HasChange("dns_nameservers") ||
+		d.HasChange("route_table_id") ||
+		d.HasChange("tags") {
 		_, err := client.Subnet.Update(id, map[string]interface{}{
 			"name":             d.Get("name").(string),
 			"enable_dhcp":      d.Get("enable_dhcp").(bool),
 			"gateway_ip":       d.Get("gateway_ip").(string),
+			"route_table_id":   d.Get("route_table_id").(string),
 			"allocation_pools": flatternAllocationPools(d.Get("allocation_pools").([]interface{})),
 			"host_routes":      flatternHostRoutes(d.Get("host_routes").([]interface{})),
 			"dns_nameservers":  d.Get("dns_nameservers").([]interface{}),

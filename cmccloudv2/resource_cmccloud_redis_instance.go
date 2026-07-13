@@ -82,7 +82,8 @@ func resourceRedisInstanceCreate(d *schema.ResourceData, meta interface{}) error
 			"datastoreVersionId": datastoreVersionId,
 			"datastoreModeId":    datastoreModeId,
 		},
-		"datastore_type": datastoreId,
+		"securityGroupIds": getStringArrayFromTypeSet(d.Get("security_group_ids").(*schema.Set)),
+		"datastore_type":   datastoreId,
 	}
 
 	requestMetadata := map[string]interface{}{
@@ -152,13 +153,7 @@ func resourceRedisInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	_ = d.Set("database_engine", instance.DatastoreName)
 	_ = d.Set("database_version", instance.DatastoreVersion)
 	_ = d.Set("database_mode", instance.DatastoreMode)
-
-	// var security_group_ids []string
-	// err = json.Unmarshal([]byte(instance.SecurityClientIds), &security_group_ids)
-	// if err != nil {
-	// 	return fmt.Errorf("error when get info of Redis Database Instance [%s]: %v", d.Id(), err)
-	// }
-	// _ = d.Set("security_group_ids", security_group_ids)
+	setTypeSet(d, "security_group_ids", instance.SecurityGroupIds)
 	_ = d.Set("flavor_id", instance.FlavorID)
 	// _ = d.Set("volume_type",           instance.)
 

@@ -19,6 +19,7 @@ resource "cmccloudv2_kafka_instance" "kafka_instance_cluster" {
     volume_type         = "${data.cmccloudv2_volume_type_database.ssd.id}"
     volume_size         = 20
     enable_basic_authen = true
+    security_group_ids  = ["00d793a9-be8c-464d-9163-b27e1058db0b"]
     users {
         username = "username-1"
         password = "kBTTPrGOfk"

@@ -75,15 +75,16 @@ func redisInstanceSchema() map[string]*schema.Schema {
 			ForceNew:    true,
 			Description: "The number of replicas of the Redis instance, required for Redis Cluster mode",
 		},
-		// "security_group_ids": { // securityGroups
-		// 	Type: schema.TypeSet,
-		// 	Elem: &schema.Schema{
-		// 		Type:         schema.TypeString,
-		// 		ValidateFunc: validateUUID,
-		// 	},
-		// 	Optional:    true,
-		// 	Description: "The security group IDs of the Redis instance",
-		// },
+		"security_group_ids": { // securityGroups
+			Type:        schema.TypeSet,
+			Optional:    true,
+			ForceNew:    true,
+			Description: "The security group IDs of the Redis instance",
+			Elem: &schema.Schema{
+				Type:         schema.TypeString,
+				ValidateFunc: validateUUID,
+			},
+		},
 		"flavor_id": {
 			Type:         schema.TypeString,
 			Required:     true,

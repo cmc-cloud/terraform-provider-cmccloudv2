@@ -52,21 +52,22 @@ type RedisInstanceWrapper struct {
 }
 
 type RedisInstance struct {
-	ID                string `json:"id"`
-	Name              string `json:"name"`
-	DatastoreName     string `json:"datastoreName"`
-	DatastoreVersion  string `json:"datastoreVersion"`
-	DatastoreMode     string `json:"datastoreMode"`
-	GroupConfigID     string `json:"groupConfigId"`
-	SecurityClientIds string `json:"securityClientIds"`
-	SubnetID          string `json:"subnetId"`
-	Status            string `json:"status"`
-	FlavorID          string `json:"flavorId"`
-	SubnetName        string `json:"subnetName"`
-	FlavorName        string `json:"flavorName"`
-	VolumeSize        int    `json:"volumeSize"`
-	Created           string `json:"created"`
-	Updated           string `json:"updated"`
+	ID                string   `json:"id"`
+	Name              string   `json:"name"`
+	DatastoreName     string   `json:"datastoreName"`
+	DatastoreVersion  string   `json:"datastoreVersion"`
+	DatastoreMode     string   `json:"datastoreMode"`
+	GroupConfigID     string   `json:"groupConfigId"`
+	SecurityClientIds string   `json:"securityClientIds"`
+	SubnetID          string   `json:"subnetId"`
+	Status            string   `json:"status"`
+	FlavorID          string   `json:"flavorId"`
+	SubnetName        string   `json:"subnetName"`
+	FlavorName        string   `json:"flavorName"`
+	VolumeSize        int      `json:"volumeSize"`
+	Created           string   `json:"created"`
+	Updated           string   `json:"updated"`
+	SecurityGroupIds  []string `json:"securityGroupIds"`
 	// DataDetail        RedisDataDetailFromString `json:"dataDetail"`
 	Tags []Tag `json:"tags"`
 }

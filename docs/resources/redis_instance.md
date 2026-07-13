@@ -41,7 +41,8 @@ resource "cmccloudv2_redis_instance" "redis_instance_cluster" {
     }
 	database_mode          = "Cluster"
 	replicas               = 1
-	redis_configuration_id = "${data.cmccloudv2_redis_configuration.config_master_slave.id}"
+	redis_configuration_id = "${data.cmccloudv2_redis_configuration.config_master_slave.id}" 
+    security_group_ids     = ["00d793a9-be8c-464d-9163-b27e1058db0b"]
 }
 
 # create redis in Master/Slave mode
@@ -106,6 +107,7 @@ resource "cmccloudv2_redis_instance" "redis_instance_standalone" {
 - `backup_id` (String) The ID of the redis backup
 - `redis_configuration_id` (String) The ID of the Redis configuration of the Redis instance
 - `replicas` (Number) The number of replicas of the Redis instance, required for Redis Cluster mode
+- `security_group_ids` (Set of String) The security group IDs of the Redis instance
 - `tags` (Block Set) (see [below for nested schema](#nestedblock--tags))
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
