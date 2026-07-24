@@ -118,6 +118,12 @@ func kafkaInstanceSchema() map[string]*schema.Schema {
 			Required:    true,
 			Description: "The size of the volume in GB",
 		},
+		"configuration_id": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			ForceNew:    true,
+			Description: "The ID of the Kafka configuration of the Kafka instance",
+		},
 		"broker_quantity": {
 			Type:         schema.TypeInt,
 			Optional:     true,

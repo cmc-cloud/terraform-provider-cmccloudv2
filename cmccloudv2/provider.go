@@ -94,6 +94,7 @@ func Provider() terraform.ResourceProvider {
 			"cmccloudv2_redis_configuration":    resourceDBv2Configuration("Redis"),
 			"cmccloudv2_postgres_configuration": resourceDBv2Configuration("Postgres"),
 			"cmccloudv2_mongo_configuration":    resourceDBv2Configuration("Mongo"),
+			"cmccloudv2_kafka_configuration":    resourceDBv2Configuration("Kafka"),
 
 			"cmccloudv2_mysql_backup":    resourceDBv2Backup("mysql"),
 			"cmccloudv2_redis_backup":    resourceDBv2Backup("redis"),
@@ -190,6 +191,7 @@ func Provider() terraform.ResourceProvider {
 			"cmccloudv2_autoscaling_configuration":   datasourceAutoScalingConfiguration(),
 			"cmccloudv2_autoscaling_group":           datasourceAutoScalingGroup(),
 			"cmccloudv2_redis_configuration":         datasourceRedisConfiguration(),
+			"cmccloudv2_kafka_configuration":         datasourceKafkaConfiguration(),
 			"cmccloudv2_postgres_configuration":      datasourcePostgresConfiguration(),
 			"cmccloudv2_mongo_configuration":         datasourceMongoConfiguration(),
 			"cmccloudv2_mysql_configuration":         datasourceMysqlConfiguration(),

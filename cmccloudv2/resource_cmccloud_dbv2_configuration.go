@@ -42,6 +42,8 @@ func resourceDBv2Configuration(dbType string) *schema.Resource {
 				return mysqlConfigurationSchema()
 			case "Mongo":
 				return mongoConfigurationSchema()
+			case "Kafka":
+				return kafkaConfigurationSchema()
 			default:
 				return dbv2ConfigurationSchema(dbType)
 			}

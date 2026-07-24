@@ -78,6 +78,7 @@ resource "cmccloudv2_kafka_instance" "kafka_instance_standalone" {
 ### Optional
 
 - `broker_quantity` (Number) The quantity of broker, required if mode is cluster and must be >= 3
+- `configuration_id` (String) The ID of the Kafka configuration of the Kafka instance
 - `security_group_ids` (Set of String) Set of security group IDs that you want to attach to the kafka
 - `tags` (Block Set) (see [below for nested schema](#nestedblock--tags))
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))

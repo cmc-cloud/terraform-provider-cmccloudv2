@@ -51,6 +51,12 @@ func datasourceRedisConfiguration() *schema.Resource {
 		Schema: datasourceDBaaSConfigurationSchema(),
 	}
 }
+func datasourceKafkaConfiguration() *schema.Resource {
+	return &schema.Resource{
+		Read:   dataSourceKafkaConfigurationRead,
+		Schema: datasourceDBaaSConfigurationSchema(),
+	}
+}
 func datasourceMysqlConfiguration() *schema.Resource {
 	return &schema.Resource{
 		Read:   dataSourceMysqlConfigurationRead,
@@ -66,6 +72,9 @@ func datasourcePostgresConfiguration() *schema.Resource {
 
 func dataSourceMongoConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	return dataSourceDBaaSConfigurationRead(d, meta, "mongodb")
+}
+func dataSourceKafkaConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+	return dataSourceDBaaSConfigurationRead(d, meta, "kafka")
 }
 func datasourceRedisConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	return dataSourceDBaaSConfigurationRead(d, meta, "redis")

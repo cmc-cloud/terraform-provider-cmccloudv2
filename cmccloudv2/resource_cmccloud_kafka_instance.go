@@ -133,7 +133,8 @@ func resourceKafkaInstanceCreate(d *schema.ResourceData, meta interface{}) error
 			"datastoreVersionId": datastoreVersionId,
 			"datastoreModeId":    datastoreModeId,
 		},
-		"securityGroupIds": getStringArrayFromTypeSet(d.Get("security_group_ids").(*schema.Set)),
+		"securityGroupIds":     getStringArrayFromTypeSet(d.Get("security_group_ids").(*schema.Set)),
+		"groupConfigurationId": d.Get("configuration_id").(string),
 		// "datastore_type": datastoreTypeId,
 	}
 	params["requestMetadata"] = string(metadataJsonData)
@@ -188,6 +189,7 @@ func resourceKafkaInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	// }
 	// _ = d.Set("security_group_ids", securityGroupIds)
 	_ = d.Set("flavor_id", instance.FlavorInfo.ID)
+	setString(d, "configuration_id", instance.ConfigurationID)
 	setString(d, "volume_type", instance.VolumeType)
 	setTypeSet(d, "security_group_ids", instance.SecurityGroupIds)
 	_ = d.Set("volume_size", instance.VolumeSize)

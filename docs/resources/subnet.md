@@ -57,6 +57,7 @@ resource "cmccloudv2_subnet" "subnet_1" {
 - `gateway_ip` (String) The IP address of the gateway. Changing this updates the gateway IP of the existing subnet.
 - `host_routes` (Block List) A list of host routes to be injected into the metadata of the server. Multiple host_routes blocks can be declared (see [below for nested schema](#nestedblock--host_routes))
 - `ip_version` (Number) IP version, either 4 (default) or 6
+- `route_table_id` (String) The ID of the route table. Changing this updates the route table of the existing subnet.
 - `tags` (Block Set) (see [below for nested schema](#nestedblock--tags))
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
