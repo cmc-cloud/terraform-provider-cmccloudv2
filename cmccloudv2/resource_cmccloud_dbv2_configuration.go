@@ -86,9 +86,13 @@ func resourceDBv2ConfigurationRead(d *schema.ResourceData, meta interface{}, dbT
 	_ = d.Set("id", configuration.ID)
 	_ = d.Set("name", configuration.Name)
 	_ = d.Set("description", configuration.Description)
-	_ = d.Set("database_version", configuration.DatastoreVersion)
-	_ = d.Set("database_mode", configuration.DatastoreMode)
-	_ = d.Set("parameters", convertDBv2ConfigurationParameters(configuration.Parameters))
+	if configuration.DatastoreVersion != "" {
+		_ = d.Set("database_version", configuration.DatastoreVersion)
+	}
+	if configuration.DatastoreMode != "" {
+		_ = d.Set("database_mode", configuration.DatastoreMode)
+	}
+	// _ = d.Set("parameters", convertDBv2ConfigurationParameters(configuration.Parameters))
 	return nil
 }
 

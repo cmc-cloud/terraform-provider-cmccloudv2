@@ -16,7 +16,6 @@ description: |-
 # create master_slave kafka configuration
 resource "cmccloudv2_kafka_configuration" "kafka_conf_1" {   
     name             = "kafka-config-5sac"
-    database_engine  = "Kafka"
     database_version = "3.7"
     database_mode    = "single_node"
     description      = "template for Single Node kafka database"
@@ -28,7 +27,6 @@ resource "cmccloudv2_kafka_configuration" "kafka_conf_1" {
 # create cluster kafka configuration
 resource "cmccloudv2_kafka_configuration" "kafka_conf_2" {   
     name             = "kafka-config-a38d"
-    database_engine  = "Kafka"
     database_version = "3.7"
     database_mode    = "cluster"
     description      = "template for Cluster kafka database"
@@ -51,7 +49,6 @@ resource "cmccloudv2_kafka_configuration" "kafka_conf_2" {
 
 ### Optional
 
-- `database_engine` (String) The database engine of the Kafka configuration, Kafka
 - `description` (String) The description of the Kafka configuration
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 

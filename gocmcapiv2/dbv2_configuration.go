@@ -101,6 +101,8 @@ func (s *dbv2configuration) ListDatastore(dbType string, params map[string]strin
 		dbType = "redis"
 	case strings.Contains(strings.ToLower(dbType), "mysql"):
 		dbType = "mysql"
+	case strings.Contains(strings.ToLower(dbType), "kafka"):
+		dbType = "kafka"
 	}
 	jsonStr, err := s.client.Get("cloudops-core/api/v1/dbaas/datastore?datastoreCode="+dbType, params)
 	var obj DatastoreListWrapper

@@ -16,7 +16,7 @@ resource "cmccloudv2_redis_instance" "redis_instance_cluster" {
     database_version       = "6.0"
     zones                  = ["AZ3", "AZ2"]
     flavor_id              = "${data.cmccloudv2_flavor_dbaas.flavor_dbaas.id}"
-    volume_type            = "${data.cmccloudv2_volume_type.ssd.id}"
+    volume_type            = "${data.cmccloudv2_volume_type.ssd.name}"
     volume_size            = 20
     subnet_id              = "036f3b55-2ff8-4350-9fc0-4baf12deca03"
     password               = "5k9DJoK1FqDQShwgocmqkZ23DIlFOaa"
@@ -57,7 +57,7 @@ resource "cmccloudv2_redis_instance" "redis_instance_standalone" {
     database_version   = "6.0"
     zones              = ["AZ1"]
     flavor_id          = "${data.cmccloudv2_flavor_dbaas.flavor_dbaas.id}"
-    volume_type        = "${data.cmccloudv2_volume_type.ssd.id}"
+    volume_type        = "${data.cmccloudv2_volume_type.ssd.name}"
     volume_size        = 20
     subnet_id          = "036f3b55-2ff8-4350-9fc0-4baf12deca03"
     password           = "5k9DJoK1FqDQShwgocmqkZ23DIlFOaa"

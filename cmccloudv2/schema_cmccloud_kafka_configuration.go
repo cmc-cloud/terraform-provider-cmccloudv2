@@ -13,12 +13,12 @@ func kafkaConfigurationSchema() map[string]*schema.Schema {
 			ValidateFunc: validateName,
 			Description:  "The name of the Redis configuration",
 		},
-		"database_engine": {
-			Type:         schema.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.NoZeroValues,
-			Description:  "The database engine of the Kafka configuration, Kafka",
-		},
+		// "database_engine": {
+		// 	Type:         schema.TypeString,
+		// 	Optional:     true,
+		// 	ValidateFunc: validation.NoZeroValues,
+		// 	Description:  "The database engine of the Kafka configuration, Kafka",
+		// },
 		"database_version": {
 			Type:         schema.TypeString,
 			Required:     true,
