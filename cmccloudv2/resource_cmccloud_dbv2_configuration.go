@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cmc-cloud/terraform-provider-cmccloudv2/gocmcapiv2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -96,6 +95,15 @@ func resourceDBv2ConfigurationRead(d *schema.ResourceData, meta interface{}, dbT
 	return nil
 }
 
+//	func convertDBv2ConfigurationParameters(obj []gocmcapiv2.DBv2ConfigurationParameter) map[string]interface{} {
+//		result := map[string]interface{}{}
+//		index := 0
+//		for _, param := range obj {
+//			result[param.Name] = param.Value
+//			index++
+//		}
+//		return result
+//	}
 func resourceDBv2ConfigurationUpdate(d *schema.ResourceData, meta interface{}, dbType string) error {
 	client := meta.(*CombinedConfig).goCMCClient()
 	id := d.Id()
@@ -136,15 +144,6 @@ func resourceDBv2ConfigurationImport(d *schema.ResourceData, meta interface{}, d
 	return []*schema.ResourceData{d}, err
 }
 
-func convertDBv2ConfigurationParameters(obj []gocmcapiv2.DBv2ConfigurationParameter) map[string]interface{} {
-	result := map[string]interface{}{}
-	index := 0
-	for _, param := range obj {
-		result[param.Name] = param.Value
-		index++
-	}
-	return result
-}
 func waitUntilDBaaSConfigurationDeleted(d *schema.ResourceData, meta interface{}) (interface{}, error) {
 	return waitUntilResourceDeleted(d, meta, WaitConf{
 		Delay:      10 * time.Second,
