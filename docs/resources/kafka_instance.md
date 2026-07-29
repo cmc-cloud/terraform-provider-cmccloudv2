@@ -41,7 +41,7 @@ resource "cmccloudv2_kafka_instance" "kafka_instance_cluster" {
     zones               = ["AZ1", "AZ3"]
     flavor_id           = "${data.cmccloudv2_flavor_kafka.flavor_kafka.id}"
     subnet_id           = "00d793a9-be8c-464d-9163-b27e1058db0b"
-    volume_type         = "${data.cmccloudv2_volume_type_database.ssd.id}"
+    volume_type         = "${data.cmccloudv2_volume_type_database.ssd.name}"
     volume_size         = 20
     enable_basic_authen = true
     security_group_ids  = ["00d793a9-be8c-464d-9163-b27e1058db0b"]
@@ -65,7 +65,7 @@ resource "cmccloudv2_kafka_instance" "kafka_instance_standalone" {
     zones               = ["AZ1"]
     flavor_id           = "${data.cmccloudv2_flavor_kafka.flavor_kafka.id}"
     subnet_id           = "00d793a9-be8c-464d-9163-b27e1058db0b"
-    volume_type         = "${data.cmccloudv2_volume_type_database.ssd.id}"
+    volume_type         = "${data.cmccloudv2_volume_type_database.ssd.name}"
     volume_size         = 20
     configuration_id    = "${data.cmccloudv2_kafka_configuration.config_single_node.id}"
     enable_basic_authen = false
