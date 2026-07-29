@@ -71,7 +71,12 @@ func resourceDBv2ConfigurationCreate(d *schema.ResourceData, meta interface{}, d
 	if err != nil {
 		return fmt.Errorf("error creating %s configuration: %s", dbType, err)
 	}
-	d.SetId(configuration.ID)
+
+	if configuration.ID != "" {
+		d.SetId(configuration.ID)
+	} else {
+		d.SetId(configuration.GroupConfigId)
+	}
 	return resourceDBv2ConfigurationRead(d, meta, dbType)
 }
 
