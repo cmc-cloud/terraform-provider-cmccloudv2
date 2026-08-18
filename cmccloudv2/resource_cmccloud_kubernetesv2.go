@@ -2,6 +2,8 @@ package cmccloudv2
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/cmc-cloud/terraform-provider-cmccloudv2/gocmcapiv2"
@@ -56,28 +58,33 @@ func resourceKubernetesv2Create(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("error receving subnet with id = %s: %v", d.Get("subnet_id").(string), err)
 	}
 
+	vpc, err := client.VPC.Get(subnet.VpcID)
+	if err != nil {
+		return fmt.Errorf("error receving vpc with id = %s: %v", subnet.VpcID, err)
+	}
+
 	params := map[string]interface{}{
-		"billingMode":                 d.Get("billing_mode").(string),
-		"region":                      client.Configs.RegionId,
-		"project":                     client.Configs.ProjectId,
-		"name":                        d.Get("name").(string),
-		"zone":                        d.Get("zone").(string),
-		"subnetId":                    d.Get("subnet_id").(string),
-		"vpcId":                       subnet.NetworkID,
-		"version":                     d.Get("kubernetes_version").(string),
-		"replicas":                    d.Get("master_count").(int),
-		"masterFlavorId":              d.Get("master_flavor_name").(string),
-		"cidrBlockNode":               subnet.Cidr,
-		"cidrBlockPod":                d.Get("cidr_block_pod").(string),
-		"cidrBlockService":            d.Get("cidr_block_service").(string),
-		"clusterNetworkServiceDomain": d.Get("network_driver").(string),
-		"nodeMaskCidr":                d.Get("node_mask_cidr").(int),
-		// "isNTP":                            d.Get("ntp_enabled").(bool),
+		"billingMode":                      d.Get("billing_mode").(string),
+		"region":                           client.Configs.RegionId,
+		"project":                          client.Configs.ProjectId,
+		"name":                             d.Get("name").(string),
+		"zone":                             d.Get("zone").(string),
+		"subnetId":                         d.Get("subnet_id").(string),
+		"vpcId":                            subnet.NetworkID,
+		"version":                          d.Get("kubernetes_version").(string),
+		"replicas":                         d.Get("master_count").(int),
+		"masterFlavorId":                   d.Get("master_flavor_name").(string),
+		"cidrBlockNode":                    strings.Split(vpc.Cidr, "/")[0] + "/" + strconv.Itoa(d.Get("node_mask_cidr").(int)),
+		"cidrBlockPod":                     d.Get("cidr_block_pod").(string),
+		"cidrBlockService":                 d.Get("cidr_block_service").(string),
+		"clusterNetworkServiceDomain":      d.Get("network_driver").(string),
+		"nodeMaskCidr":                     d.Get("node_mask_cidr").(int),
 		"ntpServers":                       flatternNtpServers(d),
 		"clusterNetworkServicesCidrBlocks": "",
 		"clusterNetworkApiServerPort":      "",
 		"rolloutStrategyType":              "",
 		"rolloutStrategyMaxSurge":          "",
+		// "isNTP":                            d.Get("ntp_enabled").(bool),
 		// "workerNumberEstimate":             d.Get("max_node_count").(int),
 	}
 
