@@ -132,7 +132,7 @@ func resourceKubernetesv2NodeGroupCreate(d *schema.ResourceData, meta interface{
 	params["volumeType"] = d.Get("volume_type").(string)
 	params["volumeSize"] = d.Get("volume_size").(int)
 	params["billingMode"] = d.Get("billing_mode").(string)
-	params["networkID"] = networkId
+	params["networkId"] = networkId
 	// params["isNTP"] = d.Get("ntp_enabled").(bool)
 	params["ntpServers"] = flatternNtpServers(d)
 	// params["cidrBlockPod"] = d.Get("cidr_block_pod").(string)
