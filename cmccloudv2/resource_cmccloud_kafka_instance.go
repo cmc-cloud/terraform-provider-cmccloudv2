@@ -153,6 +153,12 @@ func resourceKafkaInstanceCreate(d *schema.ResourceData, meta interface{}) error
 	if err != nil {
 		return fmt.Errorf("error creating Kafka Instance: %s", err)
 	}
+	if d.Get("enable_ssl").(bool) {
+		err := updateSSL(d, meta, true)
+		if err != nil {
+			return err
+		}
+	}
 
 	// securityGroupIds := d.Get("security_group_ids").(*schema.Set)
 	// for _, security_group_id := range securityGroupIds.List() {
@@ -210,6 +216,14 @@ func resourceKafkaInstanceUpdate(d *schema.ResourceData, meta interface{}) error
 			return fmt.Errorf("error when set kafka tags [%s]: %v", id, err)
 		}
 	}
+
+	if d.HasChange("enable_ssl") {
+		err := updateSSL(d, meta, d.Get("enable_ssl").(bool))
+		if err != nil {
+			return err
+		}
+	}
+
 	if d.HasChange("users") {
 		oldRaw, newRaw := d.GetChange("users")
 		oldUsers := oldRaw.([]interface{})
@@ -328,6 +342,30 @@ func resourceKafkaInstanceUpdate(d *schema.ResourceData, meta interface{}) error
 
 	return resourceKafkaInstanceRead(d, meta)
 }
+func updateSSL(d *schema.ResourceData, meta interface{}, enableSSL bool) error {
+	client := meta.(*CombinedConfig).goCMCClient()
+	id := d.Id()
+	if enableSSL {
+		_, err := client.KafkaInstance.EnableSSL(id)
+		if err != nil {
+			return err
+		}
+		_, err = waitUntilKafkaInstanceSSLChanged(d, meta, "enabled")
+		if err != nil {
+			return err
+		}
+	} else {
+		_, err := client.KafkaInstance.DisableSSL(id)
+		if err != nil {
+			return err
+		}
+		_, err = waitUntilKafkaInstanceSSLChanged(d, meta, "disabled")
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 //	func checkSecurityGroupConflict(d *schema.ResourceData, meta interface{}) error {
 //		securityGroupIds := getStringArrayFromTypeSet(d.Get("security_group_ids").(*schema.Set))
@@ -422,33 +460,18 @@ func waitUntilKafkaUserFound(d *schema.ResourceData, meta interface{}, username 
 	})
 }
 
-// func waitUntilKafkaInstanceAttachFinished(d *schema.ResourceData, meta interface{}, securityGroupId string) (interface{}, error) {
-// 	return waitUntilResourceStatusChanged(d, meta, []string{"true"}, []string{"error"}, WaitConf{
-// 		Timeout:    40 * time.Second,
-// 		Delay:      5 * time.Second,
-// 		MinTimeout: 5 * time.Second,
-// 	}, func(id string) (any, error) {
-// 		return getClient(meta).KafkaInstance.Get(id)
-// 	}, func(obj interface{}) string {
-// 		instance := obj.(gocmcapiv2.KafkaInstance)
-// 		if strings.Contains(instance.SecurityClientIds, securityGroupId) {
-// 			return "true"
-// 		}
-// 		return ""
-// 	})
-// }
-// func waitUntilKafkaInstanceDetachFinished(d *schema.ResourceData, meta interface{}, securityGroupId string) (interface{}, error) {
-// 	return waitUntilResourceStatusChanged(d, meta, []string{"true"}, []string{"error"}, WaitConf{
-// 		Timeout:    40 * time.Second,
-// 		Delay:      5 * time.Second,
-// 		MinTimeout: 5 * time.Second,
-// 	}, func(id string) (any, error) {
-// 		return getClient(meta).KafkaInstance.Get(id)
-// 	}, func(obj interface{}) string {
-// 		instance := obj.(gocmcapiv2.KafkaInstance)
-// 		if !strings.Contains(instance.SecurityClientIds, securityGroupId) {
-// 			return "true"
-// 		}
-// 		return ""
-// 	})
-// }
+func waitUntilKafkaInstanceSSLChanged(d *schema.ResourceData, meta interface{}, status string) (interface{}, error) {
+	return waitUntilResourceStatusChanged(d, meta, []string{status}, []string{}, WaitConf{
+		Timeout:    1 * time.Minute,
+		Delay:      10 * time.Second,
+		MinTimeout: 20 * time.Second,
+	}, func(id string) (any, error) {
+		return getClient(meta).KafkaInstance.GetSSL(id)
+	}, func(obj interface{}) string {
+		instanceSSL, ok := obj.(*gocmcapiv2.InstanceSSL)
+		if !ok || instanceSSL == nil {
+			return "enabled"
+		}
+		return "disabled"
+	})
+}

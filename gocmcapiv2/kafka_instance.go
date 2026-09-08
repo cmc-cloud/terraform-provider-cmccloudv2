@@ -7,6 +7,7 @@ import (
 // KafkaInstanceService interface
 type KafkaInstanceService interface {
 	Get(id string) (KafkaInstance, error)
+	GetSSL(id string) (InstanceSSL, error)
 	List(params map[string]string) ([]KafkaInstance, error)
 	ListDatastore() ([]Datastore, error)
 	Create(params map[string]interface{}) (KafkaInstanceCreateResponse, error)
@@ -21,6 +22,8 @@ type KafkaInstanceService interface {
 	UpdateTopic(id string, topicId string, partitions int, retentionDay int) (ActionResponse, error)
 	DeleteTopic(id string, topicId string) (ActionResponse, error)
 
+	EnableSSL(id string) (ActionResponse, error)
+	DisableSSL(id string) (ActionResponse, error)
 	CreateUser(id string, username string, password string) (ActionResponse, error)
 	DeleteUser(id string, username string) (ActionResponse, error)
 }
@@ -60,6 +63,20 @@ type KafkaTopicWrapper struct {
 	Data KafkaTopic `json:"data"`
 }
 
+type InstanceSSL struct {
+	ConnectionInfo struct {
+		CaCrt             string `json:"ca.crt"`
+		SslTruststore     string `json:"ssl.truststore"`
+		SaslMechanism     string `json:"sasl.mechanism"`
+		SslTruststoreType string `json:"ssl.truststore.type"`
+	} `json:"connectionInfo"`
+	CreatedAt string `json:"createdAt"`
+	UpdatedAt string `json:"updatedAt"`
+}
+
+type InstanceSSLWrapper struct {
+	Data InstanceSSL `json:"data"`
+}
 type KafkaTopic struct {
 	Name string `json:"name"`
 }
@@ -102,6 +119,20 @@ func (v *kafkainstance) Get(id string) (KafkaInstance, error) {
 	err = json.Unmarshal([]byte(jsonStr), &obj)
 	if err != nil {
 		return KafkaInstance{}, err
+	}
+	return obj.Data, err
+}
+
+// Get kafkainstance ssl detail
+func (v *kafkainstance) GetSSL(id string) (InstanceSSL, error) {
+	jsonStr, err := v.client.Get("cloudops-core/api/v1/dbaas/instance/"+id+"/ssl", map[string]string{"v": "2"})
+	var obj InstanceSSLWrapper
+	if err != nil {
+		return InstanceSSL{}, err
+	}
+	err = json.Unmarshal([]byte(jsonStr), &obj)
+	if err != nil {
+		return InstanceSSL{}, err
 	}
 	return obj.Data, err
 }
@@ -307,4 +338,15 @@ func (v *kafkainstance) DeleteUser(id string, username string) (ActionResponse, 
 		},
 	}
 	return v.performAction(id, "db_action", params)
+}
+
+func (v *kafkainstance) EnableSSL(id string) (ActionResponse, error) {
+	return v.client.PerformUpdate("cloudops-core/api/v1/dbaas/instances/"+id, map[string]interface{}{
+		"isEnabledSsl": true,
+	})
+}
+func (v *kafkainstance) DisableSSL(id string) (ActionResponse, error) {
+	return v.client.PerformUpdate("cloudops-core/api/v1/dbaas/instances/"+id, map[string]interface{}{
+		"isEnabledSsl": false,
+	})
 }

@@ -135,6 +135,11 @@ func kafkaInstanceSchema() map[string]*schema.Schema {
 			Required:    true,
 			Description: "True if you want to enable basic authen",
 		},
+		"enable_ssl": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "True if you want to enable ssl",
+		},
 		"users": {
 			Type:     schema.TypeList,
 			Optional: true,
